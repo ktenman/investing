@@ -1,1 +1,1 @@
-mvn install && java -jar target/*.jar
+git pull && mvn install && java -jar target/*.jar
