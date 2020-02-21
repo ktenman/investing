@@ -54,7 +54,8 @@ public class GoogleService {
     @Value("private_key_id.txt")
     ClassPathResource privateKeyId;
 
-    @Scheduled(cron = "0 0/5 * * * *")
+//    @Scheduled(cron = "0 0/5 * * * *")
+    @Scheduled(cron = "0/5 * * * * *")
     public void run() {
 
         try {
