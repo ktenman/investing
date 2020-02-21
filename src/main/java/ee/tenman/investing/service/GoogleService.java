@@ -28,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,7 +43,6 @@ public class GoogleService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GoogleService.class);
     private static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
-    private static final String RANGE = "investing!B1:C3";
     private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
     private static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
@@ -62,7 +62,7 @@ public class GoogleService {
         try {
             sheetsService = createSheetsService();
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
-            ValueRange investingResponse = getValueRange();
+            ValueRange investingResponse = getValueRange("investing!B1:C3");
             BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
 
             BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
@@ -70,6 +70,31 @@ public class GoogleService {
                     .execute();
 
             LOG.info("{}", response);
+        } catch (Exception e){
+            LOG.error("Error ", e);
+        }
+    }
+
+    @Scheduled(cron = "0 29 * * * *")
+    @Scheduled(cron = "0 59 * * * *")
+    public void updateCrypto() {
+
+        try {
+            sheetsService = createSheetsService();
+
+            String cryptoFinanceUpdateCell = "investing!A1";
+            ValueRange valueRange = getValueRange(cryptoFinanceUpdateCell);
+
+            boolean newBooleanValue = !(Boolean) valueRange.getValues().get(0).get(0);
+            ValueRange body = new ValueRange()
+                    .setValues(Arrays.asList(Arrays.asList(newBooleanValue)));
+            UpdateValuesResponse result =
+                    sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
+                            .setValueInputOption("RAW")
+                            .execute();
+            System.out.printf("%d cells updated.", result.getUpdatedCells());
+
+            LOG.info("{}", "response");
         } catch (Exception e){
             LOG.error("Error ", e);
         }
@@ -135,9 +160,9 @@ public class GoogleService {
         return batchRequests;
     }
 
-    private ValueRange getValueRange() throws IOException {
+    private ValueRange getValueRange(String range) throws IOException {
         Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, RANGE);
+                sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, range);
         getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
         getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
 
