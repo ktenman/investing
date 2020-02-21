@@ -17,15 +17,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,7 @@ import static java.lang.Math.abs;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.stream.Collectors.joining;
 
 @Component
 public class GoogleService {
@@ -172,10 +174,8 @@ public class GoogleService {
 
     private String getPrivateKeyId() {
 
-        try {
-            File resource = new ClassPathResource(privateKeyId.getPath()).getFile();
-            byte[] bytes = Files.readAllBytes(resource.toPath());
-            return new String(bytes);
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(privateKeyId.getInputStream()))) {
+            return buffer.lines().collect(joining(""));
         } catch (IOException e) {
             LOG.error("getPrivateKeyId ", e);
             return null;
