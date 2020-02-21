@@ -56,80 +56,83 @@ public class GoogleService {
     @Value("private_key_id.txt")
     ClassPathResource privateKeyId;
 
-//    @Scheduled(cron = "0 0/5 * * * *")
-    @Scheduled(cron = "0/5 * * * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     public void run() {
 
         try {
             sheetsService = createSheetsService();
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
             ValueRange investingResponse = getValueRange();
-
-            // third request
-            Integer sheetID = spreadsheetResponse.getSheets().get(1).getProperties().getSheetId();
-            BigDecimal annualReturn = (BigDecimal) investingResponse.getValues().get(0).get(0);
-            BigDecimal profit = (BigDecimal) investingResponse.getValues().get(1).get(0);
-            BigDecimal totalSavingsAmount =  (BigDecimal) investingResponse.getValues().get(2).get(0);
-            BigDecimal currentTimeFromSpreadSheet = (BigDecimal) investingResponse.getValues().get(2).get(1);
-            Instant timeFromInvesting =  Instant.ofEpochSecond(
-                    currentTimeFromSpreadSheet.subtract(BigDecimal.valueOf(25569))
-                            .multiply(BigDecimal.valueOf(24))
-                            .multiply(BigDecimal.valueOf(60))
-                            .multiply(BigDecimal.valueOf(60)).longValue())
-                    .minus(2, HOURS);
-
-            List<RowData> rowData = new ArrayList<>();
-            List<CellData> cellData = new ArrayList<>();
-
-            CellData annualReturnCell = new CellData();
-            annualReturnCell.setUserEnteredValue(new ExtendedValue().setNumberValue(annualReturn.doubleValue()));
-            annualReturnCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
-            cellData.add(annualReturnCell);
-
-            CellData profitCell = new CellData();
-            profitCell.setUserEnteredValue(new ExtendedValue().setNumberValue(profit.doubleValue()));
-            cellData.add(profitCell);
-
-            CellData areaField = new CellData();
-            areaField.setUserEnteredValue(new ExtendedValue().setNumberValue(totalSavingsAmount.doubleValue()));
-            cellData.add(areaField);
-
-            CellData currentTimeFromSpreadSheetCell = new CellData();
-            currentTimeFromSpreadSheetCell.setUserEnteredValue(new ExtendedValue().setNumberValue(currentTimeFromSpreadSheet.doubleValue()));
-            currentTimeFromSpreadSheetCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
-            cellData.add(currentTimeFromSpreadSheetCell);
-
-            Instant now = Instant.now();
-            CellData machineDateTimeCell = new CellData();
-            machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond()/86400.0+25569));
-            machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
-            cellData.add(machineDateTimeCell);
-
-            CellData updateDifferenceInSeconds = new CellData();
-            long duration = abs(between(now, timeFromInvesting).get(SECONDS));
-            updateDifferenceInSeconds.setUserEnteredValue(new ExtendedValue().setNumberValue((double) duration));
-            cellData.add(updateDifferenceInSeconds);
-
-            rowData.add(new RowData().setValues(cellData));
-
-            AppendCellsRequest appendCellRequest = new AppendCellsRequest();
-            appendCellRequest.setSheetId(sheetID);
-            appendCellRequest.setRows(rowData);
-            appendCellRequest.setFields("userEnteredValue,userEnteredFormat.numberFormat");
-
-            List<Request> requests = new ArrayList<>();
-            requests.add(new Request().setAppendCells(appendCellRequest));
-            BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
-            batchRequests.setRequests(requests);
+            BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
 
             BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
-                    .batchUpdate(SPREAD_SHEET_ID, batchRequests)
+                    .batchUpdate(SPREAD_SHEET_ID, batchRequest)
                     .execute();
 
             LOG.info("{}", response);
         } catch (Exception e){
             LOG.error("Error ", e);
         }
+    }
+
+    private BatchUpdateSpreadsheetRequest buildBatchRequest(Spreadsheet spreadsheetResponse, ValueRange investingResponse) {
+        Integer sheetID = spreadsheetResponse.getSheets().get(1).getProperties().getSheetId();
+        BigDecimal annualReturn = (BigDecimal) investingResponse.getValues().get(0).get(0);
+        BigDecimal profit = (BigDecimal) investingResponse.getValues().get(1).get(0);
+        BigDecimal totalSavingsAmount =  (BigDecimal) investingResponse.getValues().get(2).get(0);
+        BigDecimal currentTimeFromSpreadSheet = (BigDecimal) investingResponse.getValues().get(2).get(1);
+        Instant timeFromInvesting =  Instant.ofEpochSecond(
+                currentTimeFromSpreadSheet.subtract(BigDecimal.valueOf(25569))
+                        .multiply(BigDecimal.valueOf(24))
+                        .multiply(BigDecimal.valueOf(60))
+                        .multiply(BigDecimal.valueOf(60)).longValue())
+                .minus(2, HOURS);
+
+        List<RowData> rowData = new ArrayList<>();
+        List<CellData> cellData = new ArrayList<>();
+
+        CellData annualReturnCell = new CellData();
+        annualReturnCell.setUserEnteredValue(new ExtendedValue().setNumberValue(annualReturn.doubleValue()));
+        annualReturnCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
+        cellData.add(annualReturnCell);
+
+        CellData profitCell = new CellData();
+        profitCell.setUserEnteredValue(new ExtendedValue().setNumberValue(profit.doubleValue()));
+        cellData.add(profitCell);
+
+        CellData areaField = new CellData();
+        areaField.setUserEnteredValue(new ExtendedValue().setNumberValue(totalSavingsAmount.doubleValue()));
+        cellData.add(areaField);
+
+        CellData currentTimeFromSpreadSheetCell = new CellData();
+        currentTimeFromSpreadSheetCell.setUserEnteredValue(new ExtendedValue().setNumberValue(currentTimeFromSpreadSheet.doubleValue()));
+        currentTimeFromSpreadSheetCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
+        cellData.add(currentTimeFromSpreadSheetCell);
+
+        Instant now = Instant.now();
+        CellData machineDateTimeCell = new CellData();
+        machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond()/86400.0+25569));
+        machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
+        cellData.add(machineDateTimeCell);
+
+        CellData updateDifferenceInSeconds = new CellData();
+        long duration = abs(between(now, timeFromInvesting).get(SECONDS));
+        updateDifferenceInSeconds.setUserEnteredValue(new ExtendedValue().setNumberValue((double) duration));
+        cellData.add(updateDifferenceInSeconds);
+
+        rowData.add(new RowData().setValues(cellData));
+
+        AppendCellsRequest appendCellRequest = new AppendCellsRequest();
+        appendCellRequest.setSheetId(sheetID);
+        appendCellRequest.setRows(rowData);
+        appendCellRequest.setFields("userEnteredValue,userEnteredFormat.numberFormat");
+
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request().setAppendCells(appendCellRequest));
+        BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
+        batchRequests.setRequests(requests);
+
+        return batchRequests;
     }
 
     private ValueRange getValueRange() throws IOException {
