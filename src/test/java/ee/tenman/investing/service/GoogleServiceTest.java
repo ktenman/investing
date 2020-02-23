@@ -1,6 +1,6 @@
 package ee.tenman.investing.service;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
@@ -12,9 +12,9 @@ class GoogleServiceTest {
     GoogleService googleService;
 
 
-    @Test
-    void testRun() {
-        googleService.removeCells();
+    @Disabled
+    void removeCells() {
+//        googleService.removeCells();
     }
 
 
