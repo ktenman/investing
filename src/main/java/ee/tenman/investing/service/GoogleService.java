@@ -119,7 +119,7 @@ public class GoogleService {
         }
     }
 
-    @Scheduled(cron = "30 4/5 * * * *")
+    @Scheduled(cron = "55 4/5 * * * *")
     public void updateCrypto() {
 
         try {
