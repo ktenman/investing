@@ -75,8 +75,51 @@ public class GoogleService {
         }
     }
 
-    @Scheduled(cron = "0 29 * * * *")
-    @Scheduled(cron = "0 59 * * * *")
+    public void removeCells() {
+
+        try {
+            sheetsService = createSheetsService();
+            Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
+
+            SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
+
+            Integer sheetID = properties.getSheetId();
+
+            Sheets.Spreadsheets.Values.Get getInvestingRequest =
+                    sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
+            getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
+            getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
+
+            ValueRange valueRange = getInvestingRequest.execute();
+
+            String maximum = valueRange.getRange().split(":")[1].replaceAll("[^\\d.]", "");
+            int setEndIndex = Integer.parseInt(maximum);
+
+            DeleteDimensionRequest deleteDimensionRequest = new DeleteDimensionRequest();
+            DimensionRange dimensionRange = new DimensionRange();
+            dimensionRange.setSheetId(sheetID);
+            dimensionRange.setDimension("ROWS");
+            dimensionRange.setStartIndex(1000);
+            dimensionRange.setEndIndex(setEndIndex);
+
+            deleteDimensionRequest.setRange(dimensionRange);
+
+            List<Request> requests = new ArrayList<>();
+            requests.add(new Request().setDeleteDimension(deleteDimensionRequest));
+            BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
+            batchRequests.setRequests(requests);
+
+            BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
+                    .batchUpdate(SPREAD_SHEET_ID, batchRequests)
+                    .execute();
+
+            LOG.info("{}", response);
+        } catch (Exception e){
+            LOG.error("Error ", e);
+        }
+    }
+
+    @Scheduled(cron = "30 4/5 * * * *")
     public void updateCrypto() {
 
         try {
