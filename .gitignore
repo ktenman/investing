@@ -5,6 +5,8 @@ target/
 !**/src/test/**
 src/main/resources/private_key.txt
 src/main/resources/private_key_id.txt
+src/test/resources/private_key.txt
+src/test/resources/private_key_id.txt
 
 ### STS ###
 .apt_generated

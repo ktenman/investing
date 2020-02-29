@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +59,8 @@ public class GoogleService {
     ClassPathResource privateKeyId;
 
     @Scheduled(cron = "0 0/5 * * * *")
-    public void run() {
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
+    public void run() throws Exception {
 
         try {
             sheetsService = createSheetsService();
@@ -72,6 +75,7 @@ public class GoogleService {
             LOG.info("{}", response);
         } catch (Exception e){
             LOG.error("Error ", e);
+            throw new Exception(e.getMessage());
         }
     }
 
@@ -120,11 +124,11 @@ public class GoogleService {
     }
 
     @Scheduled(cron = "55 4/5 * * * *")
-    public void updateCrypto() {
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
+    public void updateCrypto() throws Exception {
 
         try {
             sheetsService = createSheetsService();
-
             String cryptoFinanceUpdateCell = "investing!A1";
             ValueRange valueRange = getValueRange(cryptoFinanceUpdateCell);
 
@@ -140,6 +144,7 @@ public class GoogleService {
             LOG.info("{}", "response");
         } catch (Exception e){
             LOG.error("Error ", e);
+            throw new Exception(e.getMessage());
         }
     }
 

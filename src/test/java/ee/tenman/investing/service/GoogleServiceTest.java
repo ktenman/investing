@@ -11,11 +11,9 @@ class GoogleServiceTest {
     @Resource
     GoogleService googleService;
 
-
     @Disabled
     void removeCells() {
 //        googleService.removeCells();
     }
-
 
 }
