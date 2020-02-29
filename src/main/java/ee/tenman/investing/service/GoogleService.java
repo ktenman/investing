@@ -123,7 +123,7 @@ public class GoogleService {
         }
     }
 
-    @Scheduled(cron = "55 4/5 * * * *")
+    @Scheduled(cron = "50 4/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
     public void updateCrypto() throws Exception {
 
