@@ -8,8 +8,24 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.*;
+import com.google.api.services.sheets.v4.model.AppendCellsRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetResponse;
+import com.google.api.services.sheets.v4.model.CellData;
+import com.google.api.services.sheets.v4.model.CellFormat;
+import com.google.api.services.sheets.v4.model.DeleteDimensionRequest;
+import com.google.api.services.sheets.v4.model.DimensionRange;
+import com.google.api.services.sheets.v4.model.ExtendedValue;
+import com.google.api.services.sheets.v4.model.NumberFormat;
+import com.google.api.services.sheets.v4.model.Request;
+import com.google.api.services.sheets.v4.model.RowData;
+import com.google.api.services.sheets.v4.model.SheetProperties;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
+import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
+import com.google.api.services.sheets.v4.model.ValueRange;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.compare.ComparableUtils;
+import org.paukov.combinatorics3.Generator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,8 +47,14 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
@@ -58,6 +80,8 @@ public class GoogleService {
     @Value("private_key_id.txt")
     ClassPathResource privateKeyId;
 
+    private BigDecimal leftOverAmount;
+
     @Scheduled(cron = "0 0/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
     public void run() throws Exception {
@@ -68,19 +92,34 @@ public class GoogleService {
             ValueRange investingResponse = getValueRange("investing!B1:C3");
             BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
 
+            ValueRange investingResponse2 = getValueRange("investing!E29:F32");
+            buildBatchRequest(spreadsheetResponse, investingResponse2);
+
             BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
                     .batchUpdate(SPREAD_SHEET_ID, batchRequest)
                     .execute();
 
             LOG.info("{}", response);
-        } catch (Exception e){
+        } catch (Exception e) {
+            LOG.error("Error ", e);
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    @Scheduled(cron = "30 0/3 * * * *")
+    @Retryable(value = {Exception.class}, backoff = @Backoff(delay = 200))
+    public void updateSumOfTickers() throws Exception {
+
+        try {
+            sheetsService = createSheetsService();
+            updateTickerAmounts();
+        } catch (Exception e) {
             LOG.error("Error ", e);
             throw new Exception(e.getMessage());
         }
     }
 
     public void removeCells() {
-
         try {
             sheetsService = createSheetsService();
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
@@ -139,8 +178,7 @@ public class GoogleService {
                     sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
                             .setValueInputOption("RAW")
                             .execute();
-            System.out.printf("%d cells updated.", result.getUpdatedCells());
-
+            LOG.info("{} cells updated", result.getUpdatedCells());
             LOG.info("{}", "response");
         } catch (Exception e){
             LOG.error("Error ", e);
@@ -206,6 +244,92 @@ public class GoogleService {
         batchRequests.setRequests(requests);
 
         return batchRequests;
+    }
+
+    private void updateTickerAmounts() throws IOException {
+        ValueRange valueRange = getValueRange("investing!E29:F32");
+
+        List<Integer> numbers = IntStream.rangeClosed(0, 20).boxed().collect(Collectors.toList());
+        List<List<Integer>> combinations = Generator.combination(numbers)
+                .multi(4)
+                .stream()
+                .collect(Collectors.toList());
+
+        Map<String, BigDecimal> values = new HashMap<>();
+        for (int i = 0; i < valueRange.getValues().size(); i++) {
+            values.put(
+                    (String) valueRange.getValues().get(i).get(0),
+                    (BigDecimal) valueRange.getValues().get(i).get(1)
+            );
+        }
+
+        leftOverAmount = (BigDecimal) getValueRange("investing!Q28:Q28").getValues().get(0).get(0);
+
+        List<List<String>> tickerCombinations = Generator.permutation(values.keySet())
+                .simple()
+                .stream()
+                .collect(Collectors.toList());
+
+        List<Map<String, BigDecimal>> temporaryResult = new ArrayList<>();
+
+        for (List<String> tickerCombination : tickerCombinations) {
+            for (String s : tickerCombination) {
+                for (List<Integer> combination : combinations) {
+                    Map<String, BigDecimal> mapResult = new HashMap<>();
+                    for (int i = 0; i < combination.size(); i++) {
+                        String key = tickerCombination.get(i);
+                        BigDecimal multiply = values.get(key).multiply(BigDecimal.valueOf(combination.get(i)));
+                        mapResult.put(key, multiply);
+                    }
+                    temporaryResult.add(mapResult);
+                }
+            }
+        }
+
+        Map<String, BigDecimal> finalCombination = temporaryResult.stream()
+                .filter(this::filter)
+                .sorted(Comparator.comparing(Map::values, this::compare))
+                .limit(1)
+                .findFirst()
+                .orElse(null);
+
+        Map<String, Integer> tickerAndAmount = new HashMap<>();
+        for (Map.Entry<String, BigDecimal> entry : finalCombination.entrySet()) {
+            int countOfTicker = entry.getValue().divide(values.get(entry.getKey()), BigDecimal.ROUND_UNNECESSARY).intValue();
+            tickerAndAmount.put(entry.getKey(), countOfTicker);
+        }
+
+        List<Object> collect = getValueRange("investing!E29:E32")
+                .getValues()
+                .stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        HashMap<String, String> objectObjectHashMap = new HashMap<>();
+        for (int i = 0; i < collect.size(); i++) {
+            String key = (String) collect.get(i);
+            objectObjectHashMap.put(key, "investing!R" + (29 + i));
+        }
+
+        for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
+            String cryptoFinanceUpdateCell = e.getValue();
+            ValueRange body = new ValueRange()
+                    .setValues(Arrays.asList(Arrays.asList(tickerAndAmount.get(e.getKey()))));
+            sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+        }
+
+    }
+
+    private int compare(Collection<BigDecimal> a, Collection<BigDecimal> b) {
+        return b.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                .compareTo(a.stream().reduce(BigDecimal.ZERO, BigDecimal::add));
+    }
+
+    private boolean filter(Map<String, BigDecimal> map) {
+        BigDecimal sum = map.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return ComparableUtils.is(sum).lessThanOrEqualTo(leftOverAmount) && ComparableUtils.is(sum).greaterThan(BigDecimal.ZERO);
     }
 
     private ValueRange getValueRange(String range) throws IOException {
