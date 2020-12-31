@@ -106,7 +106,10 @@ public class GoogleService {
         }
     }
 
-    @Scheduled(cron = "30 * * * * *")
+    @Scheduled(cron = "10 * * * * *")
+    @Scheduled(cron = "25 * * * * *")
+    @Scheduled(cron = "40 * * * * *")
+    @Scheduled(cron = "55 * * * * *")
     @Retryable(value = {Exception.class}, backoff = @Backoff(delay = 200))
     public void updateSumOfTickers() throws Exception {
 
