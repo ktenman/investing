@@ -94,9 +94,6 @@ public class GoogleService {
             ValueRange investingResponse = getValueRange("investing!B1:C3");
             BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
 
-            ValueRange investingResponse2 = getValueRange("investing!E29:F32");
-            buildBatchRequest(spreadsheetResponse, investingResponse2);
-
             BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
                     .batchUpdate(SPREAD_SHEET_ID, batchRequest)
                     .execute();
