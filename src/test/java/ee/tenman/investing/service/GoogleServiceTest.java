@@ -27,5 +27,4 @@ class GoogleServiceTest {
         googleService.run();
         System.out.println("Time: " + ((System.nanoTime() - startTime) / 1.000_000_000) + "s");
     }
-
 }

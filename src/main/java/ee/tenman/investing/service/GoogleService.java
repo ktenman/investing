@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -53,8 +54,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -251,11 +250,7 @@ public class GoogleService {
     private void updateTickerAmounts() throws IOException {
         ValueRange valueRange = getValueRange("investing!E29:F32");
 
-        List<Integer> numbers = IntStream.rangeClosed(0, 20).boxed().collect(Collectors.toList());
-        List<List<Integer>> combinations = Generator.combination(numbers)
-                .multi(4)
-                .stream()
-                .collect(Collectors.toList());
+        leftOverAmount = (BigDecimal) getValueRange("investing!Q28:Q28").getValues().get(0).get(0);
 
         Map<String, BigDecimal> values = new HashMap<>();
         for (int i = 0; i < valueRange.getValues().size(); i++) {
@@ -265,7 +260,15 @@ public class GoogleService {
             );
         }
 
-        leftOverAmount = (BigDecimal) getValueRange("investing!Q28:Q28").getValues().get(0).get(0);
+        BigDecimal min = values.values().stream().min(Comparator.naturalOrder()).orElse(null);
+
+        int maxTickerAmount = leftOverAmount.divide(min, RoundingMode.DOWN).intValue();
+
+        List<Integer> numbers = IntStream.rangeClosed(0, maxTickerAmount).boxed().collect(Collectors.toList());
+        List<List<Integer>> combinations = Generator.combination(numbers)
+                .multi(4)
+                .stream()
+                .collect(Collectors.toList());
 
         List<List<String>> tickerCombinations = Generator.permutation(values.keySet())
                 .simple()
@@ -313,14 +316,13 @@ public class GoogleService {
             objectObjectHashMap.put(key, "investing!R" + (29 + i));
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(4);
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
             String cryptoFinanceUpdateCell = e.getValue();
             ValueRange body = new ValueRange()
                     .setValues(Arrays.asList(Arrays.asList(tickerAndAmount.get(e.getKey()))));
-            executorService.submit(() -> sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
+            sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
                     .setValueInputOption("RAW")
-                    .execute());
+                    .execute();
         }
 
     }
