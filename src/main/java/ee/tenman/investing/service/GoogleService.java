@@ -53,6 +53,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -314,13 +316,14 @@ public class GoogleService {
             objectObjectHashMap.put(key, "investing!R" + (29 + i));
         }
 
+        ExecutorService executorService = Executors.newFixedThreadPool(4);
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
             String cryptoFinanceUpdateCell = e.getValue();
             ValueRange body = new ValueRange()
                     .setValues(Arrays.asList(Arrays.asList(tickerAndAmount.get(e.getKey()))));
-            sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
+            executorService.submit(() -> sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
                     .setValueInputOption("RAW")
-                    .execute();
+                    .execute());
         }
 
     }

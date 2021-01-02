@@ -14,8 +14,10 @@ class GoogleServiceTest {
 
     @Disabled
     @Test
-    void removeCells() throws Exception {
+    void updateSumOfTickers() throws Exception {
+        long startTime = System.nanoTime();
         googleService.updateSumOfTickers();
+        System.out.println("Time: " + ((System.nanoTime() - startTime) / 1.000_000_000) + "s");
     }
 
 }
