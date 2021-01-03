@@ -317,10 +317,10 @@ public class GoogleService {
         }
 
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
-            String cryptoFinanceUpdateCell = e.getValue();
+            String updateCell = e.getValue();
             ValueRange body = new ValueRange()
                     .setValues(Arrays.asList(Arrays.asList(tickerAndAmount.get(e.getKey()))));
-            sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
+            sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, updateCell, body)
                     .setValueInputOption("RAW")
                     .execute();
         }
