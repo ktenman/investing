@@ -22,6 +22,14 @@ class GoogleServiceTest {
 
     @Disabled
     @Test
+    void refreshCryptoPrices() throws Exception {
+        long startTime = System.nanoTime();
+        googleService.refreshCryptoPrices();
+        System.out.println("Time: " + ((System.nanoTime() - startTime) / 1.000_000_000) + "s");
+    }
+
+    @Disabled
+    @Test
     void run() throws Exception {
         long startTime = System.nanoTime();
         googleService.run();

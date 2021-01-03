@@ -33,8 +33,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,13 +58,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static ee.tenman.investing.service.CoinMarketCapService.BINANCE_COIN_ID;
+import static ee.tenman.investing.service.CoinMarketCapService.CRO_ID;
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
 
-@Component
+@Service
 public class GoogleService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GoogleService.class);
@@ -82,6 +85,9 @@ public class GoogleService {
     ClassPathResource privateKeyId;
 
     private BigDecimal leftOverAmount;
+    @Resource
+    CoinMarketCapService coinMarketCapService;
+    private BigDecimal usdToEur;
 
     @Scheduled(cron = "0 0/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
@@ -181,7 +187,36 @@ public class GoogleService {
                             .execute();
             LOG.info("{} cells updated", result.getUpdatedCells());
             LOG.info("{}", "response");
-        } catch (Exception e){
+        } catch (Exception e) {
+            LOG.error("Error ", e);
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    @Scheduled(cron = "50 4/5 * * * *")
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    public void refreshCryptoPrices() throws Exception {
+
+        try {
+            sheetsService = createSheetsService();
+            usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
+            Map<String, BigDecimal> prices = coinMarketCapService.getPrices(BINANCE_COIN_ID, CRO_ID);
+
+            Map<String, String> cryptoCellsMap = new HashMap<>();
+            cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
+            cryptoCellsMap.put(CRO_ID, "investing!G22:G22");
+
+            for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
+                BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
+                String updateCell = e.getValue();
+                ValueRange body = new ValueRange()
+                        .setValues(Arrays.asList(Arrays.asList(value)));
+                sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, updateCell, body)
+                        .setValueInputOption("RAW")
+                        .execute();
+            }
+
+        } catch (Exception e) {
             LOG.error("Error ", e);
             throw new Exception(e.getMessage());
         }
@@ -191,9 +226,9 @@ public class GoogleService {
         Integer sheetID = spreadsheetResponse.getSheets().get(1).getProperties().getSheetId();
         BigDecimal annualReturn = (BigDecimal) investingResponse.getValues().get(0).get(0);
         BigDecimal profit = (BigDecimal) investingResponse.getValues().get(1).get(0);
-        BigDecimal totalSavingsAmount =  (BigDecimal) investingResponse.getValues().get(2).get(0);
+        BigDecimal totalSavingsAmount = (BigDecimal) investingResponse.getValues().get(2).get(0);
         BigDecimal currentTimeFromSpreadSheet = (BigDecimal) investingResponse.getValues().get(2).get(1);
-        Instant timeFromInvesting =  Instant.ofEpochSecond(
+        Instant timeFromInvesting = Instant.ofEpochSecond(
                 currentTimeFromSpreadSheet.subtract(BigDecimal.valueOf(25569))
                         .multiply(BigDecimal.valueOf(24))
                         .multiply(BigDecimal.valueOf(60))
