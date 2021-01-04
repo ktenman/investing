@@ -21,7 +21,6 @@ import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
-import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.compare.ComparableUtils;
@@ -49,7 +48,6 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -165,29 +163,6 @@ public class GoogleService {
             LOG.info("{}", response);
         } catch (Exception e){
             LOG.error("Error ", e);
-        }
-    }
-
-    @Scheduled(cron = "50 4/5 * * * *")
-    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
-    public void updateCrypto() throws Exception {
-
-        try {
-            String cryptoFinanceUpdateCell = "investing!A1";
-            ValueRange valueRange = getValueRange(cryptoFinanceUpdateCell);
-
-            boolean newBooleanValue = !(Boolean) valueRange.getValues().get(0).get(0);
-            ValueRange body = new ValueRange()
-                    .setValues(Arrays.asList(Arrays.asList(newBooleanValue)));
-            UpdateValuesResponse result =
-                    sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, cryptoFinanceUpdateCell, body)
-                            .setValueInputOption("RAW")
-                            .execute();
-            LOG.info("{} cells updated", result.getUpdatedCells());
-            LOG.info("{}", "response");
-        } catch (Exception e) {
-            LOG.error("Error ", e);
-            throw new Exception(e.getMessage());
         }
     }
 
@@ -437,9 +412,8 @@ public class GoogleService {
             // extract the private key
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pkcs8EncodedBytes);
             KeyFactory kf = KeyFactory.getInstance("RSA");
-            PrivateKey privKey = kf.generatePrivate(keySpec);
-            System.out.println(privKey);
-            return privKey;
+            PrivateKey privateKey = kf.generatePrivate(keySpec);
+            return privateKey;
         } catch (Exception e){
             return null;
         }
