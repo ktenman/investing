@@ -85,9 +85,9 @@ public class GoogleService {
     CoinMarketCapService coinMarketCapService;
     @Resource
     GoogleSheetsClient googleSheetsClient;
+
     @Scheduled(cron = "0 0/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-
     public void run() throws Exception {
 
         try {
