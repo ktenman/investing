@@ -43,6 +43,7 @@ public class CoinMarketCapService {
                     .split(" ")[0];
             prices.put(ticker, new BigDecimal(priceAsString));
         }
+        closeWebDriver();
         return prices;
     }
 }
