@@ -76,35 +76,25 @@ public class GoogleService {
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
     private Sheets sheetsService;
-
     @Value("private_key.txt")
     ClassPathResource privateKey;
-
     @Value("private_key_id.txt")
     ClassPathResource privateKeyId;
-
     private BigDecimal leftOverAmount;
-
     @Resource
     CoinMarketCapService coinMarketCapService;
-
     @Resource
     GoogleSheetsClient googleSheetsClient;
-
     @Scheduled(cron = "0 0/5 * * * *")
-    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+
     public void run() throws Exception {
 
         try {
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
             ValueRange investingResponse = getValueRange("investing!B1:C3");
             BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
-
-            BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
-                    .batchUpdate(SPREAD_SHEET_ID, batchRequest)
-                    .execute();
-
-            LOG.info("{}", response);
+            googleSheetsClient.update(sheetsService, batchRequest);
         } catch (Exception e) {
             LOG.error("Error ", e);
             throw new Exception(e.getMessage());
