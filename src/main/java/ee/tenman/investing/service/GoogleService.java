@@ -86,8 +86,8 @@ public class GoogleService {
     @Resource
     GoogleSheetsClient googleSheetsClient;
 
-    @Scheduled(cron = "0 0/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Scheduled(cron = "0 0/5 * * * *")
     public void run() throws Exception {
 
         try {
