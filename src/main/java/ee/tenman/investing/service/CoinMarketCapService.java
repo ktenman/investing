@@ -3,6 +3,8 @@ package ee.tenman.investing.service;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import org.openqa.selenium.By;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,7 +22,7 @@ public class CoinMarketCapService {
     public static final String BINANCE_COIN_ID = "Binance Coin";
     public static final String CRO_ID = "Crypto.com Coin";
 
-
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public Map<String, BigDecimal> getPrices(String... tickers) {
         Configuration.startMaximized = true;
         Configuration.headless = true;

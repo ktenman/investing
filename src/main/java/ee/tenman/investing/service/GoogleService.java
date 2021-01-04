@@ -35,6 +35,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -70,7 +71,7 @@ import static java.util.stream.Collectors.joining;
 public class GoogleService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GoogleService.class);
-    private static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
+    public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
     private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
     private static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
@@ -85,16 +86,18 @@ public class GoogleService {
     ClassPathResource privateKeyId;
 
     private BigDecimal leftOverAmount;
+
     @Resource
     CoinMarketCapService coinMarketCapService;
-    private BigDecimal usdToEur;
+
+    @Resource
+    GoogleSheetsClient googleSheetsClient;
 
     @Scheduled(cron = "0 0/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 200))
     public void run() throws Exception {
 
         try {
-            sheetsService = createSheetsService();
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
             ValueRange investingResponse = getValueRange("investing!B1:C3");
             BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
@@ -111,14 +114,11 @@ public class GoogleService {
     }
 
     @Scheduled(cron = "10 * * * * *")
-    @Scheduled(cron = "25 * * * * *")
     @Scheduled(cron = "40 * * * * *")
-    @Scheduled(cron = "55 * * * * *")
     @Retryable(value = {Exception.class}, backoff = @Backoff(delay = 200))
     public void updateSumOfTickers() throws Exception {
 
         try {
-            sheetsService = createSheetsService();
             updateTickerAmounts();
         } catch (Exception e) {
             LOG.error("Error ", e);
@@ -128,7 +128,6 @@ public class GoogleService {
 
     public void removeCells() {
         try {
-            sheetsService = createSheetsService();
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
 
             SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
@@ -174,7 +173,6 @@ public class GoogleService {
     public void updateCrypto() throws Exception {
 
         try {
-            sheetsService = createSheetsService();
             String cryptoFinanceUpdateCell = "investing!A1";
             ValueRange valueRange = getValueRange(cryptoFinanceUpdateCell);
 
@@ -198,8 +196,7 @@ public class GoogleService {
     public void refreshCryptoPrices() throws Exception {
 
         try {
-            sheetsService = createSheetsService();
-            usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
+            BigDecimal usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
             Map<String, BigDecimal> prices = coinMarketCapService.getPrices(BINANCE_COIN_ID, CRO_ID);
 
             Map<String, String> cryptoCellsMap = new HashMap<>();
@@ -209,11 +206,7 @@ public class GoogleService {
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
                 String updateCell = e.getValue();
-                ValueRange body = new ValueRange()
-                        .setValues(Arrays.asList(Arrays.asList(value)));
-                sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, updateCell, body)
-                        .setValueInputOption("RAW")
-                        .execute();
+                googleSheetsClient.update(sheetsService, updateCell, value);
             }
 
         } catch (Exception e) {
@@ -353,11 +346,8 @@ public class GoogleService {
 
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
             String updateCell = e.getValue();
-            ValueRange body = new ValueRange()
-                    .setValues(Arrays.asList(Arrays.asList(tickerAndAmount.get(e.getKey()))));
-            sheetsService.spreadsheets().values().update(SPREAD_SHEET_ID, updateCell, body)
-                    .setValueInputOption("RAW")
-                    .execute();
+            Integer value = tickerAndAmount.get(e.getKey());
+            googleSheetsClient.update(sheetsService, updateCell, value);
         }
 
     }
@@ -390,12 +380,13 @@ public class GoogleService {
         return spreadsheetRequest.execute();
     }
 
-    public Sheets createSheetsService() throws IOException, GeneralSecurityException {
+    @PostConstruct
+    public void createSheetsService() throws IOException, GeneralSecurityException {
         HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
         Credential httpRequestInitializer = authorizeWithServiceAccount();
-        return new Sheets.Builder(httpTransport, jsonFactory, httpRequestInitializer)
+        sheetsService = new Sheets.Builder(httpTransport, jsonFactory, httpRequestInitializer)
                 .setApplicationName("Google-SheetsSample/0.1")
                 .build();
     }
