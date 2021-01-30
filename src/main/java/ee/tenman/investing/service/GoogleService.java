@@ -86,24 +86,24 @@ public class GoogleService {
     @Resource
     GoogleSheetsClient googleSheetsClient;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
-    public void run() throws Exception {
-
-        try {
-            Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
-            ValueRange investingResponse = getValueRange("investing!B1:C3");
-            BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
-            googleSheetsClient.update(sheetsService, batchRequest);
-        } catch (Exception e) {
-            LOG.error("Error ", e);
-            throw new Exception(e.getMessage());
+    public void run() {
+        Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
+        if (spreadsheetResponse == null) {
+            return;
         }
+        ValueRange investingResponse = getValueRange("investing!B1:C3");
+        if (investingResponse == null) {
+            return;
+        }
+        BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
+        googleSheetsClient.update(sheetsService, batchRequest);
     }
 
     @Scheduled(cron = "10 * * * * *")
     @Scheduled(cron = "40 * * * * *")
-    @Retryable(value = {Exception.class}, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
     public void updateSumOfTickers() throws Exception {
 
         try {
@@ -151,13 +151,13 @@ public class GoogleService {
                     .execute();
 
             LOG.info("{}", response);
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.error("Error ", e);
         }
     }
 
-    @Scheduled(cron = "25 0/3 * * * *")
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    @Scheduled(cron = "25 21 * * * *")
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 300))
     public void refreshCryptoPrices() throws Exception {
 
         try {
@@ -216,7 +216,7 @@ public class GoogleService {
 
         Instant now = Instant.now();
         CellData machineDateTimeCell = new CellData();
-        machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond()/86400.0+25569));
+        machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond() / 86400.0 + 25569));
         machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
         cellData.add(machineDateTimeCell);
 
@@ -327,22 +327,30 @@ public class GoogleService {
         return ComparableUtils.is(sum).lessThanOrEqualTo(leftOverAmount) && ComparableUtils.is(sum).greaterThan(BigDecimal.ZERO);
     }
 
-    private ValueRange getValueRange(String range) throws IOException {
-        Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, range);
-        getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
-        getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
-
-        return getInvestingRequest.execute();
+    private ValueRange getValueRange(String range) {
+        try {
+            Sheets.Spreadsheets.Values.Get getInvestingRequest =
+                    sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, range);
+            getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
+            getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
+            return getInvestingRequest.execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    public Spreadsheet getSpreadSheetResponse() throws IOException {
-        boolean includeGridData = false;
-        Sheets.Spreadsheets.Get spreadsheetRequest = sheetsService.spreadsheets().get(SPREAD_SHEET_ID);
-        spreadsheetRequest.setRanges(new ArrayList<>());
-        spreadsheetRequest.setIncludeGridData(includeGridData);
-
-        return spreadsheetRequest.execute();
+    public Spreadsheet getSpreadSheetResponse() {
+        try {
+            boolean includeGridData = false;
+            Sheets.Spreadsheets.Get spreadsheetRequest = sheetsService.spreadsheets().get(SPREAD_SHEET_ID);
+            spreadsheetRequest.setRanges(new ArrayList<>());
+            spreadsheetRequest.setIncludeGridData(includeGridData);
+            return spreadsheetRequest.execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @PostConstruct
@@ -361,8 +369,8 @@ public class GoogleService {
         return new GoogleCredential.Builder()
                 .setTransport(GoogleNetHttpTransport.newTrustedTransport())
                 .setJsonFactory(JacksonFactory.getDefaultInstance())
-                .setServiceAccountId( "splendid-myth-268820@appspot.gserviceaccount.com" )
-                .setServiceAccountScopes( Collections.singletonList(SheetsScopes.SPREADSHEETS) )
+                .setServiceAccountId("splendid-myth-268820@appspot.gserviceaccount.com")
+                .setServiceAccountScopes(Collections.singletonList(SheetsScopes.SPREADSHEETS))
                 .setServiceAccountPrivateKeyId(getPrivateKeyId())
                 .setServiceAccountPrivateKey(buildPrivateKey())
                 .build();
@@ -404,7 +412,7 @@ public class GoogleService {
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PrivateKey privateKey = kf.generatePrivate(keySpec);
             return privateKey;
-        } catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }

@@ -34,12 +34,16 @@ public class GoogleSheetsClient {
     }
 
     @Async
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-    public void update(Sheets sheetsService, BatchUpdateSpreadsheetRequest batchRequest) throws IOException {
-        BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
-                .batchUpdate(SPREAD_SHEET_ID, batchRequest)
-                .execute();
-        LOG.info("{}", response);
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
+    public void update(Sheets sheetsService, BatchUpdateSpreadsheetRequest batchRequest) {
+        try {
+            BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
+                    .batchUpdate(SPREAD_SHEET_ID, batchRequest)
+                    .execute();
+            LOG.info("{}", response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
