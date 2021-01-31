@@ -20,6 +20,7 @@ import static com.codeborne.selenide.Selenide.open;
 public class CoinMarketCapService {
 
     public static final String BINANCE_COIN_ID = "Binance Coin";
+    public static final String POLKADOT_ID = "Polkadot";
     public static final String CRO_ID = "Crypto.com Coin";
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))

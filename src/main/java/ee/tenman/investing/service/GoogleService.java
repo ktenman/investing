@@ -59,6 +59,7 @@ import java.util.stream.IntStream;
 
 import static ee.tenman.investing.service.CoinMarketCapService.BINANCE_COIN_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.CRO_ID;
+import static ee.tenman.investing.service.CoinMarketCapService.POLKADOT_ID;
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -162,11 +163,12 @@ public class GoogleService {
 
         try {
             BigDecimal usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
-            Map<String, BigDecimal> prices = coinMarketCapService.getPrices(BINANCE_COIN_ID, CRO_ID);
+            Map<String, BigDecimal> prices = coinMarketCapService.getPrices(BINANCE_COIN_ID, CRO_ID, POLKADOT_ID);
 
             Map<String, String> cryptoCellsMap = new HashMap<>();
             cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
             cryptoCellsMap.put(CRO_ID, "investing!G22:G22");
+            cryptoCellsMap.put(POLKADOT_ID, "investing!G23:G23");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
