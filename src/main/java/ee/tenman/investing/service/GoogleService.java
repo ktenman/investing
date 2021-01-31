@@ -61,6 +61,7 @@ import static ee.tenman.investing.service.CoinMarketCapService.BINANCE_COIN_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.BITCOIN_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.CRO_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.POLKADOT_ID;
+import static ee.tenman.investing.service.CoinMarketCapService.SUSHI_SWAP_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.UNISWAP_ID;
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
@@ -78,6 +79,14 @@ public class GoogleService {
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
+    private static final String[] TICKERS_TO_FETCH = {
+            BINANCE_COIN_ID,
+            BITCOIN_ID,
+            CRO_ID,
+            POLKADOT_ID,
+            SUSHI_SWAP_ID,
+            UNISWAP_ID,
+    };
     private Sheets sheetsService;
     @Value("private_key.txt")
     ClassPathResource privateKey;
@@ -165,7 +174,7 @@ public class GoogleService {
 
         try {
             BigDecimal usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
-            Map<String, BigDecimal> prices = coinMarketCapService.getPrices(BINANCE_COIN_ID, CRO_ID, POLKADOT_ID, UNISWAP_ID, BITCOIN_ID);
+            Map<String, BigDecimal> prices = coinMarketCapService.getPrices(TICKERS_TO_FETCH);
 
             Map<String, String> cryptoCellsMap = new HashMap<>();
             cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
@@ -173,6 +182,7 @@ public class GoogleService {
             cryptoCellsMap.put(POLKADOT_ID, "investing!G23:G23");
             cryptoCellsMap.put(UNISWAP_ID, "investing!G24:G24");
             cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
+            cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
