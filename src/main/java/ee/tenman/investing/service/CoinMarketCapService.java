@@ -25,6 +25,7 @@ public class CoinMarketCapService {
     public static final String UNISWAP_ID = "Uniswap";
     public static final String BITCOIN_ID = "Bitcoin";
     public static final String SUSHI_SWAP_ID = "SushiSwap";
+    public static final String SYNTHETIX_ID = "Synthetix";
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public Map<String, BigDecimal> getPrices(String... tickers) {

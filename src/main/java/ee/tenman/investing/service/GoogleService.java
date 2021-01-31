@@ -62,6 +62,7 @@ import static ee.tenman.investing.service.CoinMarketCapService.BITCOIN_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.CRO_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.POLKADOT_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.SUSHI_SWAP_ID;
+import static ee.tenman.investing.service.CoinMarketCapService.SYNTHETIX_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.UNISWAP_ID;
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
@@ -85,6 +86,7 @@ public class GoogleService {
             CRO_ID,
             POLKADOT_ID,
             SUSHI_SWAP_ID,
+            SYNTHETIX_ID,
             UNISWAP_ID,
     };
     private Sheets sheetsService;
@@ -183,6 +185,7 @@ public class GoogleService {
             cryptoCellsMap.put(UNISWAP_ID, "investing!G24:G24");
             cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
             cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
+            cryptoCellsMap.put(SYNTHETIX_ID, "investing!G27:G27");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
