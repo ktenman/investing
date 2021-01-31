@@ -22,6 +22,8 @@ public class CoinMarketCapService {
     public static final String BINANCE_COIN_ID = "Binance Coin";
     public static final String POLKADOT_ID = "Polkadot";
     public static final String CRO_ID = "Crypto.com Coin";
+    public static final String UNISWAP_ID = "Uniswap";
+    public static final String BITCOIN_ID = "Bitcoin";
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public Map<String, BigDecimal> getPrices(String... tickers) {
@@ -40,6 +42,7 @@ public class CoinMarketCapService {
             String priceAsString = selenideElements.find(text(ticker))
                     .text()
                     .replace("\n", " ")
+                    .replace(",", "")
                     .split("\\$")[1]
                     .split(" ")[0];
             prices.put(ticker, new BigDecimal(priceAsString));
