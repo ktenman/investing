@@ -159,7 +159,6 @@ public class GoogleService {
 
     @Scheduled(cron = "25 21 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 300))
-    @PostConstruct
     public void refreshCryptoPrices() throws Exception {
 
         try {

@@ -22,7 +22,6 @@ public class GoogleSheetsClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(GoogleSheetsClient.class);
 
-    @Async
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     public void update(Sheets sheetsService, String updateCell, Object requestBody) throws IOException {
         ValueRange value = new ValueRange()
