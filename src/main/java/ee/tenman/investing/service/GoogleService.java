@@ -257,9 +257,9 @@ public class GoogleService {
     }
 
     private void updateTickerAmounts() throws IOException {
-        ValueRange valueRange = getValueRange("investing!E29:F32");
+        ValueRange valueRange = getValueRange("investing!E31:F34");
 
-        leftOverAmount = (BigDecimal) getValueRange("investing!Q28:Q28").getValues().get(0).get(0);
+        leftOverAmount = (BigDecimal) getValueRange("investing!Q30:Q30").getValues().get(0).get(0);
 
         Map<String, BigDecimal> values = new HashMap<>();
         for (int i = 0; i < valueRange.getValues().size(); i++) {
@@ -313,7 +313,7 @@ public class GoogleService {
             tickerAndAmount.put(entry.getKey(), countOfTicker);
         }
 
-        List<Object> collect = getValueRange("investing!E29:E32")
+        List<Object> collect = getValueRange("investing!E31:E34")
                 .getValues()
                 .stream()
                 .flatMap(List::stream)
@@ -322,7 +322,7 @@ public class GoogleService {
         HashMap<String, String> objectObjectHashMap = new HashMap<>();
         for (int i = 0; i < collect.size(); i++) {
             String key = (String) collect.get(i);
-            objectObjectHashMap.put(key, "investing!R" + (29 + i));
+            objectObjectHashMap.put(key, "investing!R" + (31 + i));
         }
 
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
