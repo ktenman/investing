@@ -7,6 +7,10 @@ src/main/resources/private_key.txt
 src/main/resources/private_key_id.txt
 src/test/resources/private_key.txt
 src/test/resources/private_key_id.txt
+src/main/resources/binance_api_key.txt
+src/main/resources/binance_secret_key.txt
+src/test/resources/binance_api_key.txt
+src/test/resources/binance_secret_key.txt
 
 ### STS ###
 .apt_generated
