@@ -102,7 +102,7 @@ public class GoogleService {
     @Resource
     GoogleSheetsClient googleSheetsClient;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
     public void run() {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
@@ -119,7 +119,7 @@ public class GoogleService {
 
     @Scheduled(cron = "10 * * * * *")
     @Scheduled(cron = "40 * * * * *")
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     public void updateSumOfTickers() throws Exception {
 
         try {
@@ -172,8 +172,8 @@ public class GoogleService {
         }
     }
 
-    @Scheduled(cron = "59 0/10 * * * *")
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 300))
+    @Scheduled(cron = "59 0/5 * * * *")
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public void refreshCryptoPrices() throws Exception {
 
         try {
