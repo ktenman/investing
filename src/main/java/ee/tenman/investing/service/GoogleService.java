@@ -22,11 +22,10 @@ import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.retry.annotation.Backoff;
@@ -72,9 +71,9 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
 
 @Service
+@Slf4j
 public class GoogleService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GoogleService.class);
     public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
     private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
     private static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
@@ -125,7 +124,7 @@ public class GoogleService {
         try {
             updateTickerAmounts();
         } catch (Exception e) {
-            LOG.error("Error ", e);
+            log.error("Error ", e);
             throw new Exception(e.getMessage());
         }
     }
@@ -166,9 +165,9 @@ public class GoogleService {
                     .batchUpdate(SPREAD_SHEET_ID, batchRequests)
                     .execute();
 
-            LOG.info("{}", response);
+            log.info("{}", response);
         } catch (Exception e) {
-            LOG.error("Error ", e);
+            log.error("Error ", e);
         }
     }
 
@@ -197,7 +196,7 @@ public class GoogleService {
             }
 
         } catch (Exception e) {
-            LOG.error("Error ", e);
+            log.error("Error ", e);
             throw new Exception(e.getMessage());
         }
     }
@@ -399,11 +398,10 @@ public class GoogleService {
     }
 
     private String getPrivateKeyId() {
-
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(privateKeyId.getInputStream()))) {
             return buffer.lines().collect(joining(""));
         } catch (IOException e) {
-            LOG.error("getPrivateKeyId ", e);
+            log.error("getPrivateKeyId ", e);
             return null;
         }
     }
