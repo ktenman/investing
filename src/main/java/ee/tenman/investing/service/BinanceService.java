@@ -64,7 +64,7 @@ public class BinanceService {
         boolean success = false;
         while (!success) {
             try {
-                client.newOrderTest(marketBuy(ticker, quantity.toString()));
+                client.newOrder(marketBuy(ticker, quantity.toString()));
                 log.info("Success {} with amount {}", ticker, quantity);
                 success = true;
             } catch (BinanceApiException e) {
