@@ -70,7 +70,11 @@ public class BinanceService {
             } catch (BinanceApiException e) {
                 log.error("", e);
                 log.info("Failed {} with amount {}", ticker, quantity);
-                quantity = quantity.add(new BigDecimal(stepSize)).setScale(scale, ROUND_UP);
+                if ("Account has insufficient balance for requested action.".equals(e.getMessage())) {
+                    quantity = quantity.subtract(new BigDecimal(stepSize)).setScale(scale, ROUND_UP);
+                } else {
+                    quantity = quantity.add(new BigDecimal(stepSize)).setScale(scale, ROUND_UP);
+                }
             }
         }
         return quantity;
