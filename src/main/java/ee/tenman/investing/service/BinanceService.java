@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
+import static java.math.BigDecimal.ROUND_UP;
 import static java.math.RoundingMode.DOWN;
 import static java.util.stream.Collectors.joining;
 
@@ -58,17 +59,17 @@ public class BinanceService {
     private BigDecimal buy(BinanceApiRestClient client, String ticker, BigDecimal baseAmount) {
         String stepSize = client.getExchangeInfo().getSymbolInfo(ticker).getSymbolFilter(FilterType.LOT_SIZE).getStepSize();
         int scale = scale(stepSize);
-        BigDecimal quantity = quantity(client, ticker, baseAmount).setScale(scale, BigDecimal.ROUND_UP);
+        BigDecimal quantity = quantity(client, ticker, baseAmount).setScale(scale, ROUND_UP);
         boolean success = false;
         while (!success) {
             try {
-                client.newOrderTest(marketBuy(ticker, quantity.toString()));
+                client.newOrder(marketBuy(ticker, quantity.toString()));
                 log.info("Success {} with amount {}", ticker, quantity);
                 success = true;
             } catch (BinanceApiException e) {
                 log.error("", e);
                 log.info("Failed {} with amount {}", ticker, quantity);
-                quantity = quantity.add(new BigDecimal(stepSize)).setScale(scale, BigDecimal.ROUND_UP);
+                quantity = quantity.add(new BigDecimal(stepSize)).setScale(scale, ROUND_UP);
             }
         }
         return quantity;
