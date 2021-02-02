@@ -58,6 +58,7 @@ import java.util.stream.IntStream;
 
 import static ee.tenman.investing.service.CoinMarketCapService.BINANCE_COIN_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.BITCOIN_ID;
+import static ee.tenman.investing.service.CoinMarketCapService.CARDANO_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.CRO_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.ONE_INCH_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.POLKADOT_ID;
@@ -83,6 +84,7 @@ public class GoogleService {
     private static final String[] TICKERS_TO_FETCH = {
             BINANCE_COIN_ID,
             BITCOIN_ID,
+            CARDANO_ID,
             CRO_ID,
             ONE_INCH_ID,
             POLKADOT_ID,
@@ -187,7 +189,7 @@ public class GoogleService {
             cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
             cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
             cryptoCellsMap.put(SYNTHETIX_ID, "investing!G27:G27");
-            cryptoCellsMap.put(ONE_INCH_ID, "investing!G28:G28");
+            cryptoCellsMap.put(CARDANO_ID, "investing!G29:G29");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
@@ -262,9 +264,9 @@ public class GoogleService {
     }
 
     private void updateTickerAmounts() throws IOException {
-        ValueRange valueRange = getValueRange("investing!E31:F34");
+        ValueRange valueRange = getValueRange("investing!E37:F40");
 
-        leftOverAmount = (BigDecimal) getValueRange("investing!Q30:Q30").getValues().get(0).get(0);
+        leftOverAmount = (BigDecimal) getValueRange("investing!Q36:Q36").getValues().get(0).get(0);
 
         Map<String, BigDecimal> values = new HashMap<>();
         for (int i = 0; i < valueRange.getValues().size(); i++) {
@@ -318,7 +320,7 @@ public class GoogleService {
             tickerAndAmount.put(entry.getKey(), countOfTicker);
         }
 
-        List<Object> collect = getValueRange("investing!E31:E34")
+        List<Object> collect = getValueRange("investing!E37:E40")
                 .getValues()
                 .stream()
                 .flatMap(List::stream)
@@ -327,7 +329,7 @@ public class GoogleService {
         HashMap<String, String> objectObjectHashMap = new HashMap<>();
         for (int i = 0; i < collect.size(); i++) {
             String key = (String) collect.get(i);
-            objectObjectHashMap.put(key, "investing!R" + (31 + i));
+            objectObjectHashMap.put(key, "investing!R" + (37 + i));
         }
 
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {

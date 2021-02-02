@@ -40,6 +40,7 @@ public class BinanceService {
 
         buy(client, "BTCEUR", TEN_EUROS);
         buy(client, "DOTEUR", TEN_EUROS);
+        buy(client, "ADAEUR", TEN_EUROS);
 
         BigDecimal totalEuros = client.getAccount().getBalances().stream()
                 .filter(assetBalance -> assetBalance.getAsset().equals("EUR"))
@@ -63,7 +64,7 @@ public class BinanceService {
         boolean success = false;
         while (!success) {
             try {
-                client.newOrder(marketBuy(ticker, quantity.toString()));
+                client.newOrderTest(marketBuy(ticker, quantity.toString()));
                 log.info("Success {} with amount {}", ticker, quantity);
                 success = true;
             } catch (BinanceApiException e) {
