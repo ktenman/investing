@@ -41,6 +41,7 @@ public class BinanceService {
         buy(client, "BTCEUR", TEN_EUROS);
         buy(client, "DOTEUR", TEN_EUROS);
         buy(client, "ADAEUR", TEN_EUROS);
+        buy(client, "ETHEUR", TEN_EUROS);
 
         BigDecimal totalEuros = client.getAccount().getBalances().stream()
                 .filter(assetBalance -> assetBalance.getAsset().equals("EUR"))
