@@ -30,7 +30,7 @@ public class BinanceService {
 
     private List<SymbolInfo> symbolInfos;
 
-    @Scheduled(fixedDelay = 10000, initialDelay = 10000)
+    @Scheduled(cron = "0 0 * * * *")
     @PostConstruct
     public void fetchSupportedSymbols() {
         log.info("Fetching supported symbols");
