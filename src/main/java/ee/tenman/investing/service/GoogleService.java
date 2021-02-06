@@ -185,7 +185,7 @@ public class GoogleService {
             cryptoCellsMap.put(ETHEREUM_ID, "investing!G30:G30");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
-                BigDecimal value = prices.get(e.getKey()).multiply(usdToEur);
+                BigDecimal value = CRO_ID.equals(e.getKey()) ? prices.get(e.getKey()).multiply(usdToEur) : prices.get(e.getKey());
                 String updateCell = e.getValue();
                 googleSheetsClient.update(sheetsService, updateCell, value);
             }
