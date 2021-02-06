@@ -17,22 +17,11 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
-import static ee.tenman.investing.service.PriceService.TICKER_SYMBOL_MAP;
+import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 
 @Slf4j
 @Service
 public class CoinMarketCapService {
-
-    public static final String BINANCE_COIN_ID = "Binance Coin";
-    public static final String POLKADOT_ID = "Polkadot";
-    public static final String CRO_ID = "Crypto.com Coin";
-    public static final String UNISWAP_ID = "Uniswap";
-    public static final String BITCOIN_ID = "Bitcoin";
-    public static final String SUSHI_SWAP_ID = "SushiSwap";
-    public static final String SYNTHETIX_ID = "Synthetix";
-    public static final String ONE_INCH_ID = "1inch";
-    public static final String CARDANO_ID = "Cardano";
-    public static final String ETHEREUM_ID = "Ethereum";
 
     private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
         Map<String, BigDecimal> prices = new HashMap<>();

@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static ee.tenman.investing.service.CoinMarketCapService.BINANCE_COIN_ID;
-import static ee.tenman.investing.service.CoinMarketCapService.CRO_ID;
+import static ee.tenman.investing.configuration.FetchingConfiguration.BINANCE_COIN_ID;
+import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest

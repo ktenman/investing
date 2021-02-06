@@ -7,7 +7,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Map;
 
-import static ee.tenman.investing.service.PriceService.TICKERS_TO_FETCH;
+import static ee.tenman.investing.configuration.FetchingConfiguration.TICKERS_TO_FETCH;
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
