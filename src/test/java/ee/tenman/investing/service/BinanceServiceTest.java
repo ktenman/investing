@@ -17,4 +17,5 @@ class BinanceServiceTest {
     void buyCrypto() {
         binanceService.buyCrypto();
     }
+
 }
