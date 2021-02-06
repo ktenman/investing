@@ -19,10 +19,14 @@ class CoinMarketCapServiceTest {
     @Resource
     CoinMarketCapService coinMarketCapService;
 
+    @Resource
+    BinanceService binanceService;
+
     @Test
     void getPrice() {
         List<String> tickers = Arrays.asList(BINANCE_COIN_ID, CRO_ID);
-        Map<String, BigDecimal> prices = coinMarketCapService.getPrices(tickers);
+        BigDecimal busd = binanceService.getPriceToEur("BUSD");
+        Map<String, BigDecimal> prices = coinMarketCapService.getPricesInEur(tickers, busd);
 
         tickers.forEach(t -> assertThat(prices.keySet()).contains(t));
         assertThat(prices.values()).hasSize(2);

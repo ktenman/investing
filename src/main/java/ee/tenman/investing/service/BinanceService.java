@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
@@ -49,6 +50,13 @@ public class BinanceService {
                 BigDecimal symbolInBtc = getPriceToEur(symbol, "BTC");
                 BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
                 BigDecimal price = symbolInBtc.multiply(btcInEuro);
+                log.info("{} price {}", symbolToEur, price);
+                return price;
+            }
+            if (isSupportedSymbol("BTC" + symbol)) {
+                BigDecimal btcInSymbol = getPriceToEur("BTC", symbol);
+                BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
+                BigDecimal price = btcInEuro.divide(btcInSymbol, RoundingMode.HALF_UP);
                 log.info("{} price {}", symbolToEur, price);
                 return price;
             }

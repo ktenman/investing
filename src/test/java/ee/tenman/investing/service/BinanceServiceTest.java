@@ -36,6 +36,9 @@ class BinanceServiceTest {
             "1INCH",
             "ADA",
             "ETH",
+            "BUSD",
+            "USDT",
+            "USDC",
     })
     void getPrice(String ticker) {
         BigDecimal priceInEuros = binanceService.getPriceToEur(ticker);
@@ -50,6 +53,5 @@ class BinanceServiceTest {
 
         assertThat(thrown.getMessage()).isEqualTo("CROEUR not supported");
     }
-
 
 }

@@ -34,8 +34,7 @@ public class CoinMarketCapService {
     public static final String CARDANO_ID = "Cardano";
     public static final String ETHEREUM_ID = "Ethereum";
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
-    public Map<String, BigDecimal> getPrices(List<String> tickers) {
+    private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
         Map<String, BigDecimal> prices = new HashMap<>();
 
         Configuration.startMaximized = true;
@@ -61,5 +60,15 @@ public class CoinMarketCapService {
         }
         closeWebDriver();
         return prices;
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    public Map<String, BigDecimal> getPricesInEur(List<String> tickers, BigDecimal busdToEur) {
+        Map<String, BigDecimal> pricesInUsd = getPricesInUsd(tickers);
+        Map<String, BigDecimal> pricesInEUr = new HashMap<>();
+        for (Map.Entry<String, BigDecimal> entry : pricesInUsd.entrySet()) {
+            pricesInEUr.put(entry.getKey(), entry.getValue().multiply(busdToEur));
+        }
+        return pricesInEUr;
     }
 }

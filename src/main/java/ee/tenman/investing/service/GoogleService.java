@@ -169,7 +169,6 @@ public class GoogleService {
     public void refreshCryptoPrices() throws Exception {
 
         try {
-            BigDecimal usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
             Map<String, BigDecimal> prices = priceService.getPrices(TICKERS_TO_FETCH);
 
             Map<String, String> cryptoCellsMap = new HashMap<>();
@@ -185,9 +184,8 @@ public class GoogleService {
             cryptoCellsMap.put(ETHEREUM_ID, "investing!G30:G30");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
-                BigDecimal value = CRO_ID.equals(e.getKey()) ? prices.get(e.getKey()).multiply(usdToEur) : prices.get(e.getKey());
                 String updateCell = e.getValue();
-                googleSheetsClient.update(sheetsService, updateCell, value);
+                googleSheetsClient.update(sheetsService, updateCell, prices.get(e.getKey()));
             }
 
         } catch (Exception e) {
