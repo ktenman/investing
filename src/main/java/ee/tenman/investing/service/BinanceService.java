@@ -3,13 +3,16 @@ package ee.tenman.investing.service;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.general.FilterType;
+import com.binance.api.client.domain.general.SymbolInfo;
 import com.binance.api.client.exception.BinanceApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
 import static java.math.BigDecimal.ROUND_UP;
@@ -24,6 +27,50 @@ public class BinanceService {
 
     @Resource
     BinanceApiRestClient client;
+
+    private List<SymbolInfo> symbolInfos;
+
+    @Scheduled(fixedDelay = 10000, initialDelay = 10000)
+    @PostConstruct
+    public void fetchSupportedSymbols() {
+        log.info("Fetching supported symbols");
+        symbolInfos = client.getExchangeInfo().getSymbols();
+    }
+
+    private boolean isSupportedSymbol(String symbol) {
+        return symbolInfos.stream().anyMatch(s -> s.getSymbol().contains(symbol));
+    }
+
+    public BigDecimal getPriceToEur(String symbol) {
+
+        String symbolToEur = symbol + "EUR";
+        if (!isSupportedSymbol(symbolToEur)) {
+            if (isSupportedSymbol(symbol + "BTC")) {
+                BigDecimal symbolInBtc = getPriceToEur(symbol, "BTC");
+                BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
+                BigDecimal price = symbolInBtc.multiply(btcInEuro);
+                log.info("{} price {}", symbolToEur, price);
+                return price;
+            }
+            throw new NotSupportedSymbolException(String.format("%s not supported", symbolToEur));
+        }
+
+        BigDecimal price = getPriceToEur(symbol, "EUR");
+        log.info("{} price {}", symbolToEur, price);
+        return price;
+    }
+
+    public BigDecimal getPriceToEur(String from, String to) {
+        if (!isSupportedSymbol(from)) {
+            throw new NotSupportedSymbolException(String.format("From symbol %s not supported", from));
+        }
+
+        if (!isSupportedSymbol(to)) {
+            throw new NotSupportedSymbolException(String.format("To symbol %s not supported", to));
+        }
+
+        return new BigDecimal(client.getPrice(from + to).getPrice());
+    }
 
     @Scheduled(cron = "0 0 12 1-7 * MON")
     public void buyCrypto() {
@@ -55,7 +102,7 @@ public class BinanceService {
         boolean success = false;
         while (!success) {
             try {
-                client.newOrder(marketBuy(ticker, quantity.toString()));
+                client.newOrderTest(marketBuy(ticker, quantity.toString()));
                 log.info("Success {} with amount {}", ticker, quantity);
                 success = true;
             } catch (BinanceApiException e) {

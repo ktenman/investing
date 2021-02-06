@@ -66,6 +66,7 @@ import static ee.tenman.investing.service.CoinMarketCapService.POLKADOT_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.SUSHI_SWAP_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.SYNTHETIX_ID;
 import static ee.tenman.investing.service.CoinMarketCapService.UNISWAP_ID;
+import static ee.tenman.investing.service.PriceService.TICKERS_TO_FETCH;
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -82,18 +83,7 @@ public class GoogleService {
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
-    private static final String[] TICKERS_TO_FETCH = {
-            BINANCE_COIN_ID,
-            BITCOIN_ID,
-            CARDANO_ID,
-            CRO_ID,
-            ETHEREUM_ID,
-            ONE_INCH_ID,
-            POLKADOT_ID,
-            SUSHI_SWAP_ID,
-            SYNTHETIX_ID,
-            UNISWAP_ID,
-    };
+
     private Sheets sheetsService;
     @Value("private_key.txt")
     ClassPathResource privateKey;
@@ -101,7 +91,7 @@ public class GoogleService {
     ClassPathResource privateKeyId;
     private BigDecimal leftOverAmount;
     @Resource
-    CoinMarketCapService coinMarketCapService;
+    PriceService priceService;
     @Resource
     GoogleSheetsClient googleSheetsClient;
 
@@ -120,8 +110,7 @@ public class GoogleService {
         googleSheetsClient.update(sheetsService, batchRequest);
     }
 
-    @Scheduled(cron = "10 * * * * *")
-    @Scheduled(cron = "40 * * * * *")
+    @Scheduled(fixedDelay = 30000, initialDelay = 30000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     public void updateSumOfTickers() throws Exception {
 
@@ -181,7 +170,7 @@ public class GoogleService {
 
         try {
             BigDecimal usdToEur = (BigDecimal) getValueRange("investing!F1:F1").getValues().get(0).get(0);
-            Map<String, BigDecimal> prices = coinMarketCapService.getPrices(TICKERS_TO_FETCH);
+            Map<String, BigDecimal> prices = priceService.getPrices(TICKERS_TO_FETCH);
 
             Map<String, String> cryptoCellsMap = new HashMap<>();
             cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");

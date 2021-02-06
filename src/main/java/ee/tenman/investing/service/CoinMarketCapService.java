@@ -2,6 +2,7 @@ package ee.tenman.investing.service;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -9,13 +10,16 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
+import static ee.tenman.investing.service.PriceService.TICKER_SYMBOL_MAP;
 
+@Slf4j
 @Service
 public class CoinMarketCapService {
 
@@ -31,7 +35,9 @@ public class CoinMarketCapService {
     public static final String ETHEREUM_ID = "Ethereum";
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
-    public Map<String, BigDecimal> getPrices(String... tickers) {
+    public Map<String, BigDecimal> getPrices(List<String> tickers) {
+        Map<String, BigDecimal> prices = new HashMap<>();
+
         Configuration.startMaximized = true;
         Configuration.headless = true;
         Configuration.proxyEnabled = false;
@@ -42,7 +48,6 @@ public class CoinMarketCapService {
         ElementsCollection selenideElements = $(By.tagName("table"))
                 .$$(By.tagName("tr"));
 
-        Map<String, BigDecimal> prices = new HashMap<>();
         for (String ticker : tickers) {
             String priceAsString = selenideElements.find(text(ticker))
                     .text()
@@ -50,7 +55,9 @@ public class CoinMarketCapService {
                     .replace(",", "")
                     .split("\\$")[1]
                     .split(" ")[0];
-            prices.put(ticker, new BigDecimal(priceAsString));
+            BigDecimal price = new BigDecimal(priceAsString);
+            prices.put(ticker, price);
+            log.info("{} price {}", TICKER_SYMBOL_MAP.get(ticker), price);
         }
         closeWebDriver();
         return prices;

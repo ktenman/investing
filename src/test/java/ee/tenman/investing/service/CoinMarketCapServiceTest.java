@@ -5,6 +5,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static ee.tenman.investing.service.CoinMarketCapService.BINANCE_COIN_ID;
@@ -19,13 +21,15 @@ class CoinMarketCapServiceTest {
 
     @Test
     void getPrice() {
-        Map<String, BigDecimal> prices = coinMarketCapService.getPrices(BINANCE_COIN_ID, CRO_ID);
+        List<String> tickers = Arrays.asList(BINANCE_COIN_ID, CRO_ID);
+        Map<String, BigDecimal> prices = coinMarketCapService.getPrices(tickers);
 
-        assertThat(prices.keySet()).contains(BINANCE_COIN_ID, CRO_ID);
+        tickers.forEach(t -> assertThat(prices.keySet()).contains(t));
         assertThat(prices.values()).hasSize(2);
         prices.values().forEach(p -> {
             assertThat(p).isNotZero();
             assertThat(p).isNotNull();
         });
     }
+
 }

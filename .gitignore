@@ -11,6 +11,8 @@ src/main/resources/binance_api_key.txt
 src/main/resources/binance_secret_key.txt
 src/test/resources/binance_api_key.txt
 src/test/resources/binance_secret_key.txt
+src/test/resources/crypto_com_api_key.txt
+src/test/resources/crypto_com_secret_key.txt
 
 ### STS ###
 .apt_generated
