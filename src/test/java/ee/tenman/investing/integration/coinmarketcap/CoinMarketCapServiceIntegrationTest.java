@@ -1,5 +1,6 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.coinmarketcap;
 
+import ee.tenman.investing.integration.binance.BinanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -14,7 +15,7 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class CoinMarketCapServiceTest {
+class CoinMarketCapServiceIntegrationTest {
 
     @Resource
     CoinMarketCapService coinMarketCapService;

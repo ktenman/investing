@@ -1,5 +1,5 @@
 
-package ee.tenman.investing.cryptocom;
+package ee.tenman.investing.integration.cryptocom;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

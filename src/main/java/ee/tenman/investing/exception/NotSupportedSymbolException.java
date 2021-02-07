@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.exception;
 
 public class NotSupportedSymbolException extends RuntimeException {
     public NotSupportedSymbolException() {

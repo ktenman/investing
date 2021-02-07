@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.google;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static ee.tenman.investing.service.GoogleService.SPREAD_SHEET_ID;
+import static ee.tenman.investing.integration.google.GoogleService.SPREAD_SHEET_ID;
 
 @Service
 public class GoogleSheetsClient {

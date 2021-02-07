@@ -1,6 +1,6 @@
-package ee.tenman.investing.cryptocom;
+package ee.tenman.investing.integration.cryptocom;
 
-import ee.tenman.investing.service.NotSupportedSymbolException;
+import ee.tenman.investing.exception.NotSupportedSymbolException;
 import feign.FeignException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;

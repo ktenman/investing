@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.coinmarketcap;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;

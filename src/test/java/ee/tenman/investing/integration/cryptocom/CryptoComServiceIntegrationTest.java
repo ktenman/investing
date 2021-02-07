@@ -1,4 +1,4 @@
-package ee.tenman.investing.cryptocom;
+package ee.tenman.investing.integration.cryptocom;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 @SpringBootTest
-class CryptoComServiceTest {
+class CryptoComServiceIntegrationTest {
 
     @Resource
     CryptoComService cryptoComService;

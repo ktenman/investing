@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.binance;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
@@ -11,7 +11,7 @@ import org.springframework.core.io.ClassPathResource;
 
 @Configuration
 @Slf4j
-public class BinanceApiClientConfiguration {
+public class BinanceApiClient {
 
     @Value("binance_api_key.txt")
     ClassPathResource binanceApiKey;

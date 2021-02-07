@@ -1,4 +1,4 @@
-package ee.tenman.investing.cryptocom;
+package ee.tenman.investing.integration.cryptocom;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

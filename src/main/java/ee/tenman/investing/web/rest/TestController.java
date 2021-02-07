@@ -1,5 +1,6 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.web.rest;
 
+import ee.tenman.investing.integration.binance.BinanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 

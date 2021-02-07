@@ -1,6 +1,8 @@
 package ee.tenman.investing.service;
 
-import ee.tenman.investing.cryptocom.CryptoComService;
+import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
+import ee.tenman.investing.integration.cryptocom.CryptoComService;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;

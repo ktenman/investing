@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.binance;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 @SpringBootTest
-class BinanceServiceTest {
+class BinanceServiceIntegrationTest {
 
     @Resource
     BinanceService binanceService;

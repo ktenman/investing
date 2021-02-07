@@ -1,6 +1,9 @@
 package ee.tenman.investing.service;
 
-import ee.tenman.investing.cryptocom.CryptoComService;
+import ee.tenman.investing.exception.NotSupportedSymbolException;
+import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
+import ee.tenman.investing.integration.cryptocom.CryptoComService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,10 +1,11 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.binance;
 
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolInfo;
 import com.binance.api.client.exception.BinanceApiException;
+import ee.tenman.investing.exception.NotSupportedSymbolException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

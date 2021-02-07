@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.integration.google;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 
 @SpringBootTest
-class GoogleServiceTest {
+class GoogleServiceIntegrationTest {
 
     @Resource
     GoogleService googleService;

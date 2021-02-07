@@ -3,6 +3,8 @@ package ee.tenman.investing.service;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
+import ee.tenman.investing.exception.NotSupportedSymbolException;
+import ee.tenman.investing.integration.binance.BinanceService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
