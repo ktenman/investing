@@ -4,9 +4,13 @@ import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.AssetBalance;
 import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolInfo;
+import com.binance.api.client.domain.market.Candlestick;
+import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.exception.BinanceApiException;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +32,7 @@ public class BinanceService {
     private static final BigDecimal THIRTY_EUROS = new BigDecimal("30.000000000");
 
     @Resource
-    BinanceApiRestClient client;
+    BinanceApiRestClient binanceApiRestClient;
 
     private List<SymbolInfo> symbolInfos;
 
@@ -36,7 +40,7 @@ public class BinanceService {
     @PostConstruct
     public void fetchSupportedSymbols() {
         log.info("Fetching supported symbols");
-        symbolInfos = client.getExchangeInfo().getSymbols();
+        symbolInfos = binanceApiRestClient.getExchangeInfo().getSymbols();
     }
 
     public boolean isSupportedTicker(String symbol) {
@@ -82,7 +86,7 @@ public class BinanceService {
             throw new NotSupportedSymbolException(String.format("To symbol %s not supported", to));
         }
 
-        return new BigDecimal(client.getPrice(from + to).getPrice());
+        return new BigDecimal(binanceApiRestClient.getPrice(from + to).getPrice());
     }
 
     @Scheduled(cron = "0 0 12 1-7 * MON")
@@ -93,7 +97,7 @@ public class BinanceService {
         buy("ADAEUR", TEN_EUROS);
         buy("ETHEUR", TEN_EUROS);
 
-        BigDecimal totalEuros = client.getAccount().getBalances().stream()
+        BigDecimal totalEuros = binanceApiRestClient.getAccount().getBalances().stream()
                 .filter(assetBalance -> assetBalance.getAsset().equals("EUR"))
                 .findFirst()
                 .map(AssetBalance::getFree)
@@ -109,13 +113,13 @@ public class BinanceService {
     }
 
     private BigDecimal buy(String ticker, BigDecimal baseAmount) {
-        String stepSize = client.getExchangeInfo().getSymbolInfo(ticker).getSymbolFilter(FilterType.LOT_SIZE).getStepSize();
+        String stepSize = binanceApiRestClient.getExchangeInfo().getSymbolInfo(ticker).getSymbolFilter(FilterType.LOT_SIZE).getStepSize();
         int scale = scale(stepSize);
-        BigDecimal quantity = quantity(client, ticker, baseAmount).setScale(scale, ROUND_UP);
+        BigDecimal quantity = quantity(binanceApiRestClient, ticker, baseAmount).setScale(scale, ROUND_UP);
         boolean success = false;
         while (!success) {
             try {
-                client.newOrder(marketBuy(ticker, quantity.toString()));
+                binanceApiRestClient.newOrder(marketBuy(ticker, quantity.toString()));
                 log.info("Success {} with amount {}", ticker, quantity);
                 success = true;
             } catch (BinanceApiException e) {
@@ -152,6 +156,11 @@ public class BinanceService {
 
     double mRound(double value, double factor) {
         return Math.round(value / factor) * factor;
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    public List<Candlestick> getCandlestickBars(String fromTo, CandlestickInterval candlestickInterval) {
+        return binanceApiRestClient.getCandlestickBars(fromTo, candlestickInterval);
     }
 
 }

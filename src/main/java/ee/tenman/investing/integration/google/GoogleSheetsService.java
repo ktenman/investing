@@ -1,13 +1,6 @@
 package ee.tenman.investing.integration.google;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.AppendCellsRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetResponse;
@@ -24,32 +17,20 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -72,11 +53,10 @@ import static java.lang.Math.abs;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static java.util.stream.Collectors.joining;
 
 @Service
 @Slf4j
-public class GoogleService {
+public class GoogleSheetsService {
 
     public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
     private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
@@ -85,11 +65,6 @@ public class GoogleService {
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
 
-    private Sheets sheetsService;
-    @Value("private_key.txt")
-    ClassPathResource privateKey;
-    @Value("private_key_id.txt")
-    ClassPathResource privateKeyId;
     private BigDecimal leftOverAmount;
     @Resource
     PriceService priceService;
@@ -108,7 +83,7 @@ public class GoogleService {
             return;
         }
         BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
-        googleSheetsClient.update(sheetsService, batchRequest);
+        googleSheetsClient.update(batchRequest);
     }
 
     @Scheduled(fixedDelay = 30000, initialDelay = 30000)
@@ -132,7 +107,7 @@ public class GoogleService {
             Integer sheetID = properties.getSheetId();
 
             Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                    sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
+                    googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
             getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
             getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
 
@@ -155,7 +130,7 @@ public class GoogleService {
             BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
             batchRequests.setRequests(requests);
 
-            BatchUpdateSpreadsheetResponse response = sheetsService.spreadsheets()
+            BatchUpdateSpreadsheetResponse response = googleSheetsClient.get().spreadsheets()
                     .batchUpdate(SPREAD_SHEET_ID, batchRequests)
                     .execute();
 
@@ -186,7 +161,7 @@ public class GoogleService {
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 String updateCell = e.getValue();
-                googleSheetsClient.update(sheetsService, updateCell, prices.get(e.getKey()));
+                googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
 
         } catch (Exception e) {
@@ -327,7 +302,7 @@ public class GoogleService {
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
             String updateCell = e.getValue();
             Integer value = tickerAndAmount.get(e.getKey());
-            googleSheetsClient.update(sheetsService, updateCell, value);
+            googleSheetsClient.update(updateCell, value);
         }
 
     }
@@ -345,7 +320,7 @@ public class GoogleService {
     private ValueRange getValueRange(String range) {
         try {
             Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                    sheetsService.spreadsheets().values().get(SPREAD_SHEET_ID, range);
+                    googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, range);
             getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
             getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
             return getInvestingRequest.execute();
@@ -358,75 +333,12 @@ public class GoogleService {
     public Spreadsheet getSpreadSheetResponse() {
         try {
             boolean includeGridData = false;
-            Sheets.Spreadsheets.Get spreadsheetRequest = sheetsService.spreadsheets().get(SPREAD_SHEET_ID);
+            Sheets.Spreadsheets.Get spreadsheetRequest = googleSheetsClient.get().spreadsheets().get(SPREAD_SHEET_ID);
             spreadsheetRequest.setRanges(new ArrayList<>());
             spreadsheetRequest.setIncludeGridData(includeGridData);
             return spreadsheetRequest.execute();
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
-        }
-    }
-
-    @PostConstruct
-    public void createSheetsService() throws IOException, GeneralSecurityException {
-        HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-
-        Credential httpRequestInitializer = authorizeWithServiceAccount();
-        sheetsService = new Sheets.Builder(httpTransport, jsonFactory, httpRequestInitializer)
-                .setApplicationName("Google-SheetsSample/0.1")
-                .build();
-    }
-
-    private Credential authorizeWithServiceAccount() throws GeneralSecurityException, IOException {
-
-        return new GoogleCredential.Builder()
-                .setTransport(GoogleNetHttpTransport.newTrustedTransport())
-                .setJsonFactory(JacksonFactory.getDefaultInstance())
-                .setServiceAccountId("splendid-myth-268820@appspot.gserviceaccount.com")
-                .setServiceAccountScopes(Collections.singletonList(SheetsScopes.SPREADSHEETS))
-                .setServiceAccountPrivateKeyId(getPrivateKeyId())
-                .setServiceAccountPrivateKey(buildPrivateKey())
-                .build();
-    }
-
-    private String getPrivateKeyId() {
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(privateKeyId.getInputStream()))) {
-            return buffer.lines().collect(joining(""));
-        } catch (IOException e) {
-            log.error("getPrivateKeyId ", e);
-            return null;
-        }
-    }
-
-    public PrivateKey buildPrivateKey() {
-        try {
-            // Read in the key into a String
-            StringBuilder pkcs8Lines = new StringBuilder();
-            InputStream resource = privateKey.getInputStream();
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(resource));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                pkcs8Lines.append(line);
-            }
-
-            // Remove the "BEGIN" and "END" lines, as well as any whitespace
-            String pkcs8Pem = pkcs8Lines.toString();
-            pkcs8Pem = pkcs8Pem.replace("-----BEGIN PRIVATE KEY-----", "");
-            pkcs8Pem = pkcs8Pem.replace("-----END PRIVATE KEY-----", "");
-            pkcs8Pem = pkcs8Pem.replaceAll("\\s+", "");
-
-            // Base64 decode the result
-            byte[] pkcs8EncodedBytes = Base64.decodeBase64(pkcs8Pem.getBytes());
-
-            // extract the private key
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pkcs8EncodedBytes);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            PrivateKey privateKey = kf.generatePrivate(keySpec);
-            return privateKey;
-        } catch (Exception e) {
             return null;
         }
     }

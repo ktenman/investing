@@ -7,10 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 
 @SpringBootTest
-class GoogleServiceIntegrationTest {
+class GoogleSheetsServiceIntegrationTest {
 
     @Resource
-    GoogleService googleService;
+    GoogleSheetsService googleService;
 
     @Disabled
     @Test
