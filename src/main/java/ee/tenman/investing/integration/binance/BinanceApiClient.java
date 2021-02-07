@@ -11,7 +11,7 @@ import org.springframework.core.io.ClassPathResource;
 
 @Configuration
 @Slf4j
-public class BinanceApiClient {
+class BinanceApiClient {
 
     @Value("binance_api_key.txt")
     ClassPathResource binanceApiKey;

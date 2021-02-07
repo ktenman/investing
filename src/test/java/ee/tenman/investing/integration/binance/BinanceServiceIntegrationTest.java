@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -66,17 +67,22 @@ class BinanceServiceIntegrationTest {
         return Stream.of(
 //                Arguments.of(HOURLY, 31210),
 //                Arguments.of(ONE_MINUTE, 1872600),
-                Arguments.of(MONTHLY, 44),
-                Arguments.of(WEEKLY, 187),
-                Arguments.of(DAILY, 1305)
+                Arguments.of("ETHBTC", MONTHLY, 44),
+                Arguments.of("ETHBTC", WEEKLY, 187),
+                Arguments.of("ETHBTC", DAILY, 1305),
+                Arguments.of("BNBUSDT", DAILY, 1028),
+                Arguments.of("BTCUSDT", DAILY, 1028),
+                Arguments.of("ETHUSDT", DAILY, 1028),
+                Arguments.of("ADAUSDT", DAILY, 1028),
+                Arguments.of("ADABTC", DAILY, 1166)
         );
     }
 
     @ParameterizedTest
     @MethodSource("frequencyProvider")
     @DisplayName("Get prices with limit")
-    void getPrice2(CandlestickInterval candlestickInterval, int limit) {
-        Map<String, BigDecimal> prices = binanceService.getPrices("ETHBTC", candlestickInterval, limit);
+    void getPrice2(String fromTo, CandlestickInterval candlestickInterval, int limit) {
+        Map<LocalDateTime, BigDecimal> prices = binanceService.getPrices(fromTo, candlestickInterval, limit);
 
         assertThat(prices).hasSize(limit);
     }

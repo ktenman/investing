@@ -21,7 +21,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.RoundingMode.DOWN;
+import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toMap;
 
 @Service
@@ -169,9 +169,14 @@ public class BinanceService {
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval) {
-        List<Candlestick> candlestickBars = getCandlestickBars(fromTo, candlestickInterval);
 
-        return extractPriceMap(candlestickBars);
+        return getCandlestickBars(fromTo, candlestickInterval).stream()
+                .collect(toMap(
+                        candlestick -> Instant.ofEpochMilli(candlestick.getCloseTime()).toString(),
+                        candlestick -> new BigDecimal(candlestick.getClose()),
+                        (a, b) -> b,
+                        TreeMap::new
+                ));
     }
 
     private List<Candlestick> getCandlestickBars(String fromTo, CandlestickInterval candlestickInterval) {
@@ -179,16 +184,12 @@ public class BinanceService {
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-    public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval, int limit) {
+    public Map<LocalDateTime, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval, int limit) {
         List<Candlestick> candlestickBars = getCandlestickBars(fromTo, candlestickInterval, limit);
 
-        return extractPriceMap(candlestickBars);
-    }
-
-    private Map<String, BigDecimal> extractPriceMap(List<Candlestick> candlestickBars) {
-        return candlestickBars.stream()
+        return getCandlestickBars(fromTo, candlestickInterval, limit).stream()
                 .collect(toMap(
-                        candlestick -> Instant.ofEpochMilli(candlestick.getCloseTime()).toString(),
+                        candlestick -> LocalDateTime.ofInstant(Instant.ofEpochMilli(candlestick.getCloseTime()), UTC),
                         candlestick -> new BigDecimal(candlestick.getClose()),
                         (a, b) -> b,
                         TreeMap::new
@@ -203,8 +204,8 @@ public class BinanceService {
         int startLimit = step;
         int endLimit = 0;
         while (endLimit <= limit * 1.1 || startLimit == step) {
-            long start = now.minus(startLimit, chronoUnit).toInstant(ZoneOffset.UTC).toEpochMilli();
-            long end = now.minus(endLimit, chronoUnit).toInstant(ZoneOffset.UTC).toEpochMilli();
+            long start = now.minus(startLimit, chronoUnit).toInstant(UTC).toEpochMilli();
+            long end = now.minus(endLimit, chronoUnit).toInstant(UTC).toEpochMilli();
             List<Candlestick> candlestickBars = binanceApiRestClient.getCandlestickBars(
                     fromTo,
                     candlestickInterval,
