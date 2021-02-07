@@ -9,6 +9,7 @@ import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.exception.BinanceApiException;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.list.TreeList;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,11 +19,19 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.RoundingMode.DOWN;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @Slf4j
@@ -159,8 +168,78 @@ public class BinanceService {
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-    public List<Candlestick> getCandlestickBars(String fromTo, CandlestickInterval candlestickInterval) {
+    public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval) {
+        List<Candlestick> candlestickBars = getCandlestickBars(fromTo, candlestickInterval);
+
+        return extractPriceMap(candlestickBars);
+    }
+
+    private List<Candlestick> getCandlestickBars(String fromTo, CandlestickInterval candlestickInterval) {
         return binanceApiRestClient.getCandlestickBars(fromTo, candlestickInterval);
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval, int limit) {
+        List<Candlestick> candlestickBars = getCandlestickBars(fromTo, candlestickInterval, limit);
+
+        return extractPriceMap(candlestickBars);
+    }
+
+    private Map<String, BigDecimal> extractPriceMap(List<Candlestick> candlestickBars) {
+        return candlestickBars.stream()
+                .collect(toMap(
+                        candlestick -> Instant.ofEpochMilli(candlestick.getCloseTime()).toString(),
+                        candlestick -> new BigDecimal(candlestick.getClose()),
+                        (a, b) -> b,
+                        TreeMap::new
+                ));
+    }
+
+    private List<Candlestick> getCandlestickBars(String fromTo, CandlestickInterval candlestickInterval, final int limit) {
+        LocalDateTime now = LocalDateTime.now();
+        ChronoUnit chronoUnit = chronoUnit(candlestickInterval);
+        List<Candlestick> candlesticks = new TreeList<>();
+        int step = Math.min(1000, limit);
+        int startLimit = step;
+        int endLimit = 0;
+        while (endLimit <= limit * 1.1 || startLimit == step) {
+            long start = now.minus(startLimit, chronoUnit).toInstant(ZoneOffset.UTC).toEpochMilli();
+            long end = now.minus(endLimit, chronoUnit).toInstant(ZoneOffset.UTC).toEpochMilli();
+            List<Candlestick> candlestickBars = binanceApiRestClient.getCandlestickBars(
+                    fromTo,
+                    candlestickInterval,
+                    step,
+                    start,
+                    end
+            );
+            candlesticks.addAll(candlestickBars);
+            startLimit += step;
+            endLimit += step;
+        }
+        return candlesticks.stream()
+                .sorted((a, b) -> b.getCloseTime().compareTo(a.getCloseTime()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private ChronoUnit chronoUnit(CandlestickInterval candlestickInterval) {
+        switch (candlestickInterval) {
+            case ONE_MINUTE:
+                return ChronoUnit.MINUTES;
+            case HOURLY:
+                return ChronoUnit.HOURS;
+            case DAILY:
+                return ChronoUnit.DAYS;
+            case TWELVE_HOURLY:
+                return ChronoUnit.HALF_DAYS;
+            case WEEKLY:
+                return ChronoUnit.WEEKS;
+            case MONTHLY:
+                return ChronoUnit.MONTHS;
+            default:
+                throw new IllegalArgumentException(String.format("%s not supported", candlestickInterval));
+        }
+
     }
 
 }

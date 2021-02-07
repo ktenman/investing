@@ -1,6 +1,5 @@
 package ee.tenman.investing.service;
 
-import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import ee.tenman.investing.integration.binance.BinanceService;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,17 +34,17 @@ public class PriceService {
     @Resource
     private CryptoComService cryptoComService;
 
-    public Map<String, BigDecimal> getPrices(String from, String to, CandlestickInterval candlestickInterval) {
+    public Map<String, BigDecimal> getLastPrices(String from, String to, CandlestickInterval candlestickInterval, int limit) {
         String fromTo = from + to;
         String toFrom = to + from;
 
         if (binanceService.isSupportedTicker(fromTo)) {
-            return getPrices(fromTo, candlestickInterval);
+            return binanceService.getPrices(fromTo, candlestickInterval);
         }
 
         Map<String, BigDecimal> prices = new TreeMap<>();
         if (binanceService.isSupportedTicker(toFrom)) {
-            Map<String, BigDecimal> toFromPrices = getPrices(toFrom, candlestickInterval);
+            Map<String, BigDecimal> toFromPrices = binanceService.getPrices(toFrom, candlestickInterval);
             for (Map.Entry<String, BigDecimal> entry : toFromPrices.entrySet()) {
                 BigDecimal price = ONE.setScale(8, ROUND_UP).divide(entry.getValue(), ROUND_UP);
                 prices.put(entry.getKey(), price);
@@ -54,8 +52,8 @@ public class PriceService {
             return prices;
         } else if (!binanceService.isSupportedTicker(fromTo)) {
             if (binanceService.isSupportedTicker(from + "BTC")) {
-                Map<String, BigDecimal> fromPrices = getPrices(from + "BTC", candlestickInterval);
-                Map<String, BigDecimal> toPrices = getPrices("BTC" + to, candlestickInterval);
+                Map<String, BigDecimal> fromPrices = binanceService.getPrices(from + "BTC", candlestickInterval);
+                Map<String, BigDecimal> toPrices = binanceService.getPrices("BTC" + to, candlestickInterval);
                 for (Map.Entry<String, BigDecimal> entry : fromPrices.entrySet()) {
                     BigDecimal price = entry.getValue()
                             .multiply(toPrices.get(entry.getKey()))
@@ -65,8 +63,8 @@ public class PriceService {
                 return prices;
             }
             if (binanceService.isSupportedTicker("BTC" + to)) {
-                Map<String, BigDecimal> fromPrices = getPrices("BTC" + from, candlestickInterval);
-                Map<String, BigDecimal> toPrices = getPrices("BTC" + to, candlestickInterval);
+                Map<String, BigDecimal> fromPrices = binanceService.getPrices("BTC" + from, candlestickInterval);
+                Map<String, BigDecimal> toPrices = binanceService.getPrices("BTC" + to, candlestickInterval);
                 for (Map.Entry<String, BigDecimal> entry : fromPrices.entrySet()) {
                     BigDecimal price = toPrices.get(entry.getKey())
                             .divide(entry.getValue(), HALF_UP)
@@ -80,15 +78,48 @@ public class PriceService {
         throw new NotSupportedSymbolException(String.format("%s not supported", fromTo));
     }
 
-    public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval) {
-        Map<String, BigDecimal> prices = new TreeMap<>();
+    public Map<String, BigDecimal> getPrices(String from, String to, CandlestickInterval candlestickInterval) {
+        String fromTo = from + to;
+        String toFrom = to + from;
 
-        List<Candlestick> candlestickBars = binanceService.getCandlestickBars(fromTo, candlestickInterval);
-        for (Candlestick candlestick : candlestickBars) {
-            prices.put(Instant.ofEpochMilli(candlestick.getCloseTime()).toString(), new BigDecimal(candlestick.getClose()));
+        if (binanceService.isSupportedTicker(fromTo)) {
+            return binanceService.getPrices(fromTo, candlestickInterval);
         }
 
-        return prices;
+        Map<String, BigDecimal> prices = new TreeMap<>();
+        if (binanceService.isSupportedTicker(toFrom)) {
+            Map<String, BigDecimal> toFromPrices = binanceService.getPrices(toFrom, candlestickInterval);
+            for (Map.Entry<String, BigDecimal> entry : toFromPrices.entrySet()) {
+                BigDecimal price = ONE.setScale(8, ROUND_UP).divide(entry.getValue(), ROUND_UP);
+                prices.put(entry.getKey(), price);
+            }
+            return prices;
+        } else if (!binanceService.isSupportedTicker(fromTo)) {
+            if (binanceService.isSupportedTicker(from + "BTC")) {
+                Map<String, BigDecimal> fromPrices = binanceService.getPrices(from + "BTC", candlestickInterval);
+                Map<String, BigDecimal> toPrices = binanceService.getPrices("BTC" + to, candlestickInterval);
+                for (Map.Entry<String, BigDecimal> entry : fromPrices.entrySet()) {
+                    BigDecimal price = entry.getValue()
+                            .multiply(toPrices.get(entry.getKey()))
+                            .setScale(8, ROUND_UP);
+                    prices.put(entry.getKey(), price);
+                }
+                return prices;
+            }
+            if (binanceService.isSupportedTicker("BTC" + to)) {
+                Map<String, BigDecimal> fromPrices = binanceService.getPrices("BTC" + from, candlestickInterval);
+                Map<String, BigDecimal> toPrices = binanceService.getPrices("BTC" + to, candlestickInterval);
+                for (Map.Entry<String, BigDecimal> entry : fromPrices.entrySet()) {
+                    BigDecimal price = toPrices.get(entry.getKey())
+                            .divide(entry.getValue(), HALF_UP)
+                            .setScale(8, ROUND_UP);
+                    prices.put(entry.getKey(), price);
+                }
+                return prices;
+            }
+        }
+
+        throw new NotSupportedSymbolException(String.format("%s not supported", fromTo));
     }
 
 
