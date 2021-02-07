@@ -38,22 +38,22 @@ public class BinanceService {
         symbolInfos = client.getExchangeInfo().getSymbols();
     }
 
-    private boolean isSupportedSymbol(String symbol) {
-        return symbolInfos.stream().anyMatch(s -> s.getSymbol().contains(symbol));
+    public boolean isSupportedTicker(String symbol) {
+        return symbolInfos.stream().anyMatch(s -> s.getSymbol().equals(symbol));
     }
 
     public BigDecimal getPriceToEur(String symbol) {
 
         String symbolToEur = symbol + "EUR";
-        if (!isSupportedSymbol(symbolToEur)) {
-            if (isSupportedSymbol(symbol + "BTC")) {
+        if (!isSupportedTicker(symbolToEur)) {
+            if (isSupportedTicker(symbol + "BTC")) {
                 BigDecimal symbolInBtc = getPriceToEur(symbol, "BTC");
                 BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
                 BigDecimal price = symbolInBtc.multiply(btcInEuro);
                 log.info("{} price {}", symbolToEur, price);
                 return price;
             }
-            if (isSupportedSymbol("BTC" + symbol)) {
+            if (isSupportedTicker("BTC" + symbol)) {
                 BigDecimal btcInSymbol = getPriceToEur("BTC", symbol);
                 BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
                 BigDecimal price = btcInEuro.divide(btcInSymbol, RoundingMode.HALF_UP);
@@ -69,11 +69,11 @@ public class BinanceService {
     }
 
     public BigDecimal getPriceToEur(String from, String to) {
-        if (!isSupportedSymbol(from)) {
+        if (!isSupportedTicker(from)) {
             throw new NotSupportedSymbolException(String.format("From symbol %s not supported", from));
         }
 
-        if (!isSupportedSymbol(to)) {
+        if (!isSupportedTicker(to)) {
             throw new NotSupportedSymbolException(String.format("To symbol %s not supported", to));
         }
 
