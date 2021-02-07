@@ -42,6 +42,10 @@ public class BinanceService {
         return symbolInfos.stream().anyMatch(s -> s.getSymbol().equals(symbol));
     }
 
+    private boolean isSupportedSymbol(String symbol) {
+        return symbolInfos.stream().anyMatch(s -> s.getSymbol().contains(symbol));
+    }
+
     public BigDecimal getPriceToEur(String symbol) {
 
         String symbolToEur = symbol + "EUR";
@@ -69,11 +73,11 @@ public class BinanceService {
     }
 
     public BigDecimal getPriceToEur(String from, String to) {
-        if (!isSupportedTicker(from)) {
+        if (!isSupportedSymbol(from)) {
             throw new NotSupportedSymbolException(String.format("From symbol %s not supported", from));
         }
 
-        if (!isSupportedTicker(to)) {
+        if (!isSupportedSymbol(to)) {
             throw new NotSupportedSymbolException(String.format("To symbol %s not supported", to));
         }
 
