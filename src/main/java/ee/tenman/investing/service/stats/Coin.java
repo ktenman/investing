@@ -21,6 +21,7 @@ public class Coin {
     private BigDecimal amount = BigDecimal.ZERO.setScale(8, BigDecimal.ROUND_UP);
     @Builder.Default
     private Map<LocalDateTime, BigDecimal> prices = new HashMap<>();
+    private BigDecimal percentage = BigDecimal.valueOf(0.25);
 
     public BigDecimal getPrice(LocalDate localDate) {
         LocalDateTime localDateTime = prices.keySet().iterator().next();

@@ -2,12 +2,14 @@ package ee.tenman.investing.service.stats;
 
 import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static com.binance.api.client.domain.market.CandlestickInterval.DAILY;
+import static java.math.BigDecimal.ROUND_UP;
 import static java.time.LocalTime.MIDNIGHT;
 
 @Slf4j
@@ -40,24 +43,51 @@ public class StatsService {
         LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2020, 1, 1), MIDNIGHT);
         LocalDateTime now = LocalDateTime.now();
 
+        List<BigDecimal> paid = new ArrayList<>();
+        int months = 0;
+
         while (startingDay.isBefore(now)) {
             for (Coin coin : coins.values()) {
                 BigDecimal price = coin.getPrice(startingDay.toLocalDate());
-                BigDecimal amountBought = amount(price, BigDecimal.valueOf(25));
+                BigDecimal usdtAmount = BigDecimal.valueOf(25);
+                paid.add(usdtAmount);
+                BigDecimal amountBought = amount(price, usdtAmount);
                 coin.setAmount(coin.getAmount().add(amountBought));
             }
+            if (months > 0) {
+                rebalance(coins, startingDay);
+            }
             startingDay = startingDay.plusMonths(1);
+            months++;
         }
 
         BigDecimal total = totalValueInUsdt(coins.values(), now);
-        log.info("Total : {}", total);
+        log.info("Total value : {} and paid {} in {} months",
+                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), months);
 
         for (Coin coin : coins.values()) {
             BigDecimal valueInUsdt = coin.valueInUsdt(now.toLocalDate());
-            log.info("{} : {} : {}", coin.getName(), valueInUsdt, valueInUsdt.divide(total, BigDecimal.ROUND_UP));
+            log.info("{} : {} : {}", coin.getName(), valueInUsdt, valueInUsdt.divide(total, ROUND_UP));
         }
 
         System.out.println();
+
+    }
+
+    private void rebalance(Map<String, Coin> coins, LocalDateTime startingDay) {
+        BigDecimal total = totalValueInUsdt(coins.values(), startingDay);
+        BigDecimal shouldHave = BigDecimal.valueOf(0.25).multiply(total);
+        for (Map.Entry<String, Coin> e : coins.entrySet()) {
+            Coin coin = e.getValue();
+            BigDecimal valueInUsdt = coin.valueInUsdt(startingDay.toLocalDate());
+            if (ComparableUtils.is(valueInUsdt).greaterThan(shouldHave)) {
+                BigDecimal amount = amount(coin.getPrice(startingDay.toLocalDate()), valueInUsdt.subtract(shouldHave));
+                coin.setAmount(coin.getAmount().subtract(amount));
+            } else {
+                BigDecimal amount = amount(coin.getPrice(startingDay.toLocalDate()), shouldHave.subtract(valueInUsdt));
+                coin.setAmount(coin.getAmount().add(amount));
+            }
+        }
 
     }
 
@@ -69,8 +99,8 @@ public class StatsService {
 
     BigDecimal amount(BigDecimal coinPrice, BigDecimal usdtAmount) {
         BigDecimal feeTaken = usdtAmount.multiply(new BigDecimal("0.99925"));
-        return feeTaken.divide(coinPrice, BigDecimal.ROUND_UP)
-                .setScale(8, BigDecimal.ROUND_UP);
+        return feeTaken.divide(coinPrice, ROUND_UP)
+                .setScale(8, ROUND_UP);
     }
 
 
