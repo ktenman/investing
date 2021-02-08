@@ -16,9 +16,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.binance.api.client.domain.market.CandlestickInterval.DAILY;
-import static com.binance.api.client.domain.market.CandlestickInterval.MONTHLY;
-import static com.binance.api.client.domain.market.CandlestickInterval.WEEKLY;
+import static com.binance.api.client.domain.market.CandlestickInterval.ONE_MINUTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -65,16 +63,16 @@ class BinanceServiceIntegrationTest {
 
     private static Stream<Arguments> frequencyProvider() {
         return Stream.of(
-//                Arguments.of(HOURLY, 31210),
-//                Arguments.of(ONE_MINUTE, 1872600),
-                Arguments.of("ETHBTC", MONTHLY, 44),
-                Arguments.of("ETHBTC", WEEKLY, 187),
-                Arguments.of("ETHBTC", DAILY, 1305),
-                Arguments.of("BNBUSDT", DAILY, 1028),
-                Arguments.of("BTCUSDT", DAILY, 1028),
-                Arguments.of("ETHUSDT", DAILY, 1028),
-                Arguments.of("ADAUSDT", DAILY, 1028),
-                Arguments.of("ADABTC", DAILY, 1166)
+//                Arguments.of("ETHBTC", HOURLY, 31210),
+                Arguments.of("ETHBTC", ONE_MINUTE, 1872600)
+//                Arguments.of("ETHBTC", MONTHLY, 44),
+//                Arguments.of("ETHBTC", WEEKLY, 187),
+//                Arguments.of("ETHBTC", DAILY, 1305),
+//                Arguments.of("BNBUSDT", DAILY, 1028),
+//                Arguments.of("BTCUSDT", DAILY, 1028),
+//                Arguments.of("ETHUSDT", DAILY, 1028),
+//                Arguments.of("ADAUSDT", DAILY, 1028),
+//                Arguments.of("ADABTC", DAILY, 1166)
         );
     }
 

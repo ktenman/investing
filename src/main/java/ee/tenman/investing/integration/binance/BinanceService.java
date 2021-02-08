@@ -185,7 +185,6 @@ public class BinanceService {
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     public Map<LocalDateTime, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval, int limit) {
-        List<Candlestick> candlestickBars = getCandlestickBars(fromTo, candlestickInterval, limit);
 
         return getCandlestickBars(fromTo, candlestickInterval, limit).stream()
                 .collect(toMap(
@@ -200,23 +199,28 @@ public class BinanceService {
         LocalDateTime now = LocalDateTime.now();
         ChronoUnit chronoUnit = chronoUnit(candlestickInterval);
         List<Candlestick> candlesticks = new TreeList<>();
+
         int step = Math.min(1000, limit);
         int startLimit = step;
         int endLimit = 0;
-        while (endLimit <= limit * 1.1 || startLimit == step) {
+
+        while (endLimit <= limit * 1.04 || startLimit == step) {
             long start = now.minus(startLimit, chronoUnit).toInstant(UTC).toEpochMilli();
             long end = now.minus(endLimit, chronoUnit).toInstant(UTC).toEpochMilli();
-            List<Candlestick> candlestickBars = binanceApiRestClient.getCandlestickBars(
-                    fromTo,
-                    candlestickInterval,
-                    step,
-                    start,
-                    end
-            );
+
+//            try {
+//                TimeUnit.MILLISECONDS.sleep(51);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
+            List<Candlestick> candlestickBars = binanceApiRestClient.getCandlestickBars(fromTo, candlestickInterval, step, start, end);
             candlesticks.addAll(candlestickBars);
+
             startLimit += step;
             endLimit += step;
         }
+
         return candlesticks.stream()
                 .sorted((a, b) -> b.getCloseTime().compareTo(a.getCloseTime()))
                 .limit(limit)

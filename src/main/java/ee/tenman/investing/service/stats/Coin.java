@@ -22,6 +22,25 @@ public class Coin {
     @Builder.Default
     private Map<LocalDateTime, BigDecimal> prices = new HashMap<>();
 
+    public BigDecimal getPrice(LocalDateTime localDateTime) {
+        LocalDateTime base = prices.keySet().iterator().next();
+        LocalDateTime key =
+                LocalDateTime.of(
+                        localDateTime.getYear(),
+                        localDateTime.getMonth(),
+                        localDateTime.getDayOfMonth(),
+                        localDateTime.getHour(),
+                        base.getMinute(),
+                        base.getSecond(),
+                        base.getNano());
+        BigDecimal bigDecimal = this.prices.get(key);
+        while (bigDecimal == null) {
+            key = key.plusMinutes(1);
+            bigDecimal = this.prices.get(key);
+        }
+        return bigDecimal;
+    }
+
     public BigDecimal getPrice(LocalDate localDate) {
         LocalDateTime localDateTime = prices.keySet().iterator().next();
         LocalDateTime key = LocalDateTime.of(localDate, localDateTime.toLocalTime());
@@ -30,6 +49,11 @@ public class Coin {
 
     public BigDecimal valueInUsdt(LocalDate localDate) {
         BigDecimal price = getPrice(localDate);
+        return price.multiply(amount);
+    }
+
+    public BigDecimal valueInUsdt(LocalDateTime localDateTime) {
+        BigDecimal price = getPrice(localDateTime);
         return price.multiply(amount);
     }
 }
