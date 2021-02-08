@@ -1,5 +1,6 @@
 package ee.tenman.investing.integration.google;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -12,6 +13,7 @@ class GoogleSheetsServiceIntegrationTest {
     GoogleSheetsService googleService;
 
     @Test
+    @Disabled
     void updateSumOfTickers() throws Exception {
         long startTime = System.nanoTime();
         googleService.updateSumOfTickers();
@@ -19,6 +21,7 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    @Disabled
     void refreshCryptoPrices() throws Exception {
         long startTime = System.nanoTime();
         googleService.refreshCryptoPrices();
@@ -26,6 +29,7 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    @Disabled
     void run() {
         long startTime = System.nanoTime();
         googleService.run();
