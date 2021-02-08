@@ -29,7 +29,7 @@ class BinanceServiceIntegrationTest {
     @Disabled
     @Test
     void buyCrypto() {
-        binanceService.buyCrypto();
+//        binanceService.buyCrypto();
     }
 
     @ParameterizedTest
@@ -88,7 +88,7 @@ class BinanceServiceIntegrationTest {
     @Test
     @Disabled
     void rebalance() {
-        binanceService.rebalance();
+//        binanceService.rebalance();
     }
 
 }
