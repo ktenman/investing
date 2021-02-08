@@ -64,10 +64,10 @@ public class BinanceService {
         return symbolInfos.stream().anyMatch(s -> s.getSymbol().contains(symbol));
     }
 
-    @Scheduled(cron = "0 0 21 1 4 ? *")
-    @Scheduled(cron = "0 0 21 1 7 ? *")
-    @Scheduled(cron = "0 0 21 30 9 ? *")
-    @Scheduled(cron = "0 0 21 30 12 ? *")
+    @Scheduled(cron = "0 0 21 1 4 ?")
+    @Scheduled(cron = "0 0 21 1 7 ?")
+    @Scheduled(cron = "0 0 21 30 9 ?")
+    @Scheduled(cron = "0 0 21 30 12 ?")
     public void rebalance() {
         log.info("Starting rebalancing...");
 
@@ -217,7 +217,7 @@ public class BinanceService {
         int tryCount = 0;
         while (!success && tryCount < 3) {
             try {
-                binanceApiRestClient.newOrderTest(isBuy ?
+                binanceApiRestClient.newOrder(isBuy ?
                         marketBuy(ticker, quantity.toString()) :
                         marketSell(ticker, quantity.toString())
                 );
