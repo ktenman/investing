@@ -8,6 +8,7 @@ import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.exception.BinanceApiException;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.list.TreeList;
 import org.springframework.retry.annotation.Backoff;
@@ -16,7 +17,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -35,13 +35,13 @@ import static java.util.stream.Collectors.toMap;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class BinanceService {
 
     private static final BigDecimal TEN_EUROS = new BigDecimal("10.000000000");
     private static final BigDecimal THIRTY_EUROS = new BigDecimal("30.000000000");
 
-    @Resource
-    BinanceApiRestClient binanceApiRestClient;
+    private final BinanceApiRestClient binanceApiRestClient;
 
     private List<SymbolInfo> symbolInfos;
 

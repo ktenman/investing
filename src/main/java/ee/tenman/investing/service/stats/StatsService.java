@@ -1,11 +1,11 @@
 package ee.tenman.investing.service.stats;
 
 import ee.tenman.investing.integration.binance.BinanceService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,10 +22,10 @@ import static java.time.LocalTime.MIDNIGHT;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class StatsService {
 
-    @Resource
-    private BinanceService binanceService;
+    private final BinanceService binanceService;
 
     public BigDecimal calculate(int frequency) {
 
