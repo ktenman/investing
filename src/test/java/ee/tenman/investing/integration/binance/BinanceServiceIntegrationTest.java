@@ -84,4 +84,11 @@ class BinanceServiceIntegrationTest {
 
         assertThat(prices).hasSize(limit);
     }
+
+    @Test
+    @Disabled
+    void rebalance() {
+        binanceService.rebalance();
+    }
+
 }

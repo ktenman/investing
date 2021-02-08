@@ -22,16 +22,20 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
+import static com.binance.api.client.domain.account.NewOrder.marketSell;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.RoundingMode.DOWN;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.compare.ComparableUtils.is;
 
 @Service
 @Slf4j
@@ -58,6 +62,81 @@ public class BinanceService {
 
     private boolean isSupportedSymbol(String symbol) {
         return symbolInfos.stream().anyMatch(s -> s.getSymbol().contains(symbol));
+    }
+
+    @Scheduled(cron = "0 0 21 1 4 ? *")
+    @Scheduled(cron = "0 0 21 1 7 ? *")
+    @Scheduled(cron = "0 0 21 30 9 ? *")
+    @Scheduled(cron = "0 0 21 30 12 ? *")
+    public void rebalance() {
+        log.info("Starting rebalancing...");
+
+        List<String> symbolsToRebalance = Arrays.asList("BNB", "BTC", "ETH", "UNI", "ADA");
+        List<String> eurTickers = Arrays.asList("BNB", "BTC", "ETH", "ADA");
+
+        Map<String, BigDecimal> assets = new HashMap<>();
+        for (String symbol : symbolsToRebalance) {
+            BigDecimal availableBalance = binanceApiRestClient.getAccount().getBalances().stream()
+                    .filter(assetBalance -> assetBalance.getAsset().equals(symbol))
+                    .findFirst()
+                    .map(AssetBalance::getFree)
+                    .map(BigDecimal::new)
+                    .orElseThrow(() -> new RuntimeException("Not found EUR"));
+            BigDecimal priceToEur = getPriceToEur(symbol);
+            BigDecimal total = availableBalance.multiply(priceToEur);
+            assets.put(symbol, total);
+        }
+        BigDecimal totalAvailableBalance = assets.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal percentage = BigDecimal.ONE.setScale(8, ROUND_UP)
+                .divide(new BigDecimal(symbolsToRebalance.size()), ROUND_UP);
+        BigDecimal shouldHaveBalanceForSymbol = totalAvailableBalance.multiply(percentage);
+
+
+        for (String symbol : symbolsToRebalance) {
+            BigDecimal availableBalance = assets.get(symbol);
+            BigDecimal difference = availableBalance.subtract(shouldHaveBalanceForSymbol);
+
+            if (!is(difference).greaterThan(BigDecimal.ZERO)) {
+                continue;
+            }
+
+            if (eurTickers.contains(symbol)) {
+                if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).greaterThan(BigDecimal.valueOf(5))) {
+                    sell(symbol + "EUR", TEN_EUROS);
+                } else {
+                    sell(symbol + "EUR", difference.abs());
+                }
+            } else {
+                BigDecimal bnb = getPriceToEur("BNB");
+                sell(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
+            }
+            BigDecimal subtract = assets.get(symbol).subtract(difference.abs());
+            assets.put(symbol, subtract);
+        }
+
+        for (String symbol : symbolsToRebalance) {
+            BigDecimal availableBalance = assets.get(symbol);
+            BigDecimal difference = availableBalance.subtract(shouldHaveBalanceForSymbol);
+
+            if (!is(difference).lessThan(BigDecimal.ZERO)) {
+                continue;
+            }
+
+            if (eurTickers.contains(symbol)) {
+                if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).greaterThan(BigDecimal.valueOf(5))) {
+                    buy(symbol + "EUR", TEN_EUROS);
+                } else {
+                    buy(symbol + "EUR", difference.abs());
+                }
+            } else {
+                BigDecimal bnb = getPriceToEur("BNB");
+                buy(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
+            }
+            BigDecimal subtract = assets.get(symbol).add(difference.abs());
+            assets.put(symbol, subtract);
+        }
+
+        log.info("Finished rebalancing...");
     }
 
     public BigDecimal getPriceToEur(String symbol) {
@@ -98,7 +177,8 @@ public class BinanceService {
         return new BigDecimal(binanceApiRestClient.getPrice(from + to).getPrice());
     }
 
-    @Scheduled(cron = "0 0 12 1-7 * MON")
+    //    @Scheduled(cron = "0 0 12 1-7 * MON")
+    @Scheduled(cron = "0 0 20 23-29 * THU")
     public void buyCrypto() {
 
         buy("BTCEUR", TEN_EUROS);
@@ -122,24 +202,37 @@ public class BinanceService {
     }
 
     private BigDecimal buy(String ticker, BigDecimal baseAmount) {
+        return trade(ticker, baseAmount, true);
+    }
+
+    private BigDecimal sell(String ticker, BigDecimal baseAmount) {
+        return trade(ticker, baseAmount, false);
+    }
+
+    private BigDecimal trade(String ticker, BigDecimal baseAmount, boolean isBuy) {
         String stepSize = binanceApiRestClient.getExchangeInfo().getSymbolInfo(ticker).getSymbolFilter(FilterType.LOT_SIZE).getStepSize();
         int scale = scale(stepSize);
         BigDecimal quantity = quantity(binanceApiRestClient, ticker, baseAmount).setScale(scale, ROUND_UP);
         boolean success = false;
-        while (!success) {
+        int tryCount = 0;
+        while (!success && tryCount < 3) {
             try {
-                binanceApiRestClient.newOrder(marketBuy(ticker, quantity.toString()));
-                log.info("Success {} with amount {}", ticker, quantity);
+                binanceApiRestClient.newOrderTest(isBuy ?
+                        marketBuy(ticker, quantity.toString()) :
+                        marketSell(ticker, quantity.toString())
+                );
+                log.info("{} Success {} with amount {}", isBuy ? "BUY" : "SELL", ticker, quantity);
                 success = true;
             } catch (BinanceApiException e) {
                 log.error("", e);
-                log.info("Failed {} with amount {}", ticker, quantity);
+                log.info("{} Failed {} with amount {}", isBuy ? "BUY" : "SELL", ticker, quantity);
                 if ("Account has insufficient balance for requested action.".equals(e.getMessage())) {
                     quantity = quantity.subtract(new BigDecimal(stepSize)).setScale(scale, ROUND_UP);
                 } else {
                     quantity = quantity.add(new BigDecimal(stepSize)).setScale(scale, ROUND_UP);
                 }
             }
+            tryCount++;
         }
         return quantity;
     }
