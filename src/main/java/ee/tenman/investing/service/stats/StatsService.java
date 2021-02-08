@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import static com.binance.api.client.domain.market.CandlestickInterval.DAILY;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.time.LocalTime.MIDNIGHT;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Slf4j
 @Service
@@ -27,8 +28,7 @@ public class StatsService {
 
     private final BinanceService binanceService;
 
-    public BigDecimal calculate(int frequency) {
-
+    public Map<String, Coin> coins() {
         List<String> symbols = Arrays.asList("BTC", "BNB", "ETH", "ADA");
         Map<String, Coin> coins = new TreeMap<>();
         symbols.forEach(symbol -> {
@@ -39,12 +39,17 @@ public class StatsService {
                     .build();
             coins.put(symbol, coin);
         });
+        return coins;
+    }
 
-        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2020, 1, 1), MIDNIGHT);
+    public BigDecimal calculate(Map<String, Coin> coins, int frequency, int diff) {
+
+        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 18 + diff), MIDNIGHT);
         LocalDateTime now = LocalDateTime.now();
 
         List<BigDecimal> paid = new ArrayList<>();
         int days = 0;
+        int rebalanceCount = 0;
 
         while (startingDay.isBefore(now)) {
 
@@ -58,18 +63,75 @@ public class StatsService {
                 }
             }
 
-            if (days % frequency == 0) {
+            if (days % frequency == 0 && days != 0) {
+                rebalanceCount++;
                 rebalance(coins, startingDay);
+                log.info("Day of week : {}, Day of month: {}, {}", startingDay.getDayOfWeek(), startingDay.getDayOfMonth(), startingDay);
             }
-            startingDay = startingDay.plusDays(1);
+            startingDay = startingDay.plus(1, DAYS);
             days++;
         }
 
-        rebalance(coins, now);
+//        rebalance(coins, now);
 
         BigDecimal total = totalValueInUsdt(coins.values(), now);
-        log.info("Total value : {} and paid {} in {} days. Frequency: {}",
-                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), days, frequency);
+        log.info("Total value : {} and paid {} in {} days. Frequency: {}. Rebalance count: {}. Diff: {}",
+                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), days, frequency, rebalanceCount, diff);
+
+        for (Coin coin : coins.values()) {
+            BigDecimal valueInUsdt = coin.valueInUsdt(now.toLocalDate());
+            log.info("{} : {} : {}", coin.getName(), valueInUsdt, valueInUsdt.divide(total, ROUND_UP));
+        }
+
+        return total;
+    }
+
+    public BigDecimal calculate(int frequency, int diff) {
+
+        List<String> symbols = Arrays.asList("BTC", "BNB", "ETH", "ADA");
+        Map<String, Coin> coins = new TreeMap<>();
+        symbols.forEach(symbol -> {
+            Map<LocalDateTime, BigDecimal> prices = binanceService.getPrices(symbol + "USDT", DAILY, 1028);
+            Coin coin = Coin.builder()
+                    .name(symbol)
+                    .prices(prices)
+                    .build();
+            coins.put(symbol, coin);
+        });
+
+        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 18 + diff), MIDNIGHT);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<BigDecimal> paid = new ArrayList<>();
+        int days = 0;
+        int rebalanceCount = 0;
+
+        while (startingDay.isBefore(now)) {
+
+            if (days % 30 == 0) {
+                for (Coin coin : coins.values()) {
+                    BigDecimal price = coin.getPrice(startingDay.toLocalDate());
+                    BigDecimal usdtAmount = BigDecimal.valueOf(25);
+                    paid.add(usdtAmount);
+                    BigDecimal amountBought = amount(price, usdtAmount);
+                    coin.setAmount(coin.getAmount().add(amountBought));
+                }
+            }
+
+            if (days % frequency == 0 && days != 0) {
+                rebalanceCount++;
+                rebalance(coins, startingDay);
+                log.info("Day of week : {}, Day of month: {}, {}", startingDay.getDayOfWeek(), startingDay.getDayOfMonth(), startingDay);
+            }
+            startingDay = startingDay.plus(1, DAYS);
+            days++;
+        }
+
+//        rebalance(coins, now);
+
+        BigDecimal total = totalValueInUsdt(coins.values(), now);
+        log.info("Total value : {} and paid {} in {} days. Frequency: {}. Rebalance count: {}. Diff: {}",
+                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), days, frequency, rebalanceCount, diff);
 
         for (Coin coin : coins.values()) {
             BigDecimal valueInUsdt = coin.valueInUsdt(now.toLocalDate());
