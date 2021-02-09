@@ -30,7 +30,7 @@ public class Coin {
                         localDateTime.getMonth(),
                         localDateTime.getDayOfMonth(),
                         localDateTime.getHour(),
-                        base.getMinute(),
+                        localDateTime.getMinute(),
                         base.getSecond(),
                         base.getNano());
         BigDecimal bigDecimal = this.prices.get(key);
