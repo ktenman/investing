@@ -22,11 +22,16 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
@@ -291,28 +296,41 @@ public class BinanceService {
     private List<Candlestick> getCandlestickBars(String fromTo, CandlestickInterval candlestickInterval, final int limit) {
         LocalDateTime now = LocalDateTime.now();
         ChronoUnit chronoUnit = chronoUnit(candlestickInterval);
+        int minuteMultiplier = minuteMultiplier(candlestickInterval);
         List<Candlestick> candlesticks = new TreeList<>();
 
         int step = Math.min(1000, limit);
         int startLimit = step;
         int endLimit = 0;
 
-        while (endLimit <= limit * 1.04 || startLimit == step) {
-            long start = now.minus(startLimit, chronoUnit).toInstant(UTC).toEpochMilli();
-            long end = now.minus(endLimit, chronoUnit).toInstant(UTC).toEpochMilli();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        List<CompletableFuture> futures = new ArrayList<>();
 
-//            try {
-//                TimeUnit.MILLISECONDS.sleep(51);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+        while (endLimit <= limit || startLimit == step) {
+            long start = now.minus(startLimit * minuteMultiplier, chronoUnit).toInstant(UTC).toEpochMilli();
+            long end = now.minus(endLimit * minuteMultiplier, chronoUnit).toInstant(UTC).toEpochMilli();
 
-            List<Candlestick> candlestickBars = binanceApiRestClient.getCandlestickBars(fromTo, candlestickInterval, step, start, end);
-            candlesticks.addAll(candlestickBars);
+            try {
+                TimeUnit.MILLISECONDS.sleep(51);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                List<Candlestick> candlestickBars = binanceApiRestClient.getCandlestickBars(fromTo, candlestickInterval, step, start, end);
+                candlesticks.addAll(candlestickBars);
+            });
+            futures.add(completableFuture);
 
             startLimit += step;
             endLimit += step;
         }
+
+        CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        for (CompletableFuture future : futures) {
+            executorService.submit(() -> future);
+        }
+        combinedFuture.join();
 
         return candlesticks.stream()
                 .sorted((a, b) -> b.getCloseTime().compareTo(a.getCloseTime()))
@@ -320,9 +338,35 @@ public class BinanceService {
                 .collect(Collectors.toList());
     }
 
+    private int minuteMultiplier(CandlestickInterval candlestickInterval) {
+        switch (candlestickInterval) {
+            case ONE_MINUTE:
+            case HOURLY:
+            case DAILY:
+            case TWELVE_HOURLY:
+            case WEEKLY:
+            case MONTHLY:
+                return 1;
+            case THREE_MINUTES:
+                return 3;
+            case FIVE_MINUTES:
+                return 5;
+            case FIFTEEN_MINUTES:
+                return 15;
+            case HALF_HOURLY:
+                return 30;
+            default:
+                throw new IllegalArgumentException(String.format("%s not supported", candlestickInterval));
+        }
+    }
+
     private ChronoUnit chronoUnit(CandlestickInterval candlestickInterval) {
         switch (candlestickInterval) {
             case ONE_MINUTE:
+            case THREE_MINUTES:
+            case FIVE_MINUTES:
+            case FIFTEEN_MINUTES:
+            case HALF_HOURLY:
                 return ChronoUnit.MINUTES;
             case HOURLY:
                 return ChronoUnit.HOURS;

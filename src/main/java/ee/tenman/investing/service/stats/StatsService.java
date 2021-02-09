@@ -1,6 +1,7 @@
 package ee.tenman.investing.service.stats;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
+import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,7 +26,6 @@ import static java.math.BigDecimal.ROUND_UP;
 import static java.time.LocalTime.MIDNIGHT;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.MONTHS;
 
 @Slf4j
@@ -33,6 +34,13 @@ import static java.time.temporal.ChronoUnit.MONTHS;
 public class StatsService {
 
     private final BinanceService binanceService;
+
+    private static final Map<Integer, List<Integer>> WEEK_DAYS = ImmutableMap.of(
+            1, Arrays.asList(1, 2, 3, 4, 5, 6, 7),
+            2, Arrays.asList(8, 9, 10, 11, 12, 13, 14),
+            3, Arrays.asList(15, 16, 17, 18, 19, 20, 21),
+            4, Arrays.asList(22, 23, 24, 25, 26, 27, 28)
+    );
 
     public Map<String, Coin> coins(CandlestickInterval candlestickInterval, int limit) {
         List<String> symbols = Arrays.asList("BTC", "BNB", "ETH", "ADA");
@@ -48,9 +56,11 @@ public class StatsService {
         return coins;
     }
 
-    public BigDecimal calculate(Map<String, Coin> coins, int frequency, int diff, int dayOfWeek, int hour, int rebalanceHour) {
+    public BigDecimal calculate(Map<String, Coin> coins, int frequency, int week, int dayOfWeek, int hour, int rebalanceHour, BigDecimal threshold, boolean rebalance) {
 
-        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 18), MIDNIGHT).plusDays(diff);
+//        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 21), MIDNIGHT);
+        LocalDateTime startingDay = LocalDateTime.parse("2018-04-20T05:00:00.00");
+        ;
         LocalDateTime temp = startingDay;
         LocalDateTime now = LocalDateTime.now();
         long duration = MONTHS.between(startingDay, temp);
@@ -64,7 +74,11 @@ public class StatsService {
 
         while (startingDay.isBefore(now)) {
 
-            if (prev != duration && startingDay.getDayOfWeek().getValue() == dayOfWeek && startingDay.getHour() == hour) {
+            if (prev != duration &&
+                    startingDay.getDayOfWeek().getValue() == dayOfWeek &&
+                    startingDay.getHour() == hour &&
+                    WEEK_DAYS.get(week).contains(startingDay.getDayOfMonth())
+            ) {
                 prev = duration;
                 for (Coin coin : coins.values()) {
                     BigDecimal price = coin.getPrice(startingDay);
@@ -78,10 +92,9 @@ public class StatsService {
 
             String rebalanceDay = startingDay.getYear() + "" + startingDay.getDayOfYear();
             if (startingDay.getDayOfYear() % frequency == 0 && !rebalancedDays.contains(rebalanceDay) &&
-                    startingDay.getHour() == rebalanceHour) {
+                    startingDay.getHour() == rebalanceHour && rebalance) {
                 rebalancedDays.add(rebalanceDay);
-                rebalanceCount++;
-//                rebalance(coins, startingDay);
+                rebalanceCount += rebalance(coins, startingDay, threshold);
                 log.info("REBALANCE Day of week : {}, Day of month: {}, {}", startingDay.getDayOfWeek(), startingDay.getDayOfMonth(), startingDay);
             }
 
@@ -90,11 +103,9 @@ public class StatsService {
             unit++;
         }
 
-//        rebalance(coins, now);
-
         BigDecimal total = totalValueInUsdt(coins.values(), now);
-        log.info("Total value : {} and paid {} in {} unit. Frequency: {}. Rebalance count: {}. Diff: {}",
-                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), unit, frequency, rebalanceCount, diff);
+        log.info("Total value : {} and paid {} in {} unit. Frequency: {}. Rebalance count: {}. week: {}",
+                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), unit, frequency, rebalanceCount, week);
 
         for (Coin coin : coins.values()) {
             BigDecimal valueInUsdt = coin.valueInUsdt(now);
@@ -104,9 +115,11 @@ public class StatsService {
         return total;
     }
 
-    public BigDecimal calculateMinute(Map<String, Coin> coins, int frequency, int diff, int dayOfWeek, int hour, int rebalanceHour, int minute) {
+    public BigDecimal calculateDay(Map<String, Coin> coins, int frequency, int dayOfMonth, int dayOfWeek, int hour, int rebalanceHour, BigDecimal threshold, boolean rebalance) {
 
-        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 18), MIDNIGHT).plusDays(diff);
+//        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 21), MIDNIGHT);
+        LocalDateTime startingDay = LocalDateTime.parse("2018-04-20T05:00:00.00");
+        ;
         LocalDateTime temp = startingDay;
         LocalDateTime now = LocalDateTime.now();
         long duration = MONTHS.between(startingDay, temp);
@@ -120,7 +133,12 @@ public class StatsService {
 
         while (startingDay.isBefore(now)) {
 
-            if (prev != duration && startingDay.getDayOfWeek().getValue() == dayOfWeek && startingDay.getHour() == hour && startingDay.getMinute() == minute) {
+            if (prev != duration &&
+//                    startingDay.getDayOfWeek().getValue() == dayOfWeek &&
+                    startingDay.getHour() == hour &&
+                    startingDay.getDayOfMonth() == dayOfMonth
+//                    WEEK_DAYS.get(week).contains(startingDay.getDayOfMonth())
+            ) {
                 prev = duration;
                 for (Coin coin : coins.values()) {
                     BigDecimal price = coin.getPrice(startingDay);
@@ -134,23 +152,20 @@ public class StatsService {
 
             String rebalanceDay = startingDay.getYear() + "" + startingDay.getDayOfYear();
             if (startingDay.getDayOfYear() % frequency == 0 && !rebalancedDays.contains(rebalanceDay) &&
-                    startingDay.getHour() == rebalanceHour && startingDay.getMinute() == minute) {
+                    startingDay.getHour() == rebalanceHour && rebalance) {
                 rebalancedDays.add(rebalanceDay);
-                rebalanceCount++;
-                rebalance(coins, startingDay);
+                rebalanceCount += rebalance(coins, startingDay, threshold);
                 log.info("REBALANCE Day of week : {}, Day of month: {}, {}", startingDay.getDayOfWeek(), startingDay.getDayOfMonth(), startingDay);
             }
 
-            startingDay = startingDay.plus(1, MINUTES);
+            startingDay = startingDay.plus(1, HOURS);
             duration = MONTHS.between(startingDay, temp);
             unit++;
         }
 
-//        rebalance(coins, now);
-
         BigDecimal total = totalValueInUsdt(coins.values(), now);
-        log.info("Total value : {} and paid {} in {} unit. Frequency: {}. Rebalance count: {}. Diff: {}",
-                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), unit, frequency, rebalanceCount, diff);
+        log.info("Total value : {} and paid {} in {} unit. Frequency: {}. Rebalance count: {}. week: {}",
+                total, paid.stream().reduce(BigDecimal.ZERO, BigDecimal::add), unit, frequency, rebalanceCount, dayOfMonth);
 
         for (Coin coin : coins.values()) {
             BigDecimal valueInUsdt = coin.valueInUsdt(now);
@@ -159,6 +174,7 @@ public class StatsService {
 
         return total;
     }
+
 
     public BigDecimal calculate(int frequency, int diff) {
 
@@ -231,9 +247,35 @@ public class StatsService {
         }
     }
 
-    private void rebalance(Map<String, Coin> coins, LocalDateTime startingDay) {
+    private int rebalance(Map<String, Coin> coins, LocalDateTime startingDay, BigDecimal threshold) {
         BigDecimal total = totalValueInUsdt(coins.values(), startingDay);
         BigDecimal shouldHave = BigDecimal.valueOf(0.25).multiply(total);
+        List<BigDecimal> percentages = new ArrayList<>();
+
+        if (ComparableUtils.is(total).equalTo(BigDecimal.ZERO)) {
+            log.info("Skipping rebalance... Total is ZERO");
+            return 0;
+        }
+
+        for (Map.Entry<String, Coin> e : coins.entrySet()) {
+            Coin coin = e.getValue();
+            BigDecimal valueInUsdt = coin.valueInUsdt(startingDay);
+            percentages.add(valueInUsdt.divide(total, RoundingMode.HALF_UP));
+        }
+
+        boolean skipRebalncingBecauseOfThreshold = true;
+        for (BigDecimal percentage : percentages) {
+            BigDecimal difference = percentage.subtract(BigDecimal.valueOf(0.25)).abs();
+            if (ComparableUtils.is(difference).greaterThan(threshold)) {
+                skipRebalncingBecauseOfThreshold = false;
+            }
+        }
+
+        if (skipRebalncingBecauseOfThreshold) {
+            log.info("Skipping rebalance...");
+            return 0;
+        }
+
         for (Map.Entry<String, Coin> e : coins.entrySet()) {
             Coin coin = e.getValue();
             BigDecimal valueInUsdt = coin.valueInUsdt(startingDay);
@@ -245,6 +287,8 @@ public class StatsService {
                 coin.setAmount(coin.getAmount().add(amount));
             }
         }
+
+        return 1;
     }
 
     BigDecimal totalValueInUsdt(Collection<Coin> coinSet, LocalDate localDate) {
