@@ -327,7 +327,7 @@ public class BinanceService {
         }
 
         CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        for (CompletableFuture future : futures) {
+        for (CompletableFuture<?> future : futures) {
             executorService.submit(() -> future);
         }
         combinedFuture.join();

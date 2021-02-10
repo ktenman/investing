@@ -42,9 +42,7 @@ public class StatsService {
             4, Arrays.asList(22, 23, 24, 25, 26, 27, 28)
     );
 
-    public Map<String, Coin> coins(CandlestickInterval candlestickInterval, int limit) {
-        List<String> symbols = Arrays.asList("BTC", "BNB", "ETH", "ADA");
-//        List<String> symbols = Arrays.asList("BTC", "BNB", "ADA");
+    public Map<String, Coin> coins(List<String> symbols, CandlestickInterval candlestickInterval, int limit) {
         Map<String, Coin> coins = new TreeMap<>();
         symbols.forEach(symbol -> {
             Map<LocalDateTime, BigDecimal> prices = binanceService.getPrices(symbol + "USDT", candlestickInterval, limit);
@@ -58,6 +56,7 @@ public class StatsService {
     }
 
     public BigDecimal calculate(
+            LocalDateTime startingDay,
             Map<String, Coin> coins,
             int frequency,
             int week,
@@ -70,9 +69,6 @@ public class StatsService {
             int rebalanceMinute
     ) {
 
-//        LocalDateTime startingDay = LocalDateTime.of(LocalDate.of(2018, 4, 21), MIDNIGHT);
-        LocalDateTime startingDay = LocalDateTime.parse("2018-04-20T05:00:00.00");
-        ;
         LocalDateTime temp = startingDay;
         LocalDateTime now = LocalDateTime.now();
         long duration = MONTHS.between(startingDay, temp);
