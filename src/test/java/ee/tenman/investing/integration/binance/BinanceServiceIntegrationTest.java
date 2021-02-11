@@ -79,7 +79,7 @@ class BinanceServiceIntegrationTest {
     @ParameterizedTest
     @MethodSource("frequencyProvider")
     @DisplayName("Get prices with limit")
-    @Disabled
+//    @Disabled
     void getPrice2(String fromTo, CandlestickInterval candlestickInterval, int limit) {
         Map<LocalDateTime, BigDecimal> prices = binanceService.getPrices(fromTo, candlestickInterval, limit);
 

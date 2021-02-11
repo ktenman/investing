@@ -2,6 +2,7 @@ package ee.tenman.investing.integration.binance;
 
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.AssetBalance;
+import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolInfo;
 import com.binance.api.client.domain.market.Candlestick;
@@ -153,8 +154,10 @@ public class BinanceService {
             try {
                 long correctTimestamp = getBinanceApiRestClientCorrectTimestamp();
                 binanceApiRestClient.newOrder(isBuy ?
-                        NewOrderWithTimestamp.marketBuy(ticker, quantity.toString(), correctTimestamp) :
-                        NewOrderWithTimestamp.marketSell(ticker, quantity.toString(), correctTimestamp)
+                                NewOrder.marketBuy(ticker, quantity.toString()) :
+//                        NewOrderWithTimestamp.marketBuy(ticker, quantity.toString(), correctTimestamp) :
+                                NewOrder.marketSell(ticker, quantity.toString())
+//                        NewOrderWithTimestamp.marketSell(ticker, quantity.toString(), correctTimestamp)
                 );
                 log.info("{} Success {} with amount {}", isBuy ? "BUY" : "SELL", ticker, quantity);
                 success = true;
