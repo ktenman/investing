@@ -86,8 +86,4 @@ class BinanceServiceIntegrationTest {
         assertThat(prices).hasSize(limit);
     }
 
-    @Test
-    void zzz() {
-        binanceService.buyCrypto2();
-    }
 }

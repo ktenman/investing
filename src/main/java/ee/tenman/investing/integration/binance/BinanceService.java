@@ -152,7 +152,7 @@ public class BinanceService {
         while (!success && tryCount < 3) {
             try {
                 long correctTimestamp = getBinanceApiRestClientCorrectTimestamp();
-                binanceApiRestClient.newOrderTest(isBuy ?
+                binanceApiRestClient.newOrder(isBuy ?
                         NewOrderWithTimestamp.marketBuy(ticker, quantity.toString(), correctTimestamp) :
                         NewOrderWithTimestamp.marketSell(ticker, quantity.toString(), correctTimestamp)
                 );
