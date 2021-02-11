@@ -23,8 +23,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,13 +32,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.binance.api.client.domain.account.NewOrder.marketBuy;
-import static com.binance.api.client.domain.account.NewOrder.marketSell;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.RoundingMode.DOWN;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.compare.ComparableUtils.is;
 
 @Service
 @Slf4j
@@ -69,79 +64,13 @@ public class BinanceService {
         return symbolInfos.stream().anyMatch(s -> s.getSymbol().contains(symbol));
     }
 
-    @Scheduled(cron = "0 0 21 1 4 ?")
-    @Scheduled(cron = "0 0 21 1 7 ?")
-    @Scheduled(cron = "0 0 21 30 9 ?")
-    @Scheduled(cron = "0 0 21 30 12 ?")
-    public void rebalance() {
-        log.info("Starting rebalancing...");
+    public BinanceApiRestClient getBinanceApiRestClient() {
+        return binanceApiRestClient;
+    }
 
-        List<String> symbolsToRebalance = Arrays.asList("BNB", "BTC", "ETH", "UNI", "ADA");
-        List<String> eurTickers = Arrays.asList("BNB", "BTC", "ETH", "ADA");
-
-        Map<String, BigDecimal> assets = new HashMap<>();
-        for (String symbol : symbolsToRebalance) {
-            BigDecimal availableBalance = binanceApiRestClient.getAccount().getBalances().stream()
-                    .filter(assetBalance -> assetBalance.getAsset().equals(symbol))
-                    .findFirst()
-                    .map(AssetBalance::getFree)
-                    .map(BigDecimal::new)
-                    .orElseThrow(() -> new RuntimeException("Not found EUR"));
-            BigDecimal priceToEur = getPriceToEur(symbol);
-            BigDecimal total = availableBalance.multiply(priceToEur);
-            assets.put(symbol, total);
-        }
-        BigDecimal totalAvailableBalance = assets.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal percentage = BigDecimal.ONE.setScale(8, ROUND_UP)
-                .divide(new BigDecimal(symbolsToRebalance.size()), ROUND_UP);
-        BigDecimal shouldHaveBalanceForSymbol = totalAvailableBalance.multiply(percentage);
-
-
-        for (String symbol : symbolsToRebalance) {
-            BigDecimal availableBalance = assets.get(symbol);
-            BigDecimal difference = availableBalance.subtract(shouldHaveBalanceForSymbol);
-
-            if (!is(difference).greaterThan(BigDecimal.ZERO)) {
-                continue;
-            }
-
-            if (eurTickers.contains(symbol)) {
-                if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).greaterThan(BigDecimal.valueOf(5))) {
-                    sell(symbol + "EUR", TEN_EUROS);
-                } else {
-                    sell(symbol + "EUR", difference.abs());
-                }
-            } else {
-                BigDecimal bnb = getPriceToEur("BNB");
-                sell(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
-            }
-            BigDecimal subtract = assets.get(symbol).subtract(difference.abs());
-            assets.put(symbol, subtract);
-        }
-
-        for (String symbol : symbolsToRebalance) {
-            BigDecimal availableBalance = assets.get(symbol);
-            BigDecimal difference = availableBalance.subtract(shouldHaveBalanceForSymbol);
-
-            if (!is(difference).lessThan(BigDecimal.ZERO)) {
-                continue;
-            }
-
-            if (eurTickers.contains(symbol)) {
-                if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).greaterThan(BigDecimal.valueOf(5))) {
-                    buy(symbol + "EUR", TEN_EUROS);
-                } else {
-                    buy(symbol + "EUR", difference.abs());
-                }
-            } else {
-                BigDecimal bnb = getPriceToEur("BNB");
-                buy(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
-            }
-            BigDecimal subtract = assets.get(symbol).add(difference.abs());
-            assets.put(symbol, subtract);
-        }
-
-        log.info("Finished rebalancing...");
+    public long getBinanceApiRestClientCorrectTimestamp() {
+        Instant now = Instant.now();
+        return now.toEpochMilli() - (now.toEpochMilli() - getBinanceApiRestClient().getServerTime());
     }
 
     public BigDecimal getPriceToEur(String symbol) {
@@ -206,11 +135,11 @@ public class BinanceService {
         buy("SUSHIBNB", boughtBnbAmount.multiply(thirtyThreePercent));
     }
 
-    private BigDecimal buy(String ticker, BigDecimal baseAmount) {
+    public BigDecimal buy(String ticker, BigDecimal baseAmount) {
         return trade(ticker, baseAmount, true);
     }
 
-    private BigDecimal sell(String ticker, BigDecimal baseAmount) {
+    public BigDecimal sell(String ticker, BigDecimal baseAmount) {
         return trade(ticker, baseAmount, false);
     }
 
@@ -222,9 +151,10 @@ public class BinanceService {
         int tryCount = 0;
         while (!success && tryCount < 3) {
             try {
-                binanceApiRestClient.newOrder(isBuy ?
-                        marketBuy(ticker, quantity.toString()) :
-                        marketSell(ticker, quantity.toString())
+                long correctTimestamp = getBinanceApiRestClientCorrectTimestamp();
+                binanceApiRestClient.newOrderTest(isBuy ?
+                        NewOrderWithTimestamp.marketBuy(ticker, quantity.toString(), correctTimestamp) :
+                        NewOrderWithTimestamp.marketSell(ticker, quantity.toString(), correctTimestamp)
                 );
                 log.info("{} Success {} with amount {}", isBuy ? "BUY" : "SELL", ticker, quantity);
                 success = true;

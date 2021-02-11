@@ -87,9 +87,7 @@ class BinanceServiceIntegrationTest {
     }
 
     @Test
-    @Disabled
-    void rebalance() {
-        binanceService.rebalance();
+    void zzz() {
+        binanceService.buyCrypto2();
     }
-
 }
