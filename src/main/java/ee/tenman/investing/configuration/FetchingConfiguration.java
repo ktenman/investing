@@ -2,9 +2,6 @@ package ee.tenman.investing.configuration;
 
 import com.google.common.collect.ImmutableMap;
 
-import java.util.Arrays;
-import java.util.List;
-
 public interface FetchingConfiguration {
 
     String BINANCE_COIN_ID = "Binance Coin";
@@ -17,19 +14,6 @@ public interface FetchingConfiguration {
     String ONE_INCH_ID = "1inch";
     String CARDANO_ID = "Cardano";
     String ETHEREUM_ID = "Ethereum";
-
-    List<String> TICKERS_TO_FETCH = Arrays.asList(
-            BINANCE_COIN_ID,
-            BITCOIN_ID,
-            CARDANO_ID,
-            CRO_ID,
-            ETHEREUM_ID,
-            ONE_INCH_ID,
-            POLKADOT_ID,
-            SUSHI_SWAP_ID,
-            SYNTHETIX_ID,
-            UNISWAP_ID
-    );
 
     ImmutableMap<String, String> TICKER_SYMBOL_MAP = ImmutableMap.<String, String>builder()
             .put(BINANCE_COIN_ID, "BNB")

@@ -7,6 +7,7 @@ import com.binance.api.client.domain.general.SymbolInfo;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.exception.BinanceApiException;
+import com.google.common.collect.ImmutableCollection;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -336,4 +337,12 @@ public class BinanceService {
 
     }
 
+    public Map<String, BigDecimal> fetchAvailableBalances(ImmutableCollection<String> values) {
+        List<AssetBalance> balances = getBinanceApiRestClient().getAccount(
+                60000L, getBinanceApiRestClientCorrectTimestamp())
+                .getBalances();
+        return balances.stream()
+                .filter(assetBalance -> values.contains(assetBalance.getAsset()))
+                .collect(toMap(AssetBalance::getAsset, assetBalance -> new BigDecimal(assetBalance.getFree())));
+    }
 }

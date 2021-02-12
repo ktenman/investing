@@ -16,6 +16,7 @@ import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import ee.tenman.investing.integration.autofarm.AutofarmService;
+import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.ONE_INCH_I
 import static ee.tenman.investing.configuration.FetchingConfiguration.POLKADOT_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.SUSHI_SWAP_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.SYNTHETIX_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.TICKERS_TO_FETCH;
+import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
 import static java.lang.Math.abs;
 import static java.time.Duration.between;
@@ -76,6 +77,8 @@ public class GoogleSheetsService {
     YieldWatchService yieldWatchService;
     @Resource
     AutofarmService autofarmService;
+    @Resource
+    BinanceService binanceService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -151,7 +154,7 @@ public class GoogleSheetsService {
     public void refreshCryptoPrices() throws Exception {
 
         try {
-            Map<String, BigDecimal> prices = priceService.getPrices(TICKERS_TO_FETCH);
+            Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
 
             Map<String, String> cryptoCellsMap = new HashMap<>();
             cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
@@ -176,6 +179,32 @@ public class GoogleSheetsService {
             googleSheetsClient.update("investing!F21:F21", totalBnbAmount);
             googleSheetsClient.update("investing!L1:L1", autofarmService.getDailyYieldReturn());
 
+        } catch (Exception e) {
+            log.error("Error ", e);
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    @Scheduled(fixedDelay = 3600000, initialDelay = 500)
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    public void refreshBalances() throws Exception {
+        int startingIndexNumber = 21;
+        String startingIndexCombined = "E" + startingIndexNumber;
+        ValueRange valueRange = getValueRange(String.format("investing!%s:E30", startingIndexCombined));
+        String[] values = valueRange.getValues().stream().flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new);
+        Map<String, BigDecimal> availableBalances = binanceService.fetchAvailableBalances(TICKER_SYMBOL_MAP.values());
+        try {
+            for (int i = 0; i < values.length; i++) {
+                for (Map.Entry<String, BigDecimal> entry : availableBalances.entrySet()) {
+                    if (entry.getKey().equals(values[i])) {
+                        String coordinate = "D" + (startingIndexNumber + i);
+                        String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+                        googleSheetsClient.update(coordinates, entry.getValue());
+                    }
+                }
+            }
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());

@@ -4,6 +4,7 @@ target/
 !**/src/main/**
 !**/src/test/**
 src/main/resources/private_key.txt
+src/main/resources/wallet_address.txt
 src/main/resources/private_key_id.txt
 src/test/resources/private_key.txt
 src/test/resources/private_key_id.txt
@@ -13,6 +14,7 @@ src/test/resources/binance_api_key.txt
 src/test/resources/binance_secret_key.txt
 src/test/resources/crypto_com_api_key.txt
 src/test/resources/crypto_com_secret_key.txt
+src/test/resources/wallet_address.txt
 
 ### STS ###
 .apt_generated

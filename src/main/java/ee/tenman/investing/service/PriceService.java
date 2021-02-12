@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,9 +79,8 @@ public class PriceService {
         throw new NotSupportedSymbolException(String.format("%s not supported", fromTo));
     }
 
-
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
-    public Map<String, BigDecimal> getPrices(List<String> input) {
+    public Map<String, BigDecimal> getPrices(Collection<String> input) {
         List<String> tickers = new ArrayList<>(input);
         Map<String, BigDecimal> binancePrices = new HashMap<>();
 

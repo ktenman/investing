@@ -18,7 +18,7 @@ import java.util.List;
 import static ee.tenman.investing.configuration.FetchingConfiguration.BINANCE_COIN_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.BITCOIN_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.TICKERS_TO_FETCH;
+import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,7 +48,7 @@ class PriceServiceTest {
     void getPrices() {
         when(binanceService.getPriceToEur(anyString())).thenReturn(BigDecimal.TEN);
 
-        priceService.getPrices(TICKERS_TO_FETCH);
+        priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
 
         verify(coinMarketCapService, never()).getPricesInEur(anyList(), any());
     }

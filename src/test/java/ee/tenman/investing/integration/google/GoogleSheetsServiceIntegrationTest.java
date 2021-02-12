@@ -36,6 +36,12 @@ class GoogleSheetsServiceIntegrationTest {
         System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
+    @Test
+    @Disabled
+    void refreshBalances() throws Exception {
+        googleService.refreshBalances();
+    }
+
     private double duration(long startTime) {
         return (System.nanoTime() - startTime) / 1.000_000_000;
     }
