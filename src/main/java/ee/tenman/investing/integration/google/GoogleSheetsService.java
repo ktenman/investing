@@ -169,7 +169,7 @@ public class GoogleSheetsService {
             }
 
             BigDecimal bnbAmountInBinance = (BigDecimal) getValueRange("investing!D21:D21").getValues().get(0).get(0);
-            BigDecimal yieldBnbAmount = yieldWatchService.fetchBnbAmount();
+            BigDecimal yieldBnbAmount = yieldWatchService.getBnbAmount();
             BigDecimal totalBnbAmount = bnbAmountInBinance.add(yieldBnbAmount);
             googleSheetsClient.update("investing!F21:F21", totalBnbAmount);
 

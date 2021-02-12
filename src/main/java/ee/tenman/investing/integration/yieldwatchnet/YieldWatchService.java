@@ -5,6 +5,7 @@ import com.codeborne.selenide.SelenideElement;
 import ee.tenman.investing.integration.binance.BinanceService;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,6 +24,20 @@ public class YieldWatchService {
 
     @Resource
     private BinanceService binanceService;
+
+    private BigDecimal bnbAmount;
+
+    public BigDecimal getBnbAmount() {
+        if (bnbAmount == null) {
+            setBnbAmount();
+        }
+        return bnbAmount;
+    }
+
+    @Scheduled(fixedDelay = 300000, initialDelay = 300000)
+    public void setBnbAmount() {
+        this.bnbAmount = fetchBnbAmount();
+    }
 
     public BigDecimal fetchBnbAmount() {
         Configuration.startMaximized = true;
