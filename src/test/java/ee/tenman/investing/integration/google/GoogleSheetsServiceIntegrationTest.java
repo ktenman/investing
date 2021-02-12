@@ -37,7 +37,6 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
-    @Disabled
     void refreshBalances() throws Exception {
         googleService.refreshBalances();
     }
