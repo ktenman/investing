@@ -15,6 +15,7 @@ import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.compare.ComparableUtils;
@@ -70,6 +71,9 @@ public class GoogleSheetsService {
     PriceService priceService;
     @Resource
     GoogleSheetsClient googleSheetsClient;
+
+    @Resource
+    YieldWatchService yieldWatchService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -140,7 +144,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 20000, initialDelay = 20000)
+    @Scheduled(fixedDelay = 30000, initialDelay = 30000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public void refreshCryptoPrices() throws Exception {
 
@@ -163,6 +167,11 @@ public class GoogleSheetsService {
                 String updateCell = e.getValue();
                 googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
+
+            BigDecimal bnbAmountInBinance = (BigDecimal) getValueRange("investing!D21:D21").getValues().get(0).get(0);
+            BigDecimal yieldBnbAmount = yieldWatchService.fetchBnbAmount();
+            BigDecimal totalBnbAmount = bnbAmountInBinance.add(yieldBnbAmount);
+            googleSheetsClient.update("investing!F21:F21", totalBnbAmount);
 
         } catch (Exception e) {
             log.error("Error ", e);

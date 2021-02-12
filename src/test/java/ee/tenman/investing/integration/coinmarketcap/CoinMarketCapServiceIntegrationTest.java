@@ -37,4 +37,19 @@ class CoinMarketCapServiceIntegrationTest {
         });
     }
 
+
+    @Test
+    void yieldwatchNet() {
+        List<String> tickers = Arrays.asList(BINANCE_COIN_ID, CRO_ID);
+        BigDecimal busd = binanceService.getPriceToEur("BUSD");
+        Map<String, BigDecimal> prices = coinMarketCapService.getPricesInEur(tickers, busd);
+
+        tickers.forEach(t -> assertThat(prices.keySet()).contains(t));
+        assertThat(prices.values()).hasSize(2);
+        prices.values().forEach(p -> {
+            assertThat(p).isNotZero();
+            assertThat(p).isNotNull();
+        });
+    }
+
 }

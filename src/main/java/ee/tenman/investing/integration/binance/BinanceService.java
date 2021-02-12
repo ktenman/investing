@@ -2,7 +2,6 @@ package ee.tenman.investing.integration.binance;
 
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.AssetBalance;
-import com.binance.api.client.domain.account.NewOrder;
 import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolInfo;
 import com.binance.api.client.domain.market.Candlestick;
@@ -112,6 +111,28 @@ public class BinanceService {
         return new BigDecimal(binanceApiRestClient.getPrice(from + to).getPrice());
     }
 
+    public void buyCrypto2() {
+
+        buy("BTCEUR", new BigDecimal("49.840000000000000"));
+//        buy("DOTEUR", TEN_EUROS);
+        buy("ADAEUR", new BigDecimal("21.590000000000"));
+        buy("ETHEUR", new BigDecimal("23.2200000000000"));
+
+//        BigDecimal totalEuros = binanceApiRestClient.getAccount().getBalances().stream()
+//                .filter(assetBalance -> assetBalance.getAsset().equals("EUR"))
+//                .findFirst()
+//                .map(AssetBalance::getFree)
+//                .map(BigDecimal::new)
+//                .orElseThrow(() -> new RuntimeException("Not found EUR"));
+//
+//        BigDecimal baseAmount = totalEuros.compareTo(THIRTY_EUROS) >= 0 ? THIRTY_EUROS : totalEuros;
+//        BigDecimal boughtBnbAmount = buy("BNBEUR", baseAmount);
+//
+//        BigDecimal thirtyThreePercent = BigDecimal.valueOf(0.3333333333333333);
+//        buy("UNIBNB", boughtBnbAmount.multiply(thirtyThreePercent));
+//        buy("SUSHIBNB", boughtBnbAmount.multiply(thirtyThreePercent));
+    }
+
     //    @Scheduled(cron = "0 0 12 1-7 * MON")
     @Scheduled(cron = "0 0 20 23-29 * THU")
     public void buyCrypto() {
@@ -153,11 +174,9 @@ public class BinanceService {
         while (!success && tryCount < 3) {
             try {
                 long correctTimestamp = getBinanceApiRestClientCorrectTimestamp();
-                binanceApiRestClient.newOrder(isBuy ?
-                                NewOrder.marketBuy(ticker, quantity.toString()) :
-//                        NewOrderWithTimestamp.marketBuy(ticker, quantity.toString(), correctTimestamp) :
-                                NewOrder.marketSell(ticker, quantity.toString())
-//                        NewOrderWithTimestamp.marketSell(ticker, quantity.toString(), correctTimestamp)
+                binanceApiRestClient.newOrderTest(isBuy ?
+                        NewOrderWithTimestamp.marketBuy(ticker, quantity.toString(), correctTimestamp) :
+                        NewOrderWithTimestamp.marketSell(ticker, quantity.toString(), correctTimestamp)
                 );
                 log.info("{} Success {} with amount {}", isBuy ? "BUY" : "SELL", ticker, quantity);
                 success = true;

@@ -31,7 +31,7 @@ class BinanceServiceIntegrationTest {
     @Disabled
     @Test
     void buyCrypto() {
-//        binanceService.buyCrypto();
+        binanceService.buyCrypto2();
     }
 
     @ParameterizedTest

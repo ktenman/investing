@@ -9,10 +9,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.math.BigDecimal.ROUND_UP;
 import static org.apache.commons.lang3.compare.ComparableUtils.is;
@@ -48,24 +47,31 @@ public class RebalancingService {
                 60000L, binanceService.getBinanceApiRestClientCorrectTimestamp())
                 .getBalances();
 
-        Map<String, BigDecimal> assets = new HashMap<>();
+        List<Asset> assets = new ArrayList<>();
         for (String symbol : symbolsToRebalance) {
             BigDecimal availableBalance = balances.stream()
                     .filter(assetBalance -> assetBalance.getAsset().equals(symbol))
                     .findFirst()
-                    .map(assetBalance -> new BigDecimal(assetBalance.getFree()).add(locked(assetBalance.getAsset())))
+                    .map(assetBalance -> new BigDecimal(assetBalance.getFree()))
                     .orElseThrow(() -> new RuntimeException("Not found EUR"));
             BigDecimal priceToEur = binanceService.getPriceToEur(symbol);
-            BigDecimal total = availableBalance.multiply(priceToEur);
-            assets.put(symbol, total);
+            ;
+            assets.add(Asset.builder()
+                    .symbol(symbol)
+                    .eurPrice(priceToEur)
+                    .totalAmount(availableBalance.add(locked(symbol)))
+                    .lockedAmount(locked(symbol))
+                    .build());
         }
-        BigDecimal totalAvailableBalance = assets.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalAvailableBalance = totalAvailableBalanceInEur(assets);
         BigDecimal percentage = BigDecimal.ONE.setScale(8, ROUND_UP)
-                .divide(new BigDecimal(symbolsToRebalance.size()), ROUND_UP);
+                .divide(new BigDecimal(symbolsToRebalance.size() + 2), ROUND_UP);
         BigDecimal shouldHaveBalanceForSymbol = totalAvailableBalance.multiply(percentage);
 
         for (String symbol : symbolsToRebalance) {
-            BigDecimal availableBalance = assets.get(symbol);
+            Asset a = assets.stream().filter(asset -> asset.getSymbol().equals(symbol)).findFirst()
+                    .orElseThrow(() -> new RuntimeException(symbol + "not found"));
+            BigDecimal availableBalance = a.getAvailableAmount().multiply(a.getEurPrice());
             BigDecimal subtrahend = shouldHaveBalanceForSymbol.multiply(multiplier(symbol));
             BigDecimal difference = availableBalance.subtract(subtrahend);
 
@@ -86,37 +92,41 @@ public class RebalancingService {
                 BigDecimal bnb = binanceService.getPriceToEur("BNB");
                 binanceService.sell(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
             }
-            BigDecimal subtract = assets.get(symbol).subtract(difference.abs());
-            assets.put(symbol, subtract);
         }
 
         for (String symbol : symbolsToRebalance) {
-            BigDecimal availableBalance = assets.get(symbol);
+            Asset a = assets.stream().filter(asset -> asset.getSymbol().equals(symbol)).findFirst()
+                    .orElseThrow(() -> new RuntimeException(symbol + "not found"));
+            BigDecimal availableBalance = a.getAvailableAmount().multiply(a.getEurPrice());
             BigDecimal subtrahend = shouldHaveBalanceForSymbol.multiply(multiplier(symbol));
             BigDecimal difference = availableBalance.subtract(subtrahend);
 
             if (!is(difference).lessThan(BigDecimal.ZERO)) {
                 continue;
             }
-
+            String ticker = symbol + "EUR";
             if (eurTickers.contains(symbol)) {
-                String ticker = symbol + "EUR";
                 if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).greaterThan(BigDecimal.valueOf(5))) {
-                    binanceService.buy(ticker, TEN_EUROS);
+//                    binanceService.buy(ticker, TEN_EUROS);
                 } else if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).lessThanOrEqualTo(BigDecimal.valueOf(5))) {
-                    log.info("Skipping buying {} with amount {}", ticker, difference.abs());
+//                    log.info("Skipping buying {} with amount {}", ticker, difference.abs());
                 } else {
-                    binanceService.buy(ticker, difference.abs());
+//                    binanceService.buy(ticker, difference.abs());
                 }
             } else {
                 BigDecimal bnb = binanceService.getPriceToEur("BNB");
-                binanceService.buy(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
+//                binanceService.buy(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
             }
-            BigDecimal subtract = assets.get(symbol).add(difference.abs());
-            assets.put(symbol, subtract);
+            log.info("Skipping buying {} with amount {}", ticker, difference.abs());
         }
 
         log.info("Finished rebalancing...");
+    }
+
+    private BigDecimal totalAvailableBalanceInEur(List<Asset> assets) {
+        return assets.stream()
+                .map(asset -> asset.getTotalAmount().multiply(asset.getEurPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal multiplier(String symbol) {
