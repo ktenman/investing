@@ -15,6 +15,7 @@ import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import ee.tenman.investing.integration.autofarm.AutofarmService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,9 +72,10 @@ public class GoogleSheetsService {
     PriceService priceService;
     @Resource
     GoogleSheetsClient googleSheetsClient;
-
     @Resource
     YieldWatchService yieldWatchService;
+    @Resource
+    AutofarmService autofarmService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -172,6 +174,7 @@ public class GoogleSheetsService {
             BigDecimal yieldBnbAmount = yieldWatchService.getBnbAmount();
             BigDecimal totalBnbAmount = bnbAmountInBinance.add(yieldBnbAmount);
             googleSheetsClient.update("investing!F21:F21", totalBnbAmount);
+            googleSheetsClient.update("investing!L1:L1", autofarmService.getDailyYieldReturn());
 
         } catch (Exception e) {
             log.error("Error ", e);
