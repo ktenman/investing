@@ -68,8 +68,7 @@ class BinanceServiceIntegrationTest {
         return Stream.of(
                 Arguments.of("BNBUSDT", HOURLY, hours),
                 Arguments.of("BTCUSDT", HOURLY, hours),
-                Arguments.of("ADAUSDT", HOURLY, hours),
-                Arguments.of("XLMUSDT", HOURLY, hours)
+                Arguments.of("ADAUSDT", HOURLY, hours)
         );
     }
 
