@@ -12,9 +12,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class YieldSummary {
-    private BigDecimal total;
-    private BigDecimal deposit;
-    private BigDecimal yieldEarned;
+    private BigDecimal totalInUsd;
+    private BigDecimal depositInUsd;
+    private BigDecimal yieldEarnedInUsd;
     private BigDecimal bdoAmount;
     private BigDecimal wbnbAmount;
 }

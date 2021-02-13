@@ -4,16 +4,12 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import ee.tenman.investing.FileUtils;
-import ee.tenman.investing.integration.binance.BinanceService;
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +21,6 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
-import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
 import static org.openqa.selenium.By.tagName;
 
@@ -50,45 +45,6 @@ public class YieldWatchService {
         walletAddress = FileUtils.getSecret(walletAddressResource);
     }
 
-    @Resource
-    private BinanceService binanceService;
-
-    private BigDecimal bnbAmount;
-
-    public BigDecimal getBnbAmount() {
-        if (bnbAmount == null) {
-            setBnbAmount();
-        }
-        return bnbAmount;
-    }
-
-    @Scheduled(fixedDelay = 300000, initialDelay = 300000)
-    void setBnbAmount() {
-        this.bnbAmount = fetchBnbAmount();
-    }
-
-    private BigDecimal fetchBnbAmount() {
-        closeWebDriver();
-        open(YIELD_WATCH_NET);
-
-        SelenideElement addressInputField = $(By.id("addressInputField"));
-        for (char c : walletAddress.toCharArray()) {
-            addressInputField.append(String.valueOf(c));
-        }
-
-        $(tagName("button")).click();
-
-        String h3 = $(tagName("h3")).text().split("\\$")[1];
-        String yield = StringUtils.replace(h3, ",", "");
-
-        BigDecimal busdToEur = binanceService.getPriceToEur("BUSD");
-        BigDecimal bnbToEur = binanceService.getPriceToEur("BNB");
-
-
-        closeWebDriver();
-        return new BigDecimal(yield).multiply(busdToEur).divide(bnbToEur, HALF_UP);
-    }
-
     public YieldSummary fetchYieldSummary() {
         closeWebDriver();
         open(YIELD_WATCH_NET);
@@ -102,7 +58,6 @@ public class YieldWatchService {
 
         $(tagName("span")).waitUntil(Condition.text("$"), 5000, 200);
 
-        BigDecimal busdToEur = binanceService.getPriceToEur("BUSD");
         List<BigDecimal> amounts = $$(tagName("span"))
                 .filter(text("$"))
                 .filter(not(text("k")))
@@ -111,33 +66,33 @@ public class YieldWatchService {
                 .distinct()
                 .map(a -> a.replace("$", "").replace(",", ""))
                 .map(BigDecimal::new)
-                .map(a -> a.multiply(busdToEur))
                 .sorted(reverseOrder())
                 .collect(Collectors.toList());
 
         BigDecimal total = amounts.get(0);
-        BigDecimal deposit = amounts.get(1);
-        BigDecimal yieldEarned = amounts.get(2);
+        BigDecimal deposit = (amounts.get(1).add(amounts.get(1)));
+        BigDecimal yieldEarned = total.subtract(deposit);
 
-        List<BigDecimal> coinAmounts = Stream.of($$(By.className("sub"))
+        List<BigDecimal> coinAmounts = $$(By.className("sub"))
                 .filter(text("/"))
-                .first()
-                .text()
-                .replace(",", "").split(" / "))
+                .texts()
+                .stream()
+                .map(s -> s.replace(",", "").split(" / "))
+                .flatMap(Stream::of)
                 .map(BigDecimal::new)
                 .sorted(reverseOrder())
                 .collect(Collectors.toList());
 
-        BigDecimal bdoAmount = coinAmounts.get(0);
-        BigDecimal wbnbAmount = coinAmounts.get(1);
+        BigDecimal bdoAmount = coinAmounts.get(0).add(coinAmounts.get(1));
+        BigDecimal wbnbAmount = coinAmounts.get(2).add(coinAmounts.get(3));
 
         closeWebDriver();
         return YieldSummary.builder()
                 .bdoAmount(bdoAmount)
-                .deposit(deposit)
-                .total(total)
+                .depositInUsd(deposit)
+                .totalInUsd(total)
                 .wbnbAmount(wbnbAmount)
-                .yieldEarned(yieldEarned)
+                .yieldEarnedInUsd(yieldEarned)
                 .build();
     }
 

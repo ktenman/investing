@@ -15,7 +15,6 @@ import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import ee.tenman.investing.integration.autofarm.AutofarmService;
 import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
@@ -77,8 +76,6 @@ public class GoogleSheetsService {
     GoogleSheetsClient googleSheetsClient;
     @Resource
     YieldWatchService yieldWatchService;
-    @Resource
-    AutofarmService autofarmService;
     @Resource
     BinanceService binanceService;
     @Resource
@@ -177,11 +174,13 @@ public class GoogleSheetsService {
                 googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
 
+            BigDecimal busdToEur = binanceService.getPriceToEur("BUSD");
+
             YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
-            googleSheetsClient.update("investing!M1:M1", yieldSummary.getTotal());
-            googleSheetsClient.update("investing!N1:N1", yieldSummary.getDeposit());
-            googleSheetsClient.update("investing!O1:O1", yieldSummary.getYieldEarned());
+            googleSheetsClient.update("investing!M1:M1", yieldSummary.getTotalInUsd().multiply(busdToEur));
+            googleSheetsClient.update("investing!N1:N1", yieldSummary.getDepositInUsd().multiply(busdToEur));
+            googleSheetsClient.update("investing!O1:O1", yieldSummary.getYieldEarnedInUsd().multiply(busdToEur));
 
             googleSheetsClient.update("investing!G31:G31", coinMarketCapService.eur("wbnb"));
             googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
