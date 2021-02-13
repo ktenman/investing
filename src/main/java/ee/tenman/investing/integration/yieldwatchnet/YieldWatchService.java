@@ -21,6 +21,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
+import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
 import static org.openqa.selenium.By.tagName;
 
@@ -85,14 +86,13 @@ public class YieldWatchService {
 
         BigDecimal bdoAmount = coinAmounts.get(0).add(coinAmounts.get(1));
         BigDecimal wbnbAmount = coinAmounts.get(2).add(coinAmounts.get(3));
+        BigDecimal yieldEarnedPercentage = yieldEarned.setScale(8, BigDecimal.ROUND_UP).divide(total, HALF_UP);
 
         closeWebDriver();
         return YieldSummary.builder()
                 .bdoAmount(bdoAmount)
-                .depositInUsd(deposit)
-                .totalInUsd(total)
                 .wbnbAmount(wbnbAmount)
-                .yieldEarnedInUsd(yieldEarned)
+                .yieldEarnedPercentage(yieldEarnedPercentage)
                 .build();
     }
 

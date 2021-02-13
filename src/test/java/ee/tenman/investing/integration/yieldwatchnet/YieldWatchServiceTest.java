@@ -21,10 +21,8 @@ class YieldWatchServiceTest {
         YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
         assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getDepositInUsd()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getTotalInUsd()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getYieldEarnedPercentage()).isGreaterThan(ZERO);
         assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getYieldEarnedInUsd()).isGreaterThan(ZERO);
     }
 
 }

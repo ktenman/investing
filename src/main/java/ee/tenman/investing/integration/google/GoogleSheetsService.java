@@ -70,6 +70,8 @@ public class GoogleSheetsService {
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
     private static final String EUR = "EUR";
+    public static final String WBNB_CURRENCY = "wbnb";
+    public static final String BDO_CURRENCY = "bdollar";
 
     private BigDecimal leftOverAmount;
     @Resource
@@ -176,20 +178,13 @@ public class GoogleSheetsService {
                 googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
 
-            BigDecimal busdToEur = binanceService.getPriceToEur("BUSD");
-
             YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
-            googleSheetsClient.update("investing!M1:M1", yieldSummary.getTotalInUsd().multiply(busdToEur));
-            googleSheetsClient.update("investing!N1:N1", yieldSummary.getDepositInUsd().multiply(busdToEur));
-            googleSheetsClient.update("investing!O1:O1", yieldSummary.getYieldEarnedInUsd().multiply(busdToEur));
-
-            googleSheetsClient.update("investing!G31:G31", coinMarketCapService.eur("wbnb"));
+            googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
+            googleSheetsClient.update("investing!G31:G31", coinMarketCapService.eur(WBNB_CURRENCY));
             googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
-
-            googleSheetsClient.update("investing!G32:G32", coinMarketCapService.eur("bdollar"));
+            googleSheetsClient.update("investing!G32:G32", coinMarketCapService.eur(BDO_CURRENCY));
             googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
-
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());
