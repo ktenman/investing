@@ -75,7 +75,6 @@ public class CoinMarketCapService {
     }
 
     public BigDecimal eur(String currency) {
-        closeWebDriver();
         open("https://coinmarketcap.com/currencies/" + currency);
 
         $(By.tagName("div")).waitUntil(text("$"), 1000, 100);

@@ -17,7 +17,6 @@ import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import ee.tenman.investing.integration.binance.BinanceService;
-import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
@@ -41,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -84,8 +84,6 @@ public class GoogleSheetsService {
     YieldWatchService yieldWatchService;
     @Resource
     BinanceService binanceService;
-    @Resource
-    CoinMarketCapService coinMarketCapService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -114,19 +112,18 @@ public class GoogleSheetsService {
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-//    @Scheduled(cron = "0 * * * * *")
-    public void appendYieldInformation() {
+    @Scheduled(cron = "0 * * * * *")
+    public void appendYieldInformation() throws ExecutionException, InterruptedException {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
             return;
         }
         Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
-        Integer sheetID2 = sheetIndex(spreadsheetResponse, "profits");
         BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID);
         googleSheetsClient.update(yieldBatchRequest);
     }
 
-    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) {
+    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) throws ExecutionException, InterruptedException {
         YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
         BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
 
@@ -143,7 +140,7 @@ public class GoogleSheetsService {
         cellData.add(wbnbAmountCell);
 
         CellData wbnbToEurCell = new CellData();
-        BigDecimal wbnbToEur = coinMarketCapService.eur(WBNB_CURRENCY);
+        BigDecimal wbnbToEur = priceService.toEur(WBNB_CURRENCY);
         wbnbToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(wbnbToEur.doubleValue()));
         cellData.add(wbnbToEurCell);
 
@@ -152,7 +149,7 @@ public class GoogleSheetsService {
         cellData.add(bdoAmountCell);
 
         CellData bdoToEurCell = new CellData();
-        BigDecimal bdoToEur = coinMarketCapService.eur(BDO_CURRENCY);
+        BigDecimal bdoToEur = priceService.toEur(BDO_CURRENCY);
         bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
         cellData.add(bdoToEurCell);
 
@@ -160,6 +157,11 @@ public class GoogleSheetsService {
         BigDecimal total = yieldSummary.getBdoAmount().multiply(bdoToEur).add(yieldSummary.getWbnbAmount().multiply(wbnbToEur));
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
+
+        CellData earnedYieldCell = new CellData();
+        BigDecimal earnedYield = yieldSummary.getYieldEarnedPercentage().multiply(total);
+        earnedYieldCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earnedYield.doubleValue()));
+        cellData.add(earnedYieldCell);
 
         Instant now = Instant.now();
         CellData machineDateTimeCell = new CellData();
@@ -263,14 +265,14 @@ public class GoogleSheetsService {
             YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
             googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
-            BigDecimal wbnbToEurPrice = coinMarketCapService.eur(WBNB_CURRENCY);
+            BigDecimal wbnbToEurPrice = priceService.toEur(WBNB_CURRENCY);
             if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
                 googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
             } else {
                 googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
             }
             googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
-            BigDecimal bdoToEurPrice = coinMarketCapService.eur(BDO_CURRENCY);
+            BigDecimal bdoToEurPrice = priceService.toEur(BDO_CURRENCY);
             if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
                 googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
             }

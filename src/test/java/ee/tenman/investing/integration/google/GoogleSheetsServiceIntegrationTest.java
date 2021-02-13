@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.util.concurrent.ExecutionException;
 
 @SpringBootTest
 class GoogleSheetsServiceIntegrationTest {
@@ -41,8 +42,10 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
-    void appendYieldInformation() {
-//        googleService.appendYieldInformation();
+    void appendYieldInformation() throws ExecutionException, InterruptedException {
+        long startTime = System.nanoTime();
+        googleService.appendYieldInformation();
+        System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
     private double duration(long startTime) {

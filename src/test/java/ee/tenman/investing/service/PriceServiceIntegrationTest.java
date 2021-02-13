@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import static com.binance.api.client.domain.market.CandlestickInterval.DAILY;
 import static com.binance.api.client.domain.market.CandlestickInterval.MONTHLY;
@@ -62,4 +63,21 @@ class PriceServiceIntegrationTest {
 
         assertThat(prices).isNotEmpty();
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"bdollar", "wbnb"})
+    void eur(String symbol) throws ExecutionException, InterruptedException {
+        BigDecimal symbolToEurPrice = priceService.toEur(symbol);
+
+        assertThat(symbolToEurPrice).isGreaterThan(ZERO);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"bdollar", "wbnb"})
+    void eur2(String symbol) throws ExecutionException, InterruptedException {
+        BigDecimal symbolToEurPrice = priceService.toEur2(symbol);
+
+        assertThat(symbolToEurPrice).isGreaterThan(ZERO);
+    }
+
 }

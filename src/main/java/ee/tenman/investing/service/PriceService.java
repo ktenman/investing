@@ -3,8 +3,11 @@ package ee.tenman.investing.service;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.coingecko.CoinGeckoService;
 import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.cryptocom.CryptoComService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -12,28 +15,38 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ROUND_UP;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 
 @Service
+@Slf4j
 public class PriceService {
 
     @Resource
     private CoinMarketCapService coinMarketCapService;
-
     @Resource
     private BinanceService binanceService;
-
     @Resource
     private CryptoComService cryptoComService;
+    @Resource
+    private CoinGeckoService coinGeckoService;
 
     public Map<String, BigDecimal> getPrices(String from, String to, CandlestickInterval candlestickInterval) {
         String fromTo = from + to;
@@ -121,6 +134,63 @@ public class PriceService {
         Map<String, BigDecimal> coinMarketCapServicePrices = coinMarketCapService.getPricesInEur(tickers, busdToEur);
         binancePrices.putAll(coinMarketCapServicePrices);
         return binancePrices;
+    }
+
+    public BigDecimal toEur(String currency) throws ExecutionException, InterruptedException {
+        ExecutorService executorService = Executors.newWorkStealingPool(2);
+
+        CompletableFuture<BigDecimal> coinMarketCapServiceSupplier = CompletableFuture.supplyAsync(
+                () -> coinMarketCapService.eur(currency)
+        );
+        CompletableFuture<BigDecimal> coinGeckoPriceSupplier = CompletableFuture.supplyAsync(
+                () -> coinGeckoService.eur(currency)
+        );
+
+        List<CompletableFuture<BigDecimal>> futures = Arrays.asList(coinMarketCapServiceSupplier, coinGeckoPriceSupplier);
+
+        CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        for (CompletableFuture<?> future : futures) {
+            executorService.submit(() -> future);
+        }
+
+        combinedFuture.get();
+
+        List<BigDecimal> prices = futures.stream()
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .filter(bigDecimal -> ComparableUtils.is(bigDecimal).greaterThan(ZERO))
+                .collect(Collectors.toList());
+
+        BigDecimal averagePrice = average(prices);
+
+        log.info("Average {}/EUR price", averagePrice);
+
+        return averagePrice;
+    }
+
+    public BigDecimal toEur2(String currency) throws ExecutionException, InterruptedException {
+
+        BigDecimal coinMarketCapServiceSupplier = coinMarketCapService.eur(currency);
+        BigDecimal coinGeckoPriceSupplier = coinGeckoService.eur(currency);
+
+        List<BigDecimal> prices = Stream.of(coinMarketCapServiceSupplier, coinGeckoPriceSupplier)
+                .filter(Objects::nonNull)
+                .filter(bigDecimal -> ComparableUtils.is(bigDecimal).greaterThan(ZERO))
+                .collect(Collectors.toList());
+
+        BigDecimal averagePrice = average(prices);
+
+        log.info("Average {}/EUR price", averagePrice);
+
+        return averagePrice;
+    }
+
+
+    public BigDecimal average(List<BigDecimal> bigDecimals) {
+        BigDecimal sum = bigDecimals.stream()
+                .map(Objects::requireNonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sum.divide(new BigDecimal(bigDecimals.size()), HALF_UP);
     }
 
 }
