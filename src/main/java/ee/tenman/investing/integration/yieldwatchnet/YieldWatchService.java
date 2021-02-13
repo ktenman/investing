@@ -3,7 +3,6 @@ package ee.tenman.investing.integration.yieldwatchnet;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
-import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.FileUtils;
 import ee.tenman.investing.integration.binance.BinanceService;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +17,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.text;
@@ -89,7 +89,7 @@ public class YieldWatchService {
         return new BigDecimal(yield).multiply(busdToEur).divide(bnbToEur, HALF_UP);
     }
 
-    public ImmutableMap<String, BigDecimal> fetchEarnedYield() {
+    public YieldSummary fetchYieldSummary() {
         closeWebDriver();
         open(YIELD_WATCH_NET);
 
@@ -119,12 +119,26 @@ public class YieldWatchService {
         BigDecimal deposit = amounts.get(1);
         BigDecimal yieldEarned = amounts.get(2);
 
+        List<BigDecimal> coinAmounts = Stream.of($$(By.className("sub"))
+                .filter(text("/"))
+                .first()
+                .text()
+                .replace(",", "").split(" / "))
+                .map(BigDecimal::new)
+                .sorted(reverseOrder())
+                .collect(Collectors.toList());
+
+        BigDecimal bdoAmount = coinAmounts.get(0);
+        BigDecimal wbnbAmount = coinAmounts.get(1);
+
         closeWebDriver();
-        return ImmutableMap.of(
-                "total", total,
-                "deposit", deposit,
-                "yieldEarned", yieldEarned
-        );
+        return YieldSummary.builder()
+                .bdoAmount(bdoAmount)
+                .deposit(deposit)
+                .total(total)
+                .wbnbAmount(wbnbAmount)
+                .yieldEarned(yieldEarned)
+                .build();
     }
 
 }

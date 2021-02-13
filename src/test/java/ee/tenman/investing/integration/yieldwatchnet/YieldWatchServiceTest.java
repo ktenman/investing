@@ -1,16 +1,15 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
-import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.util.Map;
 
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Slf4j
 @SpringBootTest
 class YieldWatchServiceTest {
 
@@ -24,14 +23,15 @@ class YieldWatchServiceTest {
         assertThat(yieldWatchService.getBnbAmount()).isGreaterThan(ZERO);
     }
 
-
     @Test
-    void fetchEarnedYield() throws InterruptedException {
-        ImmutableMap<String, BigDecimal> earnedYield = yieldWatchService.fetchEarnedYield();
+    void fetchEarnedYield() {
+        YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
-        for (Map.Entry<String, BigDecimal> entry : earnedYield.entrySet()) {
-            assertThat(entry.getValue()).isGreaterThan(ZERO);
-        }
+        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getDeposit()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getTotal()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getYieldEarned()).isGreaterThan(ZERO);
     }
 
 }

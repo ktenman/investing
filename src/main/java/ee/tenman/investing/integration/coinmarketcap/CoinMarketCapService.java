@@ -2,35 +2,48 @@ package ee.tenman.investing.integration.coinmarketcap;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
+import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
+import static java.math.RoundingMode.HALF_UP;
 
 @Slf4j
 @Service
 public class CoinMarketCapService {
 
-    private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
-        Map<String, BigDecimal> prices = new HashMap<>();
-
+    static {
         Configuration.startMaximized = true;
         Configuration.headless = true;
         Configuration.proxyEnabled = false;
         Configuration.screenshots = false;
         Configuration.browser = "firefox";
+    }
+
+    @Resource
+    BinanceService binanceService;
+
+    private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
+        Map<String, BigDecimal> prices = new HashMap<>();
+
         closeWebDriver();
         open("https://coinmarketcap.com/");
         ElementsCollection selenideElements = $(By.tagName("table"))
@@ -59,5 +72,43 @@ public class CoinMarketCapService {
             pricesInEUr.put(entry.getKey(), entry.getValue().multiply(busdToEur));
         }
         return pricesInEUr;
+    }
+
+    public BigDecimal eur(String currency) {
+        closeWebDriver();
+        open("https://coinmarketcap.com/currencies/" + currency);
+
+        $(By.tagName("div")).waitUntil(text("$"), 1000, 100);
+
+        ElementsCollection selenideElements = Selenide.$$(By.tagName("p"));
+
+        List<String> strings = Arrays.asList("BTC", "ETH");
+        BigDecimal reduce = strings.stream()
+                .map(symbol -> Optional.of(selenideElements
+                        .filter(text(symbol))
+                        .first()
+                        .text()
+                        .replace(String.format(" %s", symbol), ""))
+                        .map(amount -> {
+                            log.info("{}: {}", symbol, amount);
+                            return new BigDecimal(amount);
+                        })
+                        .map(a -> a.multiply(binanceService.getPriceToEur(symbol)))
+                        .orElseThrow(() -> new RuntimeException(String.format("Price for %s not found", symbol)))
+                )
+                .map(Objects::requireNonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        closeWebDriver();
+        BigDecimal average = reduce.divide(BigDecimal.valueOf(strings.size()), HALF_UP);
+        log.info("{}/EUR: {}", currency, average);
+        return average;
+    }
+
+    public BigDecimal average(List<BigDecimal> bigDecimals) {
+        BigDecimal sum = bigDecimals.stream()
+                .map(Objects::requireNonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sum.divide(new BigDecimal(bigDecimals.size()), HALF_UP);
     }
 }

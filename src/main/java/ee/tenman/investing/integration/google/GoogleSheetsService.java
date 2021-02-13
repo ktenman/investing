@@ -17,6 +17,8 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import ee.tenman.investing.integration.autofarm.AutofarmService;
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
+import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +81,8 @@ public class GoogleSheetsService {
     AutofarmService autofarmService;
     @Resource
     BinanceService binanceService;
+    @Resource
+    CoinMarketCapService coinMarketCapService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -149,7 +153,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 30000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 60000, initialDelay = 30000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public void refreshCryptoPrices() throws Exception {
 
@@ -173,11 +177,17 @@ public class GoogleSheetsService {
                 googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
 
-            BigDecimal bnbAmountInBinance = (BigDecimal) getValueRange("investing!D21:D21").getValues().get(0).get(0);
-            BigDecimal yieldBnbAmount = yieldWatchService.getBnbAmount();
-            BigDecimal totalBnbAmount = bnbAmountInBinance.add(yieldBnbAmount);
-            googleSheetsClient.update("investing!F21:F21", totalBnbAmount);
-            googleSheetsClient.update("investing!L1:L1", autofarmService.getDailyYieldReturn());
+            YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
+
+            googleSheetsClient.update("investing!M1:M1", yieldSummary.getTotal());
+            googleSheetsClient.update("investing!N1:N1", yieldSummary.getDeposit());
+            googleSheetsClient.update("investing!O1:O1", yieldSummary.getYieldEarned());
+
+            googleSheetsClient.update("investing!G31:G31", coinMarketCapService.eur("wbnb"));
+            googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
+
+            googleSheetsClient.update("investing!G32:G32", coinMarketCapService.eur("bdollar"));
+            googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
 
         } catch (Exception e) {
             log.error("Error ", e);

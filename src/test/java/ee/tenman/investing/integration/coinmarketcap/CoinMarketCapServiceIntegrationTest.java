@@ -12,6 +12,7 @@ import java.util.Map;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.BINANCE_COIN_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
+import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -37,7 +38,6 @@ class CoinMarketCapServiceIntegrationTest {
         });
     }
 
-
     @Test
     void yieldwatchNet() {
         List<String> tickers = Arrays.asList(BINANCE_COIN_ID, CRO_ID);
@@ -52,4 +52,10 @@ class CoinMarketCapServiceIntegrationTest {
         });
     }
 
+    @Test
+    void getBtoToBtc() {
+        BigDecimal btoToEur = coinMarketCapService.eur("bdollar");
+
+        assertThat(btoToEur).isGreaterThan(ZERO);
+    }
 }
