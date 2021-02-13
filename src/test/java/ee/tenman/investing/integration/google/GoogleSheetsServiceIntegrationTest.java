@@ -29,15 +29,20 @@ class GoogleSheetsServiceIntegrationTest {
 
     @Test
     @Disabled
-    void run() {
+    void appendProfits() {
         long startTime = System.nanoTime();
-        googleService.run();
+        googleService.appendProfits();
         System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
     @Test
     void refreshBalances() throws Exception {
         googleService.refreshBalances();
+    }
+
+    @Test
+    void appendYieldInformation() {
+//        googleService.appendYieldInformation();
     }
 
     private double duration(long startTime) {

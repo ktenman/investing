@@ -12,6 +12,7 @@ import com.google.api.services.sheets.v4.model.ExtendedValue;
 import com.google.api.services.sheets.v4.model.NumberFormat;
 import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.RowData;
+import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
@@ -55,6 +56,7 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.SYNTHETIX_
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
 import static java.lang.Math.abs;
+import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -87,7 +89,7 @@ public class GoogleSheetsService {
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
-    public void run() {
+    public void appendProfits() {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
             return;
@@ -96,8 +98,88 @@ public class GoogleSheetsService {
         if (investingResponse == null) {
             return;
         }
-        BatchUpdateSpreadsheetRequest batchRequest = buildBatchRequest(spreadsheetResponse, investingResponse);
-        googleSheetsClient.update(batchRequest);
+        Integer sheetID = sheetIndex(spreadsheetResponse, "profits");
+        BatchUpdateSpreadsheetRequest profitsBatchRequest = buildProfitsBatchRequest(sheetID, investingResponse);
+        googleSheetsClient.update(profitsBatchRequest);
+    }
+
+    public Integer sheetIndex(Spreadsheet spreadsheetResponse, String sheetTitle) {
+        return spreadsheetResponse.getSheets()
+                .stream()
+                .map(Sheet::getProperties)
+                .filter(sheetProperties -> sheetProperties.getTitle().equals(sheetTitle))
+                .map(SheetProperties::getSheetId)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+//    @Scheduled(cron = "0 * * * * *")
+    public void appendYieldInformation() {
+        Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
+        if (spreadsheetResponse == null) {
+            return;
+        }
+        Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
+        Integer sheetID2 = sheetIndex(spreadsheetResponse, "profits");
+        BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID);
+        googleSheetsClient.update(yieldBatchRequest);
+    }
+
+    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) {
+        YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
+        BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
+
+        List<RowData> rowData = new ArrayList<>();
+        List<CellData> cellData = new ArrayList<>();
+
+        CellData yieldEarnedPercentageCell = new CellData();
+        yieldEarnedPercentageCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldEarnedPercentage.doubleValue()));
+        yieldEarnedPercentageCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
+        cellData.add(yieldEarnedPercentageCell);
+
+        CellData wbnbAmountCell = new CellData();
+        wbnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getWbnbAmount().doubleValue()));
+        cellData.add(wbnbAmountCell);
+
+        CellData wbnbToEurCell = new CellData();
+        BigDecimal wbnbToEur = coinMarketCapService.eur(WBNB_CURRENCY);
+        wbnbToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(wbnbToEur.doubleValue()));
+        cellData.add(wbnbToEurCell);
+
+        CellData bdoAmountCell = new CellData();
+        bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBdoAmount().doubleValue()));
+        cellData.add(bdoAmountCell);
+
+        CellData bdoToEurCell = new CellData();
+        BigDecimal bdoToEur = coinMarketCapService.eur(BDO_CURRENCY);
+        bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
+        cellData.add(bdoToEurCell);
+
+        CellData totalEurCell = new CellData();
+        BigDecimal total = yieldSummary.getBdoAmount().multiply(bdoToEur).add(yieldSummary.getWbnbAmount().multiply(wbnbToEur));
+        totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
+        cellData.add(totalEurCell);
+
+        Instant now = Instant.now();
+        CellData machineDateTimeCell = new CellData();
+        machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond() / 86400.0 + 25569));
+        machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
+        cellData.add(machineDateTimeCell);
+
+        rowData.add(new RowData().setValues(cellData));
+
+        AppendCellsRequest appendCellRequest = new AppendCellsRequest();
+        appendCellRequest.setSheetId(sheetID);
+        appendCellRequest.setRows(rowData);
+        appendCellRequest.setFields("userEnteredValue,userEnteredFormat.numberFormat");
+
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request().setAppendCells(appendCellRequest));
+        BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
+        batchRequests.setRequests(requests);
+
+        return batchRequests;
     }
 
     @Scheduled(fixedDelay = 30000, initialDelay = 30000)
@@ -181,9 +263,17 @@ public class GoogleSheetsService {
             YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
             googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
-            googleSheetsClient.update("investing!G31:G31", coinMarketCapService.eur(WBNB_CURRENCY));
+            BigDecimal wbnbToEurPrice = coinMarketCapService.eur(WBNB_CURRENCY);
+            if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
+                googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
+            } else {
+                googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
+            }
             googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
-            googleSheetsClient.update("investing!G32:G32", coinMarketCapService.eur(BDO_CURRENCY));
+            BigDecimal bdoToEurPrice = coinMarketCapService.eur(BDO_CURRENCY);
+            if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
+                googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
+            }
             googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
         } catch (Exception e) {
             log.error("Error ", e);
@@ -223,8 +313,7 @@ public class GoogleSheetsService {
         }
     }
 
-    private BatchUpdateSpreadsheetRequest buildBatchRequest(Spreadsheet spreadsheetResponse, ValueRange investingResponse) {
-        Integer sheetID = spreadsheetResponse.getSheets().get(1).getProperties().getSheetId();
+    private BatchUpdateSpreadsheetRequest buildProfitsBatchRequest(Integer sheetID, ValueRange investingResponse) {
         BigDecimal annualReturn = (BigDecimal) investingResponse.getValues().get(0).get(0);
         BigDecimal profit = (BigDecimal) investingResponse.getValues().get(1).get(0);
         BigDecimal totalSavingsAmount = (BigDecimal) investingResponse.getValues().get(2).get(0);
@@ -361,13 +450,13 @@ public class GoogleSheetsService {
     }
 
     private int compare(Collection<BigDecimal> a, Collection<BigDecimal> b) {
-        return b.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
-                .compareTo(a.stream().reduce(BigDecimal.ZERO, BigDecimal::add));
+        return b.stream().reduce(ZERO, BigDecimal::add)
+                .compareTo(a.stream().reduce(ZERO, BigDecimal::add));
     }
 
     private boolean filter(Map<String, BigDecimal> map) {
-        BigDecimal sum = map.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        return ComparableUtils.is(sum).lessThanOrEqualTo(leftOverAmount) && ComparableUtils.is(sum).greaterThan(BigDecimal.ZERO);
+        BigDecimal sum = map.values().stream().reduce(ZERO, BigDecimal::add);
+        return ComparableUtils.is(sum).lessThanOrEqualTo(leftOverAmount) && ComparableUtils.is(sum).greaterThan(ZERO);
     }
 
     private ValueRange getValueRange(String range) {

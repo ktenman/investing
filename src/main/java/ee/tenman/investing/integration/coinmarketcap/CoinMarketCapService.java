@@ -105,10 +105,4 @@ public class CoinMarketCapService {
         return average;
     }
 
-    public BigDecimal average(List<BigDecimal> bigDecimals) {
-        BigDecimal sum = bigDecimals.stream()
-                .map(Objects::requireNonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return sum.divide(new BigDecimal(bigDecimals.size()), HALF_UP);
-    }
 }
