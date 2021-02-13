@@ -72,12 +72,4 @@ class PriceServiceIntegrationTest {
         assertThat(symbolToEurPrice).isGreaterThan(ZERO);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"bdollar", "wbnb"})
-    void eur2(String symbol) throws ExecutionException, InterruptedException {
-        BigDecimal symbolToEurPrice = priceService.toEur2(symbol);
-
-        assertThat(symbolToEurPrice).isGreaterThan(ZERO);
-    }
-
 }

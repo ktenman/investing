@@ -27,7 +27,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static java.math.BigDecimal.ONE;
@@ -167,24 +166,6 @@ public class PriceService {
 
         return averagePrice;
     }
-
-    public BigDecimal toEur2(String currency) throws ExecutionException, InterruptedException {
-
-        BigDecimal coinMarketCapServiceSupplier = coinMarketCapService.eur(currency);
-        BigDecimal coinGeckoPriceSupplier = coinGeckoService.eur(currency);
-
-        List<BigDecimal> prices = Stream.of(coinMarketCapServiceSupplier, coinGeckoPriceSupplier)
-                .filter(Objects::nonNull)
-                .filter(bigDecimal -> ComparableUtils.is(bigDecimal).greaterThan(ZERO))
-                .collect(Collectors.toList());
-
-        BigDecimal averagePrice = average(prices);
-
-        log.info("Average {}/EUR price", averagePrice);
-
-        return averagePrice;
-    }
-
 
     public BigDecimal average(List<BigDecimal> bigDecimals) {
         BigDecimal sum = bigDecimals.stream()
