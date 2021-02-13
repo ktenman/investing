@@ -21,7 +21,6 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
-    @Disabled
     void refreshCryptoPrices() throws Exception {
         long startTime = System.nanoTime();
         googleService.refreshCryptoPrices();

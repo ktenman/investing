@@ -7,7 +7,6 @@ import com.binance.api.client.domain.general.SymbolInfo;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.exception.BinanceApiException;
-import com.google.common.collect.ImmutableCollection;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +23,10 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -337,12 +338,18 @@ public class BinanceService {
 
     }
 
-    public Map<String, BigDecimal> fetchAvailableBalances(ImmutableCollection<String> values) {
-        List<AssetBalance> balances = getBinanceApiRestClient().getAccount(
-                60000L, getBinanceApiRestClientCorrectTimestamp())
+    public Map<String, BigDecimal> fetchAvailableBalances(Collection<String> assetNames) {
+        List<AssetBalance> balances = getBinanceApiRestClient()
+                .getAccount(60000L, getBinanceApiRestClientCorrectTimestamp())
                 .getBalances();
-        return balances.stream()
-                .filter(assetBalance -> values.contains(assetBalance.getAsset()))
+        return assetNames.stream()
+                .map(assetName -> balances.stream()
+                        .filter(b -> b.getAsset().equals(assetName))
+                        .findFirst())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(toMap(AssetBalance::getAsset, assetBalance -> new BigDecimal(assetBalance.getFree())));
     }
+
+
 }

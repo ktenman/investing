@@ -39,6 +39,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -68,6 +69,7 @@ public class GoogleSheetsService {
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
+    private static final String EUR = "EUR";
 
     private BigDecimal leftOverAmount;
     @Resource
@@ -200,10 +202,15 @@ public class GoogleSheetsService {
         int startingIndexNumber = 21;
         String startingIndexCombined = "E" + startingIndexNumber;
         ValueRange valueRange = getValueRange(String.format("investing!%s:E30", startingIndexCombined));
-        String[] values = valueRange.getValues().stream().flatMap(Collection::stream)
+        String[] values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new);
-        Map<String, BigDecimal> availableBalances = binanceService.fetchAvailableBalances(TICKER_SYMBOL_MAP.values());
+
+        List<String> symbols = new ArrayList<>(TICKER_SYMBOL_MAP.values());
+        symbols.add(EUR);
+
+        Map<String, BigDecimal> availableBalances = binanceService.fetchAvailableBalances(symbols);
+
         try {
             for (int i = 0; i < values.length; i++) {
                 for (Map.Entry<String, BigDecimal> entry : availableBalances.entrySet()) {
@@ -214,6 +221,7 @@ public class GoogleSheetsService {
                     }
                 }
             }
+            googleSheetsClient.update("investing!L34:L34", availableBalances.get(EUR));
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());
