@@ -65,14 +65,11 @@ class BinanceServiceIntegrationTest {
 
     private static Stream<Arguments> frequencyProvider() {
         int hours = (int) HOURS.between(LocalDateTime.parse("2021-02-10T04:57:36.099"), now()) + 23587;
-//        int linkHours = (int) HOURS.between(LocalDateTime.parse("2021-02-10T05:41:36.099"), now()) + 18095;
         return Stream.of(
                 Arguments.of("BNBUSDT", HOURLY, hours),
                 Arguments.of("BTCUSDT", HOURLY, hours),
                 Arguments.of("ADAUSDT", HOURLY, hours),
-                Arguments.of("ETHUSDT", HOURLY, hours),
                 Arguments.of("XLMUSDT", HOURLY, hours)
-//                Arguments.of("LINKUSDT", HOURLY, linkHours)
         );
     }
 
