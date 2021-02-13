@@ -69,8 +69,8 @@ public class YieldWatchService {
                 .sorted(reverseOrder())
                 .collect(Collectors.toList());
 
-        BigDecimal total = amounts.get(0);
-        BigDecimal deposit = (amounts.get(1).add(amounts.get(1)));
+        BigDecimal total = amounts.get(1).add(amounts.get(2));
+        BigDecimal deposit = amounts.get(0);
         BigDecimal yieldEarned = total.subtract(deposit);
 
         List<BigDecimal> coinAmounts = $$(By.className("sub"))
