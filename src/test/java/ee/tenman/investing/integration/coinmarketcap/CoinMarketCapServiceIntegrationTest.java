@@ -1,6 +1,7 @@
 package ee.tenman.investing.integration.coinmarketcap;
 
 import ee.tenman.investing.integration.binance.BinanceService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -39,6 +40,7 @@ class CoinMarketCapServiceIntegrationTest {
     }
 
     @Test
+    @Disabled
     void yieldwatchNet() {
         List<String> tickers = Arrays.asList(BINANCE_COIN_ID, CRO_ID);
         BigDecimal busd = binanceService.getPriceToEur("BUSD");

@@ -1,5 +1,6 @@
 package ee.tenman.investing.service;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,6 +59,7 @@ class PriceServiceIntegrationTest {
 
     @Test
     @DisplayName("Get last 1000 days")
+    @Disabled
     void prices2() {
         Map<String, BigDecimal> prices = priceService.getPrices("BTC", "ETH", DAILY);
 

@@ -22,6 +22,7 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    @Disabled
     void refreshCryptoPrices() throws Exception {
         long startTime = System.nanoTime();
         googleService.refreshCryptoPrices();
@@ -42,6 +43,7 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    @Disabled
     void appendYieldInformation() throws ExecutionException, InterruptedException {
         long startTime = System.nanoTime();
         googleService.appendYieldInformation();
