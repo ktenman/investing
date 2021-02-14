@@ -12,7 +12,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class YieldSummary {
-    private BigDecimal bdoAmount;
-    private BigDecimal wbnbAmount;
-    private BigDecimal yieldEarnedPercentage;
+    @Builder.Default
+    private BigDecimal bdoAmount = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal wbnbAmount = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 }

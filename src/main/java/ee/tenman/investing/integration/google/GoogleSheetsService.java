@@ -124,7 +124,7 @@ public class GoogleSheetsService {
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) throws ExecutionException, InterruptedException {
-        YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
         BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
 
         List<RowData> rowData = new ArrayList<>();
@@ -262,7 +262,7 @@ public class GoogleSheetsService {
                 googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
 
-            YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
+            YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
             googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
             BigDecimal wbnbToEurPrice = priceService.toEur(WBNB_CURRENCY);

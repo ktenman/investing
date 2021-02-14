@@ -3,15 +3,17 @@ package ee.tenman.investing.integration.yieldwatchnet;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
-import ee.tenman.investing.FileUtils;
+import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
+import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
+import ee.tenman.investing.service.SecretsService;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,22 +38,19 @@ public class YieldWatchService {
         Configuration.browser = "firefox";
     }
 
-    @Value("wallet_address.txt")
-    ClassPathResource walletAddressResource;
+    @Resource
+    private SecretsService secretsService;
     private static final String YIELD_WATCH_NET = "http://yieldwatch.net/";
-    private String walletAddress;
 
-    @PostConstruct
-    void setWalletAddress() {
-        walletAddress = FileUtils.getSecret(walletAddressResource);
-    }
+    @Resource
+    private YieldApiService yieldApiService;
 
-    public YieldSummary fetchYieldSummary() {
+    YieldSummary fetchYieldSummary() {
         closeWebDriver();
         open(YIELD_WATCH_NET);
 
         SelenideElement addressInputField = $(By.id("addressInputField"));
-        for (char c : walletAddress.toCharArray()) {
+        for (char c : secretsService.getWalletAddress().toCharArray()) {
             addressInputField.append(String.valueOf(c));
         }
 
@@ -94,6 +93,47 @@ public class YieldWatchService {
                 .wbnbAmount(wbnbAmount)
                 .yieldEarnedPercentage(yieldEarnedPercentage)
                 .build();
+    }
+
+    public YieldSummary getYieldSummary() {
+        YieldData yieldData = yieldApiService.getYieldData();
+
+        if (yieldData == null) {
+            return fetchYieldSummary();
+        }
+
+        BigDecimal bdo1 = yieldData.getResult().getAutofarm().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken0();
+        BigDecimal bdo2 = yieldData.getResult().getBeefyFinance().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken0();
+
+        BigDecimal wbnb1 = yieldData.getResult().getAutofarm().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken1();
+        BigDecimal wbnb2 = yieldData.getResult().getBeefyFinance().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken1();
+
+        BigDecimal bdoAmount = bdo1.add(bdo2);
+        BigDecimal wbnbAmount = wbnb1.add(wbnb2);
+
+        BigDecimal yield = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getYield()
+                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getYield());
+
+        BigDecimal total = yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal()
+                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal());
+
+        BigDecimal yieldEarnedPercentage = yield.divide(total, 8, BigDecimal.ROUND_UP);
+
+        YieldSummary yieldSummary = YieldSummary.builder()
+                .bdoAmount(bdoAmount)
+                .wbnbAmount(wbnbAmount)
+                .yieldEarnedPercentage(yieldEarnedPercentage)
+                .build();
+
+        boolean hasMissingAmounts = Stream.of(yieldSummary.getBdoAmount(), yieldSummary.getWbnbAmount(), yieldEarnedPercentage)
+                .filter(Objects::nonNull)
+                .anyMatch(bigDecimal -> ComparableUtils.is(bigDecimal).lessThanOrEqualTo(BigDecimal.ZERO));
+
+        if (hasMissingAmounts) {
+            return fetchYieldSummary();
+        }
+
+        return yieldSummary;
     }
 
 }

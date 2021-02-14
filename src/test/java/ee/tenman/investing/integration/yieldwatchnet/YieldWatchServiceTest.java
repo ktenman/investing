@@ -25,4 +25,14 @@ class YieldWatchServiceTest {
         assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
     }
 
+    @Test
+    void getYieldSummary() {
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+
+        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getYieldEarnedPercentage()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
+
+        System.out.println();
+    }
 }
