@@ -282,7 +282,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 600_000)
+    @Scheduled(fixedDelay = 36_000, initialDelay = 6_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public void refreshBalances() throws Exception {
         int startingIndexNumber = 21;
