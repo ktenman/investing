@@ -23,7 +23,7 @@ public class CoinGeckoService {
     @Resource
     BinanceService binanceService;
 
-    public BigDecimal eur(String currency) {
+    public BigDecimal eurPrice(String currency) {
         open("https://www.coingecko.com/en/coins/" + currency);
 
         $(tagName("h1")).waitUntil(text(currency), 2000, 200);

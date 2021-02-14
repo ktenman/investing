@@ -3,7 +3,9 @@ package ee.tenman.investing.integration.coinmarketcap;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.coinmarketcap.api.CoinMarketCapApiService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -30,7 +32,10 @@ import static java.math.RoundingMode.HALF_UP;
 public class CoinMarketCapService {
 
     @Resource
-    BinanceService binanceService;
+    private BinanceService binanceService;
+
+    @Resource
+    private CoinMarketCapApiService coinMarketCapApiService;
 
     private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
         Map<String, BigDecimal> prices = new HashMap<>();
@@ -65,7 +70,13 @@ public class CoinMarketCapService {
         return pricesInEUr;
     }
 
-    public BigDecimal eur(String currency) {
+    public BigDecimal eurPrice(String currency) {
+
+        BigDecimal eurPrice = coinMarketCapApiService.eurPrice(currency);
+        if (eurPrice != null && ComparableUtils.is(eurPrice).greaterThan(BigDecimal.ZERO)) {
+            return eurPrice;
+        }
+
         open("https://coinmarketcap.com/currencies/" + currency);
 
         $(By.tagName("div")).waitUntil(text("$"), 1000, 100);
@@ -73,7 +84,7 @@ public class CoinMarketCapService {
         ElementsCollection selenideElements = Selenide.$$(By.tagName("p"));
 
         List<String> strings = Arrays.asList("BTC", "ETH");
-        BigDecimal reduce = strings.stream()
+        BigDecimal sum = strings.stream()
                 .map(symbol -> Optional.of(selenideElements
                         .filter(text(symbol))
                         .first()
@@ -90,7 +101,7 @@ public class CoinMarketCapService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         closeWebDriver();
-        BigDecimal average = reduce.divide(BigDecimal.valueOf(strings.size()), HALF_UP);
+        BigDecimal average = sum.divide(BigDecimal.valueOf(strings.size()), HALF_UP);
         log.info("{}/EUR: {}", currency, average);
         return average;
     }

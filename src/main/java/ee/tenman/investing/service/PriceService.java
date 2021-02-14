@@ -15,18 +15,11 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static java.math.BigDecimal.ONE;
@@ -135,43 +128,14 @@ public class PriceService {
         return binancePrices;
     }
 
-    public BigDecimal toEur(String currency) throws ExecutionException, InterruptedException {
-        ExecutorService executorService = Executors.newWorkStealingPool(2);
+    public BigDecimal toEur(String currency) {
+        BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(currency);
 
-        CompletableFuture<BigDecimal> coinMarketCapServiceSupplier = CompletableFuture.supplyAsync(
-                () -> coinMarketCapService.eur(currency)
-        );
-        CompletableFuture<BigDecimal> coinGeckoPriceSupplier = CompletableFuture.supplyAsync(
-                () -> coinGeckoService.eur(currency)
-        );
-
-        List<CompletableFuture<BigDecimal>> futures = Arrays.asList(coinMarketCapServiceSupplier, coinGeckoPriceSupplier);
-
-        CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        for (CompletableFuture<?> future : futures) {
-            executorService.submit(() -> future);
+        if (coinMarketCapPrice != null && ComparableUtils.is(coinMarketCapPrice).greaterThan(ZERO)) {
+            return coinMarketCapPrice;
         }
 
-        combinedFuture.get();
-
-        List<BigDecimal> prices = futures.stream()
-                .map(CompletableFuture::join)
-                .filter(Objects::nonNull)
-                .filter(bigDecimal -> ComparableUtils.is(bigDecimal).greaterThan(ZERO))
-                .collect(Collectors.toList());
-
-        BigDecimal averagePrice = average(prices);
-
-        log.info("Average {}/EUR price", averagePrice);
-
-        return averagePrice;
-    }
-
-    public BigDecimal average(List<BigDecimal> bigDecimals) {
-        BigDecimal sum = bigDecimals.stream()
-                .map(Objects::requireNonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return sum.divide(new BigDecimal(bigDecimals.size()), HALF_UP);
+        return coinGeckoService.eurPrice(currency);
     }
 
 }

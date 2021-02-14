@@ -56,7 +56,7 @@ class CoinMarketCapServiceIntegrationTest {
 
     @Test
     void getBtoToBtc() {
-        BigDecimal btoToEur = coinMarketCapService.eur("bdollar");
+        BigDecimal btoToEur = coinMarketCapService.eurPrice("bdollar");
 
         assertThat(btoToEur).isGreaterThan(ZERO);
     }

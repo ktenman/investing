@@ -1,4 +1,4 @@
-package ee.tenman.investing.integration.coingecko;
+package ee.tenman.investing.integration.coinmarketcap.api;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -11,16 +11,16 @@ import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class CoinGeckoServiceTest {
+class CoinMarketCapApiServiceTest {
 
     @Resource
-    CoinGeckoService coinGeckoService;
+    CoinMarketCapApiService coinMarketCapApiService;
 
+    @ValueSource(strings = {"BDO", "bdollar", "wbnb", "WBNB"})
     @ParameterizedTest
-    @ValueSource(strings = {"bdollar", "wbnb"})
-    void eur(String symbol) {
-        BigDecimal symbolToEurPrice = coinGeckoService.eurPrice(symbol);
+    void getPrice(String currency) {
+        BigDecimal eurPrice = coinMarketCapApiService.eurPrice(currency);
 
-        assertThat(symbolToEurPrice).isGreaterThan(ZERO);
+        assertThat(eurPrice).isGreaterThan(ZERO);
     }
 }
