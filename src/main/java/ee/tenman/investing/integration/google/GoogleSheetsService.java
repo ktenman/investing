@@ -111,8 +111,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-    @Scheduled(cron = "0 0/3 * * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     public void appendYieldInformation() throws ExecutionException, InterruptedException {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
