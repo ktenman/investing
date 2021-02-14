@@ -6,15 +6,9 @@ target/
 src/main/resources/private_key.txt
 src/main/resources/wallet_address.txt
 src/main/resources/private_key_id.txt
-src/test/resources/private_key.txt
-src/test/resources/private_key_id.txt
 src/main/resources/binance_api_key.txt
 src/main/resources/binance_secret_key.txt
-src/test/resources/binance_api_key.txt
-src/test/resources/binance_secret_key.txt
-src/test/resources/crypto_com_api_key.txt
-src/test/resources/crypto_com_secret_key.txt
-src/test/resources/wallet_address.txt
+src/main/resources/bcsscan_api_key.txt
 
 ### STS ###
 .apt_generated

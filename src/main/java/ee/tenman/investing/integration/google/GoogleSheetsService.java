@@ -17,6 +17,7 @@ import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
@@ -77,13 +78,15 @@ public class GoogleSheetsService {
 
     private BigDecimal leftOverAmount;
     @Resource
-    PriceService priceService;
+    private PriceService priceService;
     @Resource
-    GoogleSheetsClient googleSheetsClient;
+    private GoogleSheetsClient googleSheetsClient;
     @Resource
-    YieldWatchService yieldWatchService;
+    private YieldWatchService yieldWatchService;
     @Resource
-    BinanceService binanceService;
+    private BinanceService binanceService;
+    @Resource
+    private BscScanService bscScanService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -308,6 +311,7 @@ public class GoogleSheetsService {
                 }
             }
             googleSheetsClient.update("investing!L34:L34", availableBalances.get(EUR));
+            googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());

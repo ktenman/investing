@@ -1,0 +1,18 @@
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+
+server:
+  port: 8081
+
+logging:
+  level:
+    org.springframework: info
+    ee.tenman: debug
+  pattern:
+    console: "%black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable"
+    file: "%d %p %c{1.} [%t] %m%n"
