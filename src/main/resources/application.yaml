@@ -14,5 +14,5 @@ logging:
     org.springframework: info
     ee.tenman: debug
   pattern:
-    console: "%brown(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable"
+    console: "%d{ISO8601} %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable"
     file: "%d %p %c{1.} [%t] %m%n"
