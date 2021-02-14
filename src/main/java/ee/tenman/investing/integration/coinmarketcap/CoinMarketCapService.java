@@ -1,6 +1,5 @@
 package ee.tenman.investing.integration.coinmarketcap;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import ee.tenman.investing.integration.binance.BinanceService;
@@ -29,14 +28,6 @@ import static java.math.RoundingMode.HALF_UP;
 @Slf4j
 @Service
 public class CoinMarketCapService {
-
-    static {
-        Configuration.startMaximized = true;
-        Configuration.headless = true;
-        Configuration.proxyEnabled = false;
-        Configuration.screenshots = false;
-        Configuration.browser = "firefox";
-    }
 
     @Resource
     BinanceService binanceService;

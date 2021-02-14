@@ -1,6 +1,5 @@
 package ee.tenman.investing.integration.autofarm;
 
-import com.codeborne.selenide.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +31,6 @@ public class AutofarmService {
     }
 
     public BigDecimal fetchDailyYieldReturn() {
-        Configuration.startMaximized = true;
-        Configuration.headless = true;
-        Configuration.proxyEnabled = false;
-        Configuration.screenshots = false;
-        Configuration.browser = "firefox";
         closeWebDriver();
         open(AUTO_FARM_NETWORK_URL);
         String yieldPercentage = $$(tagName("a"))

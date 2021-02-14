@@ -1,7 +1,6 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
@@ -29,14 +28,6 @@ import static org.openqa.selenium.By.tagName;
 
 @Service
 public class YieldWatchService {
-
-    static {
-        Configuration.startMaximized = true;
-        Configuration.headless = true;
-        Configuration.proxyEnabled = false;
-        Configuration.screenshots = false;
-        Configuration.browser = "firefox";
-    }
 
     @Resource
     private SecretsService secretsService;

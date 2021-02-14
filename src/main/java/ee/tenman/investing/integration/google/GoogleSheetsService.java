@@ -114,7 +114,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 4/5 * * * *")
+    @Scheduled(cron = "0 4/3 * * * *")
     public void appendYieldInformation() throws ExecutionException, InterruptedException {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
@@ -170,6 +170,15 @@ public class GoogleSheetsService {
         machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond() / 86400.0 + 25569));
         machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
         cellData.add(machineDateTimeCell);
+
+        BigDecimal bnbToEur = binanceService.getPriceToEur("BNB");
+        BigDecimal investedBnbAmount = (BigDecimal) getValueRange("investing!H21:H21").getValues().get(0).get(0);
+        BigDecimal totalEurInvested = bnbToEur.multiply(investedBnbAmount);
+
+        CellData investedEurDifferenceCell = new CellData();
+        BigDecimal investedEurDifference = total.subtract(totalEurInvested);
+        investedEurDifferenceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(investedEurDifference.doubleValue()));
+        cellData.add(investedEurDifferenceCell);
 
         rowData.add(new RowData().setValues(cellData));
 
