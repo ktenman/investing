@@ -112,7 +112,7 @@ public class GoogleSheetsService {
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0/3 * * * *")
     public void appendYieldInformation() throws ExecutionException, InterruptedException {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
@@ -184,7 +184,7 @@ public class GoogleSheetsService {
         return batchRequests;
     }
 
-    @Scheduled(fixedDelay = 30000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 60000, initialDelay = 90000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     public void updateSumOfTickers() throws Exception {
 
@@ -283,7 +283,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 3600000, initialDelay = 500)
+    @Scheduled(fixedDelay = 3600_000, initialDelay = 600_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
     public void refreshBalances() throws Exception {
         int startingIndexNumber = 21;
