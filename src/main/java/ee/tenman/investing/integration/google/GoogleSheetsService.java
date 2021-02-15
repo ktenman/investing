@@ -180,6 +180,11 @@ public class GoogleSheetsService {
         investedEurDifferenceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(investedEurDifference.doubleValue()));
         cellData.add(investedEurDifferenceCell);
 
+        CellData earnedBnbAmountCell = new CellData();
+        BigDecimal earnedBnb = investedEurDifference.divide(bnbToEur, RoundingMode.HALF_UP);
+        earnedBnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earnedBnb.doubleValue()));
+        cellData.add(earnedBnbAmountCell);
+
         rowData.add(new RowData().setValues(cellData));
 
         AppendCellsRequest appendCellRequest = new AppendCellsRequest();
