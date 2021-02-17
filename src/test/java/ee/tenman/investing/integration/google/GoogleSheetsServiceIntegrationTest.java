@@ -53,4 +53,5 @@ class GoogleSheetsServiceIntegrationTest {
     private double duration(long startTime) {
         return (System.nanoTime() - startTime) / 1.000_000_000;
     }
+
 }

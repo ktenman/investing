@@ -20,7 +20,7 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class CoinMarketCapApiService {
 
-    private static final ImmutableMap<String, Integer> SYMBOL_TO_ID_MAP = ImmutableMap.of(
+    private static final Map<String, Integer> SYMBOL_TO_ID_MAP = ImmutableMap.of(
             "BDO", 8219,
             "bdollar", 8219,
             "wbnb", 7192,
