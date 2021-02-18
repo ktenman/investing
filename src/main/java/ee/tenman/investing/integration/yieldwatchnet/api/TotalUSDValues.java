@@ -12,5 +12,8 @@ public class TotalUSDValues {
     private BigDecimal deposit;
     private BigDecimal total;
     private BigDecimal yield;
+    private BigDecimal supply;
+    private BigDecimal borrow;
+    private BigDecimal netAPY;
 
 }

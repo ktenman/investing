@@ -16,3 +16,6 @@ logging:
   pattern:
     console: "%d{ISO8601} %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable"
     file: "%d %p %c{1.} [%t] %m%n"
+
+yieldwatch:
+  url: "https://yieldwatch.net/api/"

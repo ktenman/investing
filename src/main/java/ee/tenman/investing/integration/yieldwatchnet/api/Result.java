@@ -12,5 +12,8 @@ public class Result {
     private Autofarm autofarm;
     @JsonProperty("BeefyFinance")
     private BeefyFinance beefyFinance;
+    @JsonProperty("Venus")
+    private Venus venus;
+    private Currencies currencies;
 
 }

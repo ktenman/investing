@@ -1,1 +1,4 @@
 app.scheduling.enable: false
+
+yieldwatch:
+  url: "http://localhost:${wiremock.server.port}"

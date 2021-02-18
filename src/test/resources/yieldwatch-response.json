@@ -1,0 +1,231 @@
+{
+  "result": {
+    "Autofarm": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 14928.217178464298,
+          "yield": 28.324084362136432,
+          "total": 14956.541262826435
+        },
+        "vaults": [
+          {
+            "name": "BDO-WBNB Pool",
+            "id": 13,
+            "type": "lpVault",
+            "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+            "platform": "auto",
+            "depositToken": "BDO-WBNB LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0.00016633092393731,
+            "priceInUSDRewardToken": 8773.565568198284,
+            "currentTokens": 466.09995843872963,
+            "harvestedRewards": 0.03471608767872498,
+            "totalRewards": 0.034882418602662286,
+            "depositedTokens": 465.262673306991,
+            "priceInUSDDepositToken": 32.085568077829265,
+            "apy": 216.8985046572303,
+            "LPInfo": {
+              "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+              "symbolToken0": "BDO",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 1.3979490362627838,
+              "priceInUSDToken1": 170.0274,
+              "priceInUSDLPToken": 32.085568077829265,
+              "currentToken0": 5348.936749346571,
+              "currentToken1": 43.97844684903507,
+              "currentBaseToken0": 5339.328112551494,
+              "currentBaseToken1": 43.89944555543488,
+              "depositToken0": 5098.662494601236,
+              "depositToken1": 45.96210252275338,
+              "changeToken0": 234.46752260489484,
+              "changeToken1": -2.1136171150047858,
+              "winningsToken0": 9.60863679507679,
+              "winningsToken1": 0.07900129360018868,
+              "actPrice": 0.00822190444753483,
+              "depositPrice": 0.009014541082376164,
+              "actInToken1": 87.79889111086976,
+              "hodlInToken1": 87.88281836359432,
+              "faktorIL": -0.0021147199368166682,
+              "ILInToken1": -0.18584754809713092,
+              "LPEarningsInToken1": -0.08392725272456561,
+              "feesEarnedInToken0": 12.396190690725433,
+              "feesEarnedInToken1": 0.1019202953725653,
+              "poolToken0": 3232604.5897189644,
+              "poolToken1": 26578.16605333186,
+              "noOfLPTokens": 466.09995843872963,
+              "totalSupplyLPToken": 281685.3022427153
+            }
+          },
+          {
+            "name": "KEBAB-WBNB Pool",
+            "id": 40,
+            "type": "lpVault",
+            "contractAddress": "0x25fd42D82d5c238ee7AA277261AA6CA5BDFE5CD4",
+            "platform": "auto",
+            "depositToken": "KEBAB-WBNB LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 8773.565568198284,
+            "currentTokens": 1e-18,
+            "harvestedRewards": 0,
+            "totalRewards": 0,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 106.48453971728156,
+            "apy": 886.3911318715902,
+            "LPInfo": {
+              "contractAddress": "0x25fd42D82d5c238ee7AA277261AA6CA5BDFE5CD4",
+              "symbolToken0": "KEBAB",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 14.572648498356061,
+              "priceInUSDToken1": 170.0274,
+              "priceInUSDLPToken": 106.48453971728156,
+              "currentToken0": 3.65357538574042e-18,
+              "currentToken1": 3.13139352002329e-19,
+              "currentBaseToken0": 0,
+              "currentBaseToken1": 0,
+              "depositToken0": 0,
+              "depositToken1": 0,
+              "changeToken0": 0,
+              "changeToken1": 0,
+              "winningsToken0": 3.653575385740419e-18,
+              "winningsToken1": 3.1313935200232896e-19,
+              "actPrice": 0.08570764769887713,
+              "depositPrice": 0,
+              "actInToken1": 0,
+              "hodlInToken1": 0,
+              "faktorIL": 0,
+              "ILInToken1": 0,
+              "LPEarningsInToken1": 0,
+              "feesEarnedInToken0": 0,
+              "feesEarnedInToken1": 0,
+              "poolToken0": 83971.41617990867,
+              "poolToken1": 7196.992554723404,
+              "noOfLPTokens": 1e-18,
+              "totalSupplyLPToken": 22983.353924389154
+            }
+          }
+        ]
+      }
+    },
+    "BeefyFinance": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      },
+      "staking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        }
+      },
+      "barnOfTrust": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      }
+    },
+    "Venus": {
+      "supplyBorrowData": {
+        "totalUSDValues": {
+          "supply": 45513.192379459986,
+          "borrow": 13999.30416965884,
+          "yield": 0,
+          "total": 45513.192379459986,
+          "netAPY": -0.8687839685413887
+        },
+        "vaults": [
+          {
+            "name": "Ethereum",
+            "inputToken": "ETH",
+            "collateralFactor": "0.60",
+            "depositAmount": 12.50013532279793,
+            "borrowAmount": 0,
+            "priceInUSD": 1845.523,
+            "supplyAPY": 2.1926005956135253,
+            "borrowAPY": 6.49339867933636
+          },
+          {
+            "name": "Binance USD",
+            "inputToken": "BUSD",
+            "collateralFactor": "0.60",
+            "depositAmount": 0,
+            "borrowAmount": 14000.704240082849,
+            "priceInUSD": 0.9999,
+            "supplyAPY": 7.547200778574692,
+            "borrowAPY": 10.550850559643333
+          },
+          {
+            "name": "Binance Coin",
+            "inputToken": "BNB",
+            "collateralFactor": "0.60",
+            "depositAmount": 132.0016958332832,
+            "borrowAmount": 0,
+            "priceInUSD": 170.0274,
+            "supplyAPY": 2.565582996209703,
+            "borrowAPY": 6.933848498720452
+          }
+        ]
+      },
+      "staking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 1.6793847575593166,
+          "total": 1.6793847575593166
+        },
+        "vaults": [
+          {
+            "name": "VAI Vault",
+            "rewardToken": "XVS",
+            "depositToken": "VAI",
+            "platform": "venus",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 0,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 0
+          },
+          {
+            "name": "XVS Liquidity Earnings",
+            "rewardToken": "XVS",
+            "platform": "venus",
+            "pendingRewards": 0.029274395408731113,
+            "priceInUSDRewardToken": 57.36701763133385,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 0
+          }
+        ]
+      }
+    },
+    "currencies": {
+      "EUR": 1.2060686,
+      "RMB": 0.15483,
+      "JPY": 0.009430645,
+      "GBP": 1.3860933,
+      "BTCB": 52395.49052944153,
+      "WBNB": 170.0274
+    }
+  }
+}

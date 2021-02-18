@@ -9,26 +9,29 @@ import java.math.BigDecimal;
 @Data
 @SuppressWarnings("unused")
 public class Vault {
-
     private BigDecimal apy;
-    private String contractAddress;
+    private BigDecimal borrowAmount;
+    private BigDecimal borrowAPY;
     private BigDecimal currentTokens;
-    private String depositToken;
+    private BigDecimal depositAmount;
     private BigDecimal depositedTokens;
     private BigDecimal harvestedRewards;
-    private long id;
-    private String inputToken;
-    @JsonProperty("LPInfo")
-    private LPInfo lPInfo;
-    private String name;
     private BigDecimal pendingRewards;
-    private String platform;
     private BigDecimal priceInUSD;
     private BigDecimal priceInUSDDepositToken;
     private BigDecimal priceInUSDRewardToken;
-    private String rewardToken;
+    private BigDecimal supplyAPY;
     private BigDecimal totalRewards;
-    private String totalTokensStaked;
+    private long id;
+    @JsonProperty("LPInfo")
+    private LPInfo lPInfo;
+    private String collateralFactor;
+    private String contractAddress;
+    private String depositToken;
+    private String inputToken;
+    private String name;
+    private String platform;
+    private String rewardToken;
     private String type;
 
 }
