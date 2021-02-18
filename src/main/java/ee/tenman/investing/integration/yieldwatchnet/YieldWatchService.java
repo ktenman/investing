@@ -1,6 +1,10 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
 import com.codeborne.selenide.SelenideElement;
+import ee.tenman.investing.integration.yieldwatchnet.api.Autofarm;
+import ee.tenman.investing.integration.yieldwatchnet.api.LPInfo;
+import ee.tenman.investing.integration.yieldwatchnet.api.Result;
+import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
@@ -12,6 +16,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +28,7 @@ import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
 import static java.math.BigDecimal.ROUND_UP;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
 import static org.openqa.selenium.By.tagName;
@@ -127,5 +133,54 @@ public class YieldWatchService {
 
         return yieldSummary;
     }
+
+    public YieldSummary getYieldSummaryIK() {
+        YieldData yieldData = yieldApiService.getYieldData();
+
+        if (yieldData == null) {
+            return fetchYieldSummary();
+        }
+
+        Autofarm autofarm = Optional.ofNullable(yieldData.getResult())
+                .map(Result::getAutofarm)
+                .orElseThrow(() -> new RuntimeException("Couldn't fetch Autofarm"));
+
+        LPInfo lpInfo = autofarm
+                .getLPVaults()
+                .getVaults()
+                .stream()
+                .filter(vault -> "BDO-WBNB Pool".equals(vault.getName()))
+                .findFirst()
+                .map(Vault::getLPInfo)
+                .orElseThrow(() -> new RuntimeException("Failed to fetch BDO-WBNB Pool"));
+
+        BigDecimal bdoAmount = lpInfo.getCurrentToken0();
+        BigDecimal wbnAmount = lpInfo.getCurrentToken1();
+
+        BigDecimal yield = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getYield()
+                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getYield());
+
+        BigDecimal total = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getTotal()
+                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal());
+
+        BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
+
+        YieldSummary yieldSummary = YieldSummary.builder()
+                .bdoAmount(bdoAmount)
+                .wbnbAmount(wbnAmount)
+                .yieldEarnedPercentage(yieldEarnedPercentage)
+                .build();
+
+        boolean hasMissingAmounts = Stream.of(yieldSummary.getBdoAmount(), yieldSummary.getWbnbAmount(), yieldEarnedPercentage)
+                .filter(Objects::nonNull)
+                .anyMatch(bigDecimal -> ComparableUtils.is(bigDecimal).lessThanOrEqualTo(ZERO));
+
+        if (hasMissingAmounts) {
+            return fetchYieldSummary();
+        }
+
+        return yieldSummary;
+    }
+
 
 }

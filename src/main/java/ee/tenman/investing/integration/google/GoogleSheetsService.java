@@ -21,6 +21,7 @@ import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
+import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
@@ -41,7 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -67,6 +67,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public class GoogleSheetsService {
 
     public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
+    public static final String SPREAD_SHEET_ID_IK = "1Lhi4TVM9PCpbv7mRphXUaKvyI_DymN2EB7_BAsyOJ2Y";
     private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
     private static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
@@ -87,11 +88,13 @@ public class GoogleSheetsService {
     private BinanceService binanceService;
     @Resource
     private BscScanService bscScanService;
+    @Resource
+    private SecretsService secretsService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
     public void appendProfits() {
-        Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
+        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
         if (spreadsheetResponse == null) {
             return;
         }
@@ -115,18 +118,32 @@ public class GoogleSheetsService {
     }
 
     @Scheduled(cron = "0 4/5 * * * *")
-    public void appendYieldInformation() throws ExecutionException, InterruptedException {
-        Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
+    public void appendYieldInformation() {
+        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
         if (spreadsheetResponse == null) {
             return;
         }
         Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
-        BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID);
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+        BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
         googleSheetsClient.update(yieldBatchRequest);
     }
 
-    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) {
-        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+    @Scheduled(cron = "0 4/5 * * * *")
+    public void appendYieldInformationIK() {
+        secretsService.setWalletAddress(secretsService.getWalletAddressIK());
+
+        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID_IK);
+        if (spreadsheetResponse == null) {
+            return;
+        }
+        Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummaryIK();
+        BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
+        googleSheetsClient.update(yieldBatchRequest, SPREAD_SHEET_ID_IK);
+    }
+
+    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {
         BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
 
         List<RowData> rowData = new ArrayList<>();
@@ -172,7 +189,7 @@ public class GoogleSheetsService {
         cellData.add(machineDateTimeCell);
 
         BigDecimal bnbToEur = binanceService.getPriceToEur("BNB");
-        BigDecimal investedBnbAmount = (BigDecimal) getValueRange("investing!H21:H21").getValues().get(0).get(0);
+        BigDecimal investedBnbAmount = new BigDecimal("11.32903777");
         BigDecimal totalEurInvested = bnbToEur.multiply(investedBnbAmount);
 
         CellData investedEurDifferenceCell = new CellData();
@@ -214,7 +231,7 @@ public class GoogleSheetsService {
 
     public void removeCells() {
         try {
-            Spreadsheet spreadsheetResponse = getSpreadSheetResponse();
+            Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
 
             SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
 
@@ -491,10 +508,10 @@ public class GoogleSheetsService {
         }
     }
 
-    public Spreadsheet getSpreadSheetResponse() {
+    public Spreadsheet getSpreadSheetResponse(String spreadSheetId) {
         try {
             boolean includeGridData = false;
-            Sheets.Spreadsheets.Get spreadsheetRequest = googleSheetsClient.get().spreadsheets().get(SPREAD_SHEET_ID);
+            Sheets.Spreadsheets.Get spreadsheetRequest = googleSheetsClient.get().spreadsheets().get(spreadSheetId);
             spreadsheetRequest.setRanges(new ArrayList<>());
             spreadsheetRequest.setIncludeGridData(includeGridData);
             return spreadsheetRequest.execute();

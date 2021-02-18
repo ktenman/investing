@@ -45,6 +45,19 @@ public class GoogleSheetsClient {
         }
     }
 
+
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
+    public void update(BatchUpdateSpreadsheetRequest batchRequest, String spreadSheetId) {
+        try {
+            BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()
+                    .batchUpdate(spreadSheetId, batchRequest)
+                    .execute();
+            log.info("{}", response);
+        } catch (IOException e) {
+            log.error("Failed to update batch request ", e);
+        }
+    }
+
     public Sheets get() {
         return googleSheetsApiClient;
     }

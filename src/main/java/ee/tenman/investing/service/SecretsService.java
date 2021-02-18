@@ -11,14 +11,22 @@ import javax.annotation.PostConstruct;
 public class SecretsService {
     @Value("wallet_address.txt")
     ClassPathResource walletAddressResource;
+    @Value("wallet_address_ik.txt")
+    ClassPathResource walletAddressResourceIK;
     @Value("bcsscan_api_key.txt")
     ClassPathResource bcsScanApiKeyResource;
     private String walletAddress;
+    private String walletAddressIK;
     private String bcsScanApiKey;
 
     @PostConstruct
     void setWalletAddress() {
         walletAddress = FileUtils.getSecret(walletAddressResource);
+    }
+
+    @PostConstruct
+    void setWalletAddressIK() {
+        walletAddressIK = FileUtils.getSecret(walletAddressResourceIK);
     }
 
     @PostConstruct
@@ -28,6 +36,14 @@ public class SecretsService {
 
     public String getWalletAddress() {
         return walletAddress;
+    }
+
+    public String getWalletAddressIK() {
+        return walletAddressIK;
+    }
+
+    public void setWalletAddress(String walletAddress) {
+        this.walletAddress = walletAddress;
     }
 
     public String getBcsScanApiKey() {
