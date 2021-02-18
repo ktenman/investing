@@ -125,7 +125,7 @@ public class GoogleSheetsService {
         googleSheetsClient.update(yieldBatchRequest);
     }
 
-    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) throws ExecutionException, InterruptedException {
+    private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID) {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
         BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
 

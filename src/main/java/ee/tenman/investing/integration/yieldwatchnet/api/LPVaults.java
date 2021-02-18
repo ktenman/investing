@@ -2,14 +2,13 @@
 package ee.tenman.investing.integration.yieldwatchnet.api;
 
 import lombok.Data;
-
-import java.util.List;
+import org.apache.commons.collections4.list.TreeList;
 
 @Data
 @SuppressWarnings("unused")
 public class LPVaults {
 
     private TotalUSDValues totalUSDValues;
-    private List<Vault> vaults;
+    private TreeList<Vault> vaults;
 
 }

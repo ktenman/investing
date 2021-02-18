@@ -22,6 +22,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
+import static java.math.BigDecimal.ROUND_UP;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
 import static org.openqa.selenium.By.tagName;
@@ -76,7 +77,7 @@ public class YieldWatchService {
 
         BigDecimal bdoAmount = coinAmounts.get(0).add(coinAmounts.get(1));
         BigDecimal wbnbAmount = coinAmounts.get(2).add(coinAmounts.get(3));
-        BigDecimal yieldEarnedPercentage = yieldEarned.setScale(8, BigDecimal.ROUND_UP).divide(total, HALF_UP);
+        BigDecimal yieldEarnedPercentage = yieldEarned.setScale(8, ROUND_UP).divide(total, HALF_UP);
 
         closeWebDriver();
         return YieldSummary.builder()
@@ -105,10 +106,10 @@ public class YieldWatchService {
         BigDecimal yield = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getYield()
                 .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getYield());
 
-        BigDecimal total = yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal()
+        BigDecimal total = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getTotal()
                 .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal());
 
-        BigDecimal yieldEarnedPercentage = yield.divide(total, 8, BigDecimal.ROUND_UP);
+        BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
 
         YieldSummary yieldSummary = YieldSummary.builder()
                 .bdoAmount(bdoAmount)

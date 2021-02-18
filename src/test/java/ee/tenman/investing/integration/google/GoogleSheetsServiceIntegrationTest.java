@@ -3,11 +3,13 @@ package ee.tenman.investing.integration.google;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 import javax.annotation.Resource;
 import java.util.concurrent.ExecutionException;
 
 @SpringBootTest
+@TestPropertySource(properties = "yieldwatch.url=https://yieldwatch.net/api/")
 class GoogleSheetsServiceIntegrationTest {
 
     @Resource
