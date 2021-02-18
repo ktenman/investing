@@ -1,5 +1,6 @@
 package ee.tenman.investing.integration.bscscan;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -16,6 +17,7 @@ class BscScanServiceTest {
     BscScanService bscScanService;
 
     @Test
+    @Disabled
     void getBnbBalance() {
         BigDecimal bnbBalance = bscScanService.getBnbBalance();
 

@@ -1,6 +1,5 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
@@ -16,6 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -45,9 +45,9 @@ public class YieldWatchService {
             addressInputField.append(String.valueOf(c));
         }
 
-        $(tagName("button")).click();
+        $$(tagName("i")).filter(cssClass("binoculars")).first().click();
 
-        $(tagName("span")).waitUntil(Condition.text("$"), 5000, 200);
+        $(tagName("span")).waitUntil(text("$"), 5000, 200);
 
         List<BigDecimal> amounts = $$(tagName("span"))
                 .filter(text("$"))

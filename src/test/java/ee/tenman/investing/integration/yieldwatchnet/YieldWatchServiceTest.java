@@ -1,8 +1,10 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
+import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.annotation.Resource;
 
@@ -15,6 +17,9 @@ class YieldWatchServiceTest {
 
     @Resource
     YieldWatchService yieldWatchService;
+
+    @MockBean
+    YieldApiService yieldApiService;
 
     @Test
     void fetchEarnedYield() {
