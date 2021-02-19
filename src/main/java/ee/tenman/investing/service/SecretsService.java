@@ -42,10 +42,6 @@ public class SecretsService {
         return walletAddressIK;
     }
 
-    public void setWalletAddress(String walletAddress) {
-        this.walletAddress = walletAddress;
-    }
-
     public String getBcsScanApiKey() {
         return bcsScanApiKey;
     }

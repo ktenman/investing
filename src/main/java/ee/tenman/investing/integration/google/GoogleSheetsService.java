@@ -118,7 +118,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0/3 * * * *")
     public void appendYieldInformation() {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
         if (spreadsheetResponse == null) {
@@ -130,9 +130,8 @@ public class GoogleSheetsService {
         googleSheetsClient.update(yieldBatchRequest);
     }
 
-    @Scheduled(cron = "0 4/5 * * * *")
+    //    @Scheduled(cron = "0 4/5 * * * *")
     public void appendYieldInformationIK() {
-        secretsService.setWalletAddress(secretsService.getWalletAddressIK());
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID_IK);
         if (spreadsheetResponse == null) {

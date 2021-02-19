@@ -11,6 +11,7 @@ import ee.tenman.investing.integration.yieldwatchnet.api.Vaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.openqa.selenium.By.tagName;
 
 @Service
+@Slf4j
 public class YieldWatchService {
 
     @Resource
@@ -100,6 +102,8 @@ public class YieldWatchService {
 
     public YieldSummary getYieldSummary() {
         YieldData yieldData = yieldApiService.getYieldData();
+
+        log.info("{}", yieldData);
 
         LPVaults lpVaults = yieldData
                 .getResult()
