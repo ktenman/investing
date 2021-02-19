@@ -236,8 +236,7 @@ public class GoogleSheetsService {
             Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
 
             SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
-
-            Integer sheetID = properties.getSheetId();
+            Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
 
             Sheets.Spreadsheets.Values.Get getInvestingRequest =
                     googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
@@ -253,7 +252,7 @@ public class GoogleSheetsService {
             DimensionRange dimensionRange = new DimensionRange();
             dimensionRange.setSheetId(sheetID);
             dimensionRange.setDimension("ROWS");
-            dimensionRange.setStartIndex(1000);
+            dimensionRange.setStartIndex(10000);
             dimensionRange.setEndIndex(setEndIndex);
 
             deleteDimensionRequest.setRange(dimensionRange);
@@ -362,7 +361,7 @@ public class GoogleSheetsService {
     private BatchUpdateSpreadsheetRequest buildProfitsBatchRequest(Integer sheetID, ValueRange investingResponse) {
         BigDecimal annualReturn = (BigDecimal) investingResponse.getValues().get(0).get(0);
         BigDecimal profit = (BigDecimal) investingResponse.getValues().get(1).get(0);
-        BigDecimal totalSavingsAmount = (BigDecimal) investingResponse.getValues().get(2).get(0);
+        BigDecimal totalSavingsAmount = ((BigDecimal) investingResponse.getValues().get(2).get(0)).abs();
         BigDecimal currentTimeFromSpreadSheet = (BigDecimal) investingResponse.getValues().get(2).get(1);
         Instant timeFromInvesting = Instant.ofEpochSecond(
                 currentTimeFromSpreadSheet.subtract(BigDecimal.valueOf(25569))
