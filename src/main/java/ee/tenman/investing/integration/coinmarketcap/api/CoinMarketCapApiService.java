@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static ee.tenman.investing.integration.google.GoogleSheetsService.BDO_CURRENCY;
+import static ee.tenman.investing.integration.google.GoogleSheetsService.BUSD_CURRENCY;
+import static ee.tenman.investing.integration.google.GoogleSheetsService.WBNB_CURRENCY;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.function.Function.identity;
@@ -20,12 +23,14 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class CoinMarketCapApiService {
 
-    private static final Map<String, Integer> SYMBOL_TO_ID_MAP = ImmutableMap.of(
-            "BDO", 8219,
-            "bdollar", 8219,
-            "wbnb", 7192,
-            "WBNB", 7192
-    );
+    private static final Map<String, Integer> SYMBOL_TO_ID_MAP = ImmutableMap.<String, Integer>builder()
+            .put("BDO", 8219)
+            .put(BDO_CURRENCY, 8219)
+            .put(WBNB_CURRENCY, 7192)
+            .put("WBNB", 7192)
+            .put(BUSD_CURRENCY, 4687)
+            .put("BUSD", 468)
+            .build();
 
     @Resource
     private CoinMarketCapApiClient coinMarketCapApiClient;

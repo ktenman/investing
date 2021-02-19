@@ -1,0 +1,160 @@
+{
+  "result": {
+    "Autofarm": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 595.8983955,
+          "yield": -0.47741728935308436,
+          "total": 595.4209782106469
+        },
+        "vaults": [
+          {
+            "name": "WBNB Vault",
+            "id": 1,
+            "type": "vault",
+            "contractAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "platform": "auto",
+            "depositToken": "WBNB",
+            "rewardToken": "AUTO",
+            "priceInUSDDepositToken": 193.41235,
+            "priceInUSDRewardToken": 7894.5586299181805,
+            "apy": 0.5610852827230038,
+            "currentTokens": 1.5284632320924374,
+            "pendingRewards": 0.000001497550828109,
+            "harvestedRewards": 0,
+            "depositedTokens": 1.53
+          },
+          {
+            "name": "BUSD Vault",
+            "id": 2,
+            "type": "vault",
+            "contractAddress": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+            "platform": "auto",
+            "depositToken": "BUSD",
+            "rewardToken": "AUTO",
+            "priceInUSDDepositToken": 0.999925,
+            "priceInUSDRewardToken": 7894.5586299181805,
+            "apy": 0.8920531839648462,
+            "currentTokens": 299.7835522362701,
+            "pendingRewards": 0.000003093476346411,
+            "harvestedRewards": 0,
+            "depositedTokens": 300
+          }
+        ]
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 595.9229660918165,
+          "yield": -0.31190408355312466,
+          "total": 595.6110620082634
+        },
+        "vaults": [
+          {
+            "name": "WBNB-BUSD Pool",
+            "id": 10,
+            "type": "lpVault",
+            "contractAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+            "platform": "auto",
+            "depositToken": "WBNB-BUSD LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0.000016259676719783,
+            "priceInUSDRewardToken": 7894.5586299181805,
+            "currentTokens": 20.079850799198496,
+            "harvestedRewards": 0,
+            "totalRewards": 0.000016259676719783,
+            "depositedTokens": 20.09469673306844,
+            "priceInUSDDepositToken": 29.65573325180607,
+            "apy": 3.207206957519461,
+            "LPInfo": {
+              "contractAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+              "symbolToken0": "WBNB",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 193.41235,
+              "priceInUSDToken1": 0.999925,
+              "priceInUSDLPToken": 29.65573325180607,
+              "currentToken0": 1.5404137934392905,
+              "currentToken1": 297.5699650229645,
+              "currentBaseToken0": 1.5415526904130998,
+              "currentBaseToken1": 297.7899718380843,
+              "depositToken0": 1.5309108441261425,
+              "depositToken1": 300,
+              "changeToken0": 0.010962127015107459,
+              "changeToken1": -2.1481578219596145,
+              "winningsToken0": -0.0011388969738091769,
+              "winningsToken1": -0.22000681511977993,
+              "actPrice": 193.17534437196795,
+              "depositPrice": 195.96177083143118,
+              "actInToken1": 595.5799436761686,
+              "hodlInToken1": 595.7342295168478,
+              "faktorIL": -0.00005127313364507814,
+              "ILInToken1": -0.03054516076696499,
+              "LPEarningsInToken1": -0.1542858406791677,
+              "feesEarnedInToken0": -0.0006405614563002118,
+              "feesEarnedInToken1": -0.12374067991220272,
+              "poolToken0": 350456.60455122543,
+              "poolToken1": 67699575.27161357,
+              "noOfLPTokens": 20.079850799198496,
+              "totalSupplyLPToken": 4568328.562723725
+            }
+          },
+          {
+            "name": "BDO-WBNB Pool",
+            "id": 13,
+            "type": "lpVault",
+            "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+            "platform": "auto",
+            "depositToken": "BDO-WBNB LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 7894.5586299181805,
+            "currentTokens": 1e-18,
+            "harvestedRewards": 0.001389044751282758,
+            "totalRewards": 0.001389044751282758,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 32.750170651840364,
+            "apy": 223.26622978133443,
+            "LPInfo": {
+              "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+              "symbolToken0": "BDO",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 1.279163031510619,
+              "priceInUSDToken1": 193.41235,
+              "priceInUSDLPToken": 32.750170651840364,
+              "currentToken0": 1.280135425405546e-17,
+              "currentToken1": 8.466445672565077e-20,
+              "currentBaseToken0": 0,
+              "currentBaseToken1": 0,
+              "depositToken0": 0,
+              "depositToken1": 0,
+              "changeToken0": 0,
+              "changeToken1": 0,
+              "winningsToken0": 1.280135425405546e-17,
+              "winningsToken1": 8.466445672565079e-20,
+              "actPrice": 0.00661371094381121,
+              "depositPrice": 0,
+              "actInToken1": 0,
+              "hodlInToken1": 0,
+              "faktorIL": 0,
+              "ILInToken1": 0,
+              "LPEarningsInToken1": 0,
+              "feesEarnedInToken0": 0,
+              "feesEarnedInToken1": 0,
+              "poolToken0": 3475759.783997195,
+              "poolToken1": 22987.670521481134,
+              "noOfLPTokens": 1e-18,
+              "totalSupplyLPToken": 271515.0065389431
+            }
+          }
+        ]
+      }
+    },
+    "currencies": {
+      "EUR": 1.206632449,
+      "RMB": 0.154559755,
+      "JPY": 0.00946,
+      "GBP": 1.39309585,
+      "BTCB": 51831.62796112305,
+      "WBNB": 193.41235
+    }
+  }
+}

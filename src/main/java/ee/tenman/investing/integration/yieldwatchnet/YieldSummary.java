@@ -17,5 +17,7 @@ public class YieldSummary {
     @Builder.Default
     private BigDecimal wbnbAmount = BigDecimal.ZERO;
     @Builder.Default
+    private BigDecimal busdAmount = BigDecimal.ZERO;
+    @Builder.Default
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 }

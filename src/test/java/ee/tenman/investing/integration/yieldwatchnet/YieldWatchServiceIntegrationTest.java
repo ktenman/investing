@@ -5,30 +5,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ee.tenman.investing.TestFileUtils;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
-import ee.tenman.investing.service.SecretsService;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-class YieldWatchServiceTest {
+@Slf4j
+@SpringBootTest
+class YieldWatchServiceIntegrationTest {
 
-    @InjectMocks
+    @Resource
     YieldWatchService yieldWatchService;
-    @Mock
-    SecretsService secretsService;
-    @Mock
+
+    @MockBean
     YieldApiService yieldApiService;
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    @Resource
+    ObjectMapper objectMapper;
+
+    @Test
+    @Disabled
+    void fetchEarnedYield() {
+        YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
+
+        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getYieldEarnedPercentage()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
+    }
 
     @Test
     void getYieldSummary() throws IOException {

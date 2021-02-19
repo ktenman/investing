@@ -1,10 +1,13 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
 import com.codeborne.selenide.SelenideElement;
+import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.yieldwatchnet.api.Autofarm;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPInfo;
+import ee.tenman.investing.integration.yieldwatchnet.api.LPVaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.Result;
 import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
+import ee.tenman.investing.integration.yieldwatchnet.api.Vaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,6 +35,7 @@ import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toMap;
 import static org.openqa.selenium.By.tagName;
 
 @Service
@@ -96,42 +101,47 @@ public class YieldWatchService {
     public YieldSummary getYieldSummary() {
         YieldData yieldData = yieldApiService.getYieldData();
 
-        if (yieldData == null) {
-            return fetchYieldSummary();
-        }
+        LPVaults lpVaults = yieldData
+                .getResult()
+                .getAutofarm()
+                .getLPVaults();
 
-        BigDecimal bdo1 = yieldData.getResult().getAutofarm().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken0();
-        BigDecimal bdo2 = yieldData.getResult().getBeefyFinance().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken0();
+        LPInfo lpInfo = lpVaults.getVaults()
+                .stream()
+                .filter(v -> v.getName().equals("WBNB-BUSD Pool"))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Couldn't fetch WBNB-BUSD Pool data"))
+                .getLPInfo();
 
-        BigDecimal wbnb1 = yieldData.getResult().getAutofarm().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken1();
-        BigDecimal wbnb2 = yieldData.getResult().getBeefyFinance().getLPVaults().getVaults().get(0).getLPInfo().getCurrentToken1();
+        Map<String, BigDecimal> symbolAmounts = ImmutableMap.of(
+                lpInfo.getSymbolToken0(), lpInfo.getCurrentToken0(),
+                lpInfo.getSymbolToken1(), lpInfo.getCurrentToken1()
+        );
 
-        BigDecimal bdoAmount = bdo1.add(bdo2);
-        BigDecimal wbnbAmount = wbnb1.add(wbnb2);
+        Vaults vaults = yieldData.getResult().getAutofarm().getVaults();
 
-        BigDecimal yield = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getYield()
-                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getYield());
+        Map<String, BigDecimal> vaultsMap = vaults.getVaults().stream()
+                .collect(toMap(Vault::getDepositToken, Vault::getCurrentTokens));
 
-        BigDecimal total = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getTotal()
-                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal());
+        String wbnb = "WBNB";
+        String busd = "BUSD";
+
+        BigDecimal wbnbAmount = symbolAmounts.get(wbnb).add(vaultsMap.get(wbnb));
+        BigDecimal busdAmount = symbolAmounts.get(busd).add(vaultsMap.get(busd));
+
+        BigDecimal yield = lpVaults.getTotalUSDValues().getYield()
+                .add(vaults.getTotalUSDValues().getYield());
+
+        BigDecimal total = lpVaults.getTotalUSDValues().getTotal()
+                .add(vaults.getTotalUSDValues().getTotal());
 
         BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
 
-        YieldSummary yieldSummary = YieldSummary.builder()
-                .bdoAmount(bdoAmount)
+        return YieldSummary.builder()
+                .busdAmount(busdAmount)
                 .wbnbAmount(wbnbAmount)
                 .yieldEarnedPercentage(yieldEarnedPercentage)
                 .build();
-
-        boolean hasMissingAmounts = Stream.of(yieldSummary.getBdoAmount(), yieldSummary.getWbnbAmount(), yieldEarnedPercentage)
-                .filter(Objects::nonNull)
-                .anyMatch(bigDecimal -> ComparableUtils.is(bigDecimal).lessThanOrEqualTo(BigDecimal.ZERO));
-
-        if (hasMissingAmounts) {
-            return fetchYieldSummary();
-        }
-
-        return yieldSummary;
     }
 
     public YieldSummary getYieldSummaryIK() {

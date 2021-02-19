@@ -42,4 +42,19 @@ class YieldApiServiceWireMockTest {
         String actual = objectMapper.writeValueAsString(yieldData);
         JSONAssert.assertEquals(expectedJson, actual, false);
     }
+
+    @Test
+    void getYieldData2() throws IOException, JSONException {
+        JsonNode json = getJson("yieldwatch-response-2.json");
+        String expectedJson = json.toPrettyString();
+        WireMock.stubFor(get(anyUrl())
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(expectedJson)));
+
+        YieldData yieldData = yieldApiService.getYieldData();
+
+        String actual = objectMapper.writeValueAsString(yieldData);
+        JSONAssert.assertEquals(expectedJson, actual, false);
+    }
 }

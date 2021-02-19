@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.annotation.Resource;
-import java.util.concurrent.ExecutionException;
 
 @SpringBootTest
 @TestPropertySource(properties = "yieldwatch.url=https://yieldwatch.net/api/")
@@ -46,7 +45,7 @@ class GoogleSheetsServiceIntegrationTest {
 
     @Test
     @Disabled
-    void appendYieldInformation() throws ExecutionException, InterruptedException {
+    void appendYieldInformation() {
         long startTime = System.nanoTime();
         googleService.appendYieldInformation();
         System.out.println(String.format("Duration %ss", duration(startTime)));
