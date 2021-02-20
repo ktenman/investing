@@ -11,7 +11,7 @@ public interface FetchingConfiguration {
     String BITCOIN_ID = "Bitcoin";
     String SUSHI_SWAP_ID = "SushiSwap";
     String SYNTHETIX_ID = "Synthetix";
-    String ONE_INCH_ID = "1inch";
+    String USDT_ID = "Tether";
     String CARDANO_ID = "Cardano";
     String ETHEREUM_ID = "Ethereum";
 
@@ -21,7 +21,7 @@ public interface FetchingConfiguration {
             .put(CARDANO_ID, "ADA")
             .put(CRO_ID, "CRO")
             .put(ETHEREUM_ID, "ETH")
-            .put(ONE_INCH_ID, "1INCH")
+            .put(USDT_ID, "USDT")
             .put(POLKADOT_ID, "DOT")
             .put(SUSHI_SWAP_ID, "SUSHI")
             .put(SYNTHETIX_ID, "SNX")

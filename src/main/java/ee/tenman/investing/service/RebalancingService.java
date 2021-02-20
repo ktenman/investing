@@ -141,8 +141,7 @@ public class RebalancingService {
     private BigDecimal locked(String symbol) {
         ImmutableMap<String, BigDecimal> map = ImmutableMap.of(
                 "DOT", new BigDecimal("10.21"),
-                "SUSHI", new BigDecimal("10"),
-                "1INCH", new BigDecimal("20.81")
+                "SUSHI", new BigDecimal("10")
         );
         return map.getOrDefault(symbol, BigDecimal.ZERO);
     }

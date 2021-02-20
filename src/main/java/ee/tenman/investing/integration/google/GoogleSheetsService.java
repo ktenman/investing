@@ -50,12 +50,12 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.BITCOIN_ID
 import static ee.tenman.investing.configuration.FetchingConfiguration.CARDANO_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.ETHEREUM_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.ONE_INCH_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.POLKADOT_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.SUSHI_SWAP_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.SYNTHETIX_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
+import static ee.tenman.investing.configuration.FetchingConfiguration.USDT_ID;
 import static java.lang.Math.abs;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
@@ -287,7 +287,7 @@ public class GoogleSheetsService {
             cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
             cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
             cryptoCellsMap.put(SYNTHETIX_ID, "investing!G27:G27");
-            cryptoCellsMap.put(ONE_INCH_ID, "investing!G28:G28");
+            cryptoCellsMap.put(USDT_ID, "investing!G28:G28");
             cryptoCellsMap.put(CARDANO_ID, "investing!G29:G29");
             cryptoCellsMap.put(ETHEREUM_ID, "investing!G30:G30");
 
