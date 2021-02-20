@@ -348,7 +348,9 @@ public class BinanceService {
                         .findFirst())
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collect(toMap(AssetBalance::getAsset, assetBalance -> new BigDecimal(assetBalance.getFree())));
+                .collect(toMap(AssetBalance::getAsset, assetBalance ->
+                        new BigDecimal(assetBalance.getFree()).add(new BigDecimal(assetBalance.getLocked())))
+                );
     }
 
 
