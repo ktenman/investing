@@ -110,16 +110,28 @@ public class YieldWatchService {
                 .getAutofarm()
                 .getLPVaults();
 
-        LPInfo lpInfo = lpVaults.getVaults()
+        LPInfo lpInfo1 = lpVaults.getVaults()
                 .stream()
                 .filter(v -> v.getName().equals("WBNB-BUSD Pool"))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Couldn't fetch WBNB-BUSD Pool data"))
                 .getLPInfo();
 
-        Map<String, BigDecimal> symbolAmounts = ImmutableMap.of(
-                lpInfo.getSymbolToken0(), lpInfo.getCurrentToken0(),
-                lpInfo.getSymbolToken1(), lpInfo.getCurrentToken1()
+        LPInfo lpInfo2 = lpVaults.getVaults()
+                .stream()
+                .filter(v -> v.getName().equals("BDO-BUSD Pool"))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Couldn't fetch WBNB-BUSD Pool data"))
+                .getLPInfo();
+
+        Map<String, BigDecimal> symbolAmounts1 = ImmutableMap.of(
+                lpInfo1.getSymbolToken0(), lpInfo1.getCurrentToken0(),
+                lpInfo1.getSymbolToken1(), lpInfo1.getCurrentToken1()
+        );
+
+        Map<String, BigDecimal> symbolAmounts2 = ImmutableMap.of(
+                lpInfo2.getSymbolToken0(), lpInfo2.getCurrentToken0(),
+                lpInfo2.getSymbolToken1(), lpInfo2.getCurrentToken1()
         );
 
         Vaults vaults = yieldData.getResult().getAutofarm().getVaults();
@@ -129,9 +141,11 @@ public class YieldWatchService {
 
         String wbnb = "WBNB";
         String busd = "BUSD";
+        String bdo = "BDO";
 
-        BigDecimal wbnbAmount = symbolAmounts.get(wbnb).add(vaultsMap.get(wbnb));
-        BigDecimal busdAmount = symbolAmounts.get(busd).add(vaultsMap.get(busd));
+        BigDecimal wbnbAmount = symbolAmounts1.get(wbnb).add(vaultsMap.get(wbnb));
+        BigDecimal busdAmount = symbolAmounts1.get(busd).add(vaultsMap.get(busd)).add(symbolAmounts2.get(busd));
+        BigDecimal bdoAmount = symbolAmounts2.get(bdo);
 
         BigDecimal yield = lpVaults.getTotalUSDValues().getYield()
                 .add(vaults.getTotalUSDValues().getYield());
@@ -144,6 +158,7 @@ public class YieldWatchService {
         return YieldSummary.builder()
                 .busdAmount(busdAmount)
                 .wbnbAmount(wbnbAmount)
+                .bdoAmount(bdoAmount)
                 .yieldEarnedPercentage(yieldEarnedPercentage)
                 .build();
     }
