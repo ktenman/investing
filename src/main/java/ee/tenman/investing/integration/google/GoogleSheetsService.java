@@ -163,18 +163,25 @@ public class GoogleSheetsService {
         wbnbToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(wbnbToEur.doubleValue()));
         cellData.add(wbnbToEurCell);
 
+        CellData busdAmountCell = new CellData();
+        busdAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBusdAmount().doubleValue()));
+        cellData.add(busdAmountCell);
+
+        CellData busdToEurCell = new CellData();
+        BigDecimal busdCurrency = priceService.toEur(BUSD_CURRENCY);
+        busdToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(busdCurrency.doubleValue()));
+        cellData.add(busdToEurCell);
+
         CellData bdoAmountCell = new CellData();
-        bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBusdAmount().doubleValue()));
-        cellData.add(bdoAmountCell);
+        bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBdoAmount().doubleValue()));
 
         CellData bdoToEurCell = new CellData();
-        BigDecimal busdCurrency = priceService.toEur(BUSD_CURRENCY);
-        bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(busdCurrency.doubleValue()));
-        cellData.add(bdoToEurCell);
+        BigDecimal bdoCurrency = priceService.toEur(BDO_CURRENCY);
+        bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoCurrency.doubleValue()));
 
         CellData totalEurCell = new CellData();
         BigDecimal total = yieldSummary.getBusdAmount()
-                .multiply(busdCurrency)
+                .multiply(bdoCurrency)
                 .add(yieldSummary.getWbnbAmount().multiply(wbnbToEur));
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
@@ -190,9 +197,8 @@ public class GoogleSheetsService {
         machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
         cellData.add(machineDateTimeCell);
 
-        BigDecimal bnbToEur = binanceService.getPriceToEur("BNB");
         BigDecimal investedBnbAmount = (BigDecimal) getValueRange("investing!H21:H21").getValues().get(0).get(0);
-        BigDecimal totalEurInvested = bnbToEur.multiply(investedBnbAmount);
+        BigDecimal totalEurInvested = wbnbToEur.multiply(investedBnbAmount);
 
         CellData investedEurDifferenceCell = new CellData();
         BigDecimal investedEurDifference = total.subtract(totalEurInvested);
@@ -200,9 +206,12 @@ public class GoogleSheetsService {
         cellData.add(investedEurDifferenceCell);
 
         CellData earnedBnbAmountCell = new CellData();
-        BigDecimal earnedBnb = investedEurDifference.divide(bnbToEur, RoundingMode.HALF_UP);
+        BigDecimal earnedBnb = investedEurDifference.divide(wbnbToEur, RoundingMode.HALF_UP);
         earnedBnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earnedBnb.doubleValue()));
         cellData.add(earnedBnbAmountCell);
+
+        cellData.add(bdoAmountCell);
+        cellData.add(bdoToEurCell);
 
         rowData.add(new RowData().setValues(cellData));
 
