@@ -7,7 +7,6 @@ import ee.tenman.investing.integration.yieldwatchnet.api.LPInfo;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPVaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.Result;
 import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
-import ee.tenman.investing.integration.yieldwatchnet.api.Vaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
@@ -36,7 +35,6 @@ import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
-import static java.util.stream.Collectors.toMap;
 import static org.openqa.selenium.By.tagName;
 
 @Service
@@ -110,57 +108,40 @@ public class YieldWatchService {
                 .getAutofarm()
                 .getLPVaults();
 
-        LPInfo lpInfo1 = lpVaults.getVaults()
-                .stream()
-                .filter(v -> v.getName().equals("WBNB-BUSD Pool"))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Couldn't fetch WBNB-BUSD Pool data"))
-                .getLPInfo();
+        YieldSummary yieldSummary = new YieldSummary();
 
-        LPInfo lpInfo2 = lpVaults.getVaults()
-                .stream()
-                .filter(v -> v.getName().equals("BDO-BUSD Pool"))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Couldn't fetch WBNB-BUSD Pool data"))
-                .getLPInfo();
+        addPoolData(lpVaults, yieldSummary, "BDO-BUSD Pool");
+        addPoolData(lpVaults, yieldSummary, "WBNB-BUSD Pool");
+        addPoolData(lpVaults, yieldSummary, "BDO-WBNB Pool");
 
-        Map<String, BigDecimal> symbolAmounts1 = ImmutableMap.of(
-                lpInfo1.getSymbolToken0(), lpInfo1.getCurrentToken0(),
-                lpInfo1.getSymbolToken1(), lpInfo1.getCurrentToken1()
-        );
-
-        Map<String, BigDecimal> symbolAmounts2 = ImmutableMap.of(
-                lpInfo2.getSymbolToken0(), lpInfo2.getCurrentToken0(),
-                lpInfo2.getSymbolToken1(), lpInfo2.getCurrentToken1()
-        );
-
-        Vaults vaults = yieldData.getResult().getAutofarm().getVaults();
-
-        Map<String, BigDecimal> vaultsMap = vaults.getVaults().stream()
-                .collect(toMap(Vault::getDepositToken, Vault::getCurrentTokens));
-
-        String wbnb = "WBNB";
-        String busd = "BUSD";
-        String bdo = "BDO";
-
-        BigDecimal wbnbAmount = symbolAmounts1.get(wbnb).add(vaultsMap.get(wbnb));
-        BigDecimal busdAmount = symbolAmounts1.get(busd).add(vaultsMap.get(busd)).add(symbolAmounts2.get(busd));
-        BigDecimal bdoAmount = symbolAmounts2.get(bdo);
-
-        BigDecimal yield = lpVaults.getTotalUSDValues().getYield()
-                .add(vaults.getTotalUSDValues().getYield());
-
-        BigDecimal total = lpVaults.getTotalUSDValues().getTotal()
-                .add(vaults.getTotalUSDValues().getTotal());
+        BigDecimal yield = lpVaults.getTotalUSDValues().getYield();
+        BigDecimal total = lpVaults.getTotalUSDValues().getTotal();
 
         BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
 
-        return YieldSummary.builder()
-                .busdAmount(busdAmount)
-                .wbnbAmount(wbnbAmount)
-                .bdoAmount(bdoAmount)
-                .yieldEarnedPercentage(yieldEarnedPercentage)
-                .build();
+        yieldSummary.setYieldEarnedPercentage(yieldEarnedPercentage);
+
+        return yieldSummary;
+    }
+
+    private void addPoolData(LPVaults lpVaults, YieldSummary yieldSummary, String poolName) {
+        LPInfo lpInfo = lpVaults.getVaults()
+                .stream()
+                .filter(v -> v.getName().equals(poolName))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(String.format("Couldn't fetch %s data", poolName)))
+                .getLPInfo();
+
+        Map<String, BigDecimal> symbolAmounts = ImmutableMap.of(
+                lpInfo.getSymbolToken0(), lpInfo.getCurrentToken0(),
+                lpInfo.getSymbolToken1(), lpInfo.getCurrentToken1()
+        );
+
+        String first = poolName.split("-")[0];
+        String second = poolName.split("-")[1].split(" ")[0];
+
+        yieldSummary.add(first, symbolAmounts.get(first));
+        yieldSummary.add(second, symbolAmounts.get(second));
     }
 
     public YieldSummary getYieldSummaryIK() {

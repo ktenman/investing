@@ -20,4 +20,21 @@ public class YieldSummary {
     private BigDecimal busdAmount = BigDecimal.ZERO;
     @Builder.Default
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
+
+    public void add(String symbol, BigDecimal amount) {
+        switch (symbol) {
+            case "BDO":
+                bdoAmount = bdoAmount.add(amount);
+                break;
+            case "BUSD":
+                busdAmount = busdAmount.add(amount);
+                break;
+            case "WBNB":
+                wbnbAmount = wbnbAmount.add(amount);
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Symbol %s not supported", symbol));
+        }
+
+    }
 }
