@@ -213,6 +213,11 @@ public class GoogleSheetsService {
         cellData.add(bdoAmountCell);
         cellData.add(bdoToEurCell);
 
+        CellData earningsPerDayCell = new CellData();
+        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!N1:N1").getValues().get(0).get(0);
+        earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
+        cellData.add(earningsPerDayCell);
+
         rowData.add(new RowData().setValues(cellData));
 
         AppendCellsRequest appendCellRequest = new AppendCellsRequest();
