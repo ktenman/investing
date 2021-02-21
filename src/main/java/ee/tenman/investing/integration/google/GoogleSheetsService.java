@@ -168,21 +168,21 @@ public class GoogleSheetsService {
         cellData.add(busdAmountCell);
 
         CellData busdToEurCell = new CellData();
-        BigDecimal busdCurrency = priceService.toEur(BUSD_CURRENCY);
-        busdToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(busdCurrency.doubleValue()));
+        BigDecimal busdToEur = priceService.toEur(BUSD_CURRENCY);
+        busdToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(busdToEur.doubleValue()));
         cellData.add(busdToEurCell);
 
         CellData bdoAmountCell = new CellData();
         bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBdoAmount().doubleValue()));
 
         CellData bdoToEurCell = new CellData();
-        BigDecimal bdoCurrency = priceService.toEur(BDO_CURRENCY);
-        bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoCurrency.doubleValue()));
+        BigDecimal bdoToEur = priceService.toEur(BDO_CURRENCY);
+        bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
 
         CellData totalEurCell = new CellData();
-        BigDecimal total = yieldSummary.getBusdAmount()
-                .multiply(bdoCurrency)
-                .add(yieldSummary.getWbnbAmount().multiply(wbnbToEur));
+        BigDecimal total = yieldSummary.getBusdAmount().multiply(busdToEur)
+                .add(yieldSummary.getWbnbAmount().multiply(wbnbToEur))
+                .add(yieldSummary.getBdoAmount().multiply(bdoToEur));
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
 
