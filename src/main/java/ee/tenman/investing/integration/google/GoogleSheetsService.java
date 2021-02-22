@@ -309,32 +309,27 @@ public class GoogleSheetsService {
                 googleSheetsClient.update(updateCell, prices.get(e.getKey()));
             }
 
-            YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+            BigDecimal sbdoToEurPrice = priceService.toEur(SBDO_CURRENCY);
+            if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
+                googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
+            }
 
-            googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
             BigDecimal wbnbToEurPrice = priceService.toEur(WBNB_CURRENCY);
             if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
                 googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
             } else {
                 googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
             }
-            googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
 
             BigDecimal bdoToEurPrice = priceService.toEur(BDO_CURRENCY);
             if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
                 googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
             }
-            BigDecimal sbdoToEurPrice = priceService.toEur(SBDO_CURRENCY);
-            if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
-            }
-            googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
 
             BigDecimal busdToEurPrice = priceService.toEur(BUSD_CURRENCY);
             if (ComparableUtils.is(busdToEurPrice).greaterThan(ZERO)) {
                 googleSheetsClient.update("investing!G33:G33", busdToEurPrice);
             }
-            googleSheetsClient.update("investing!F33:F33", yieldSummary.getBusdAmount());
 
         } catch (Exception e) {
             log.error("Error ", e);
@@ -369,6 +364,12 @@ public class GoogleSheetsService {
             }
             googleSheetsClient.update("investing!L34:L34", availableBalances.get(EUR));
             googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
+            YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+            googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
+            googleSheetsClient.update("investing!F30:F30", yieldSummary.getSbdoAmount());
+            googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
+            googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
+            googleSheetsClient.update("investing!F33:F33", yieldSummary.getBusdAmount());
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());
