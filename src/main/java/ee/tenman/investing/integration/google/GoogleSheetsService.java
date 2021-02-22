@@ -179,10 +179,18 @@ public class GoogleSheetsService {
         BigDecimal bdoToEur = priceService.toEur(BDO_CURRENCY);
         bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
 
+        CellData sbdoAmountCell = new CellData();
+        sbdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getSbdoAmount().doubleValue()));
+
+        CellData sbdoToEurCell = new CellData();
+        BigDecimal sbdoToEur = priceService.toEur(SBDO_CURRENCY);
+        sbdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(sbdoToEur.doubleValue()));
+
         CellData totalEurCell = new CellData();
         BigDecimal total = yieldSummary.getBusdAmount().multiply(busdToEur)
                 .add(yieldSummary.getWbnbAmount().multiply(wbnbToEur))
-                .add(yieldSummary.getBdoAmount().multiply(bdoToEur));
+                .add(yieldSummary.getBdoAmount().multiply(bdoToEur))
+                .add(yieldSummary.getSbdoAmount().multiply(sbdoToEur));
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
 
@@ -212,9 +220,11 @@ public class GoogleSheetsService {
 
         cellData.add(bdoAmountCell);
         cellData.add(bdoToEurCell);
+        cellData.add(sbdoAmountCell);
+        cellData.add(sbdoToEurCell);
 
         CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!N1:N1").getValues().get(0).get(0);
+        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!P1:P1").getValues().get(0).get(0);
         earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
         cellData.add(earningsPerDayCell);
 
