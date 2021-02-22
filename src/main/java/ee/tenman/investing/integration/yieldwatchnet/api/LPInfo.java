@@ -41,5 +41,10 @@ public class LPInfo {
     private BigDecimal totalSupplyLPToken;
     private BigDecimal winningsToken0;
     private BigDecimal winningsToken1;
+    private BigDecimal feesEarnedInPerc;
+    @JsonProperty("ILInPerc")
+    private BigDecimal iLInPerc;
+    @JsonProperty("LPEarningsInPerc")
+    private BigDecimal lPEarningsInPerc;
 
 }

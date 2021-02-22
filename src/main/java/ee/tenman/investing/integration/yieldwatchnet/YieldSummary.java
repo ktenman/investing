@@ -15,6 +15,8 @@ public class YieldSummary {
     @Builder.Default
     private BigDecimal bdoAmount = BigDecimal.ZERO;
     @Builder.Default
+    private BigDecimal sbdoAmount = BigDecimal.ZERO;
+    @Builder.Default
     private BigDecimal wbnbAmount = BigDecimal.ZERO;
     @Builder.Default
     private BigDecimal busdAmount = BigDecimal.ZERO;
@@ -25,6 +27,9 @@ public class YieldSummary {
         switch (symbol) {
             case "BDO":
                 bdoAmount = bdoAmount.add(amount);
+                break;
+            case "SBDO":
+                sbdoAmount = sbdoAmount.add(amount);
                 break;
             case "BUSD":
                 busdAmount = busdAmount.add(amount);

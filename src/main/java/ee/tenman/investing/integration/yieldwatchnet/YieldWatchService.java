@@ -3,9 +3,12 @@ package ee.tenman.investing.integration.yieldwatchnet;
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.yieldwatchnet.api.Autofarm;
+import ee.tenman.investing.integration.yieldwatchnet.api.BeefyFinance;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPInfo;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPVaults;
+import ee.tenman.investing.integration.yieldwatchnet.api.PancakeSwap;
 import ee.tenman.investing.integration.yieldwatchnet.api.Result;
+import ee.tenman.investing.integration.yieldwatchnet.api.TotalUSDValues;
 import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
@@ -103,19 +106,51 @@ public class YieldWatchService {
 
         log.info("{}", yieldData);
 
-        LPVaults lpVaults = yieldData
-                .getResult()
-                .getAutofarm()
-                .getLPVaults();
+        List<Vault> vaults = Stream.of(
+                Optional.ofNullable(yieldData.getResult()
+                        .getAutofarm()).map(Autofarm::getLPVaults)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult()
+                        .getBeefyFinance()).map(BeefyFinance::getLPVaults)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult()
+                        .getPancakeSwap()).map(PancakeSwap::getLPVaults)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .map(LPVaults::getVaults)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
 
         YieldSummary yieldSummary = new YieldSummary();
 
-        addPoolData(lpVaults, yieldSummary, "BDO-BUSD Pool");
-        addPoolData(lpVaults, yieldSummary, "WBNB-BUSD Pool");
-        addPoolData(lpVaults, yieldSummary, "BDO-WBNB Pool");
+        vaults.forEach(vault -> addPoolData(vault, yieldSummary));
 
-        BigDecimal yield = lpVaults.getTotalUSDValues().getYield();
-        BigDecimal total = lpVaults.getTotalUSDValues().getTotal();
+        List<TotalUSDValues> totalUsdValues = Stream.of(
+                Optional.ofNullable(yieldData.getResult())
+                        .map(Result::getAutofarm)
+                        .map(Autofarm::getLPVaults)
+                        .map(LPVaults::getTotalUSDValues)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult()).
+                        map(Result::getBeefyFinance)
+                        .map(BeefyFinance::getLPVaults)
+                        .map(LPVaults::getTotalUSDValues)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult())
+                        .map(Result::getPancakeSwap)
+                        .map(PancakeSwap::getLPVaults)
+                        .map(LPVaults::getTotalUSDValues)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        BigDecimal yield = totalUsdValues.stream()
+                .map(TotalUSDValues::getYield)
+                .reduce(ZERO, BigDecimal::add);
+        BigDecimal total = totalUsdValues.stream()
+                .map(TotalUSDValues::getTotal)
+                .reduce(ZERO, BigDecimal::add);
 
         BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
 
@@ -124,17 +159,13 @@ public class YieldWatchService {
         return yieldSummary;
     }
 
-    private void addPoolData(LPVaults lpVaults, YieldSummary yieldSummary, String poolName) {
-        LPInfo lpInfo = lpVaults.getVaults()
-                .stream()
-                .filter(v -> v.getName().equals(poolName))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(String.format("Couldn't fetch %s data", poolName)))
-                .getLPInfo();
+    private void addPoolData(Vault vault, YieldSummary yieldSummary) {
+        LPInfo lpInfo = vault.getLPInfo();
+        String poolName = vault.getName();
 
         Map<String, BigDecimal> symbolAmounts = ImmutableMap.of(
-                lpInfo.getSymbolToken0(), lpInfo.getCurrentToken0(),
-                lpInfo.getSymbolToken1(), lpInfo.getCurrentToken1()
+                lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0(),
+                lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1()
         );
 
         String first = poolName.split("-")[0];

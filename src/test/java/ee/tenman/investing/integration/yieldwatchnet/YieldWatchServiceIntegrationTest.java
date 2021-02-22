@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest
+@DirtiesContext
 class YieldWatchServiceIntegrationTest {
 
     @Resource
@@ -50,7 +52,7 @@ class YieldWatchServiceIntegrationTest {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
         assertThat(yieldSummary.getBusdAmount()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getBdoAmount()).isEqualTo(ZERO);
+        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
         assertThat(yieldSummary.getYieldEarnedPercentage()).isLessThan(ZERO);
         assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
     }

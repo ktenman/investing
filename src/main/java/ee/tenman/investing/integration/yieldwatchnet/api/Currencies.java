@@ -21,4 +21,16 @@ public class Currencies {
     private BigDecimal rmb;
     @JsonProperty("WBNB")
     private BigDecimal wbnb;
+    @JsonProperty("AUD")
+    private BigDecimal aud;
+    @JsonProperty("BRL")
+    private BigDecimal brl;
+    @JsonProperty("HKD")
+    private BigDecimal hkd;
+    @JsonProperty("KRW")
+    private BigDecimal krw;
+    @JsonProperty("RUB")
+    private BigDecimal rub;
+    @JsonProperty("SGD")
+    private BigDecimal sgd;
 }

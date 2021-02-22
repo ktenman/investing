@@ -14,6 +14,8 @@ public class Result {
     private BeefyFinance beefyFinance;
     @JsonProperty("Venus")
     private Venus venus;
+    @JsonProperty("PancakeSwap")
+    private PancakeSwap pancakeSwap;
     private Currencies currencies;
 
 }

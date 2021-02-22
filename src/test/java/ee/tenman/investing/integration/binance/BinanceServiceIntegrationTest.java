@@ -67,15 +67,14 @@ class BinanceServiceIntegrationTest {
         int hours = (int) HOURS.between(LocalDateTime.parse("2021-02-10T04:57:36.099"), now()) + 23587;
         return Stream.of(
                 Arguments.of("BNBUSDT", HOURLY, hours),
-                Arguments.of("BTCUSDT", HOURLY, hours),
-                Arguments.of("ADAUSDT", HOURLY, hours)
+                Arguments.of("BTCUSDT", HOURLY, hours)
         );
     }
 
     @ParameterizedTest
     @MethodSource("frequencyProvider")
     @DisplayName("Get prices with limit")
-//    @Disabled
+    @Disabled
     void getPrice2(String fromTo, CandlestickInterval candlestickInterval, int limit) {
         Map<LocalDateTime, BigDecimal> prices = binanceService.getPrices(fromTo, candlestickInterval, limit);
 

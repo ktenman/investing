@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +32,7 @@ class YieldWatchServiceTest {
     ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void getYieldSummary() throws IOException {
+    void getYieldSummary2() throws IOException {
         JsonNode jsonNode = TestFileUtils.getJson("yieldwatch-response-2.json");
         YieldData yieldData = objectMapper.treeToValue(jsonNode, YieldData.class);
         when(yieldApiService.getYieldData()).thenReturn(yieldData);
@@ -39,8 +40,23 @@ class YieldWatchServiceTest {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
         assertThat(yieldSummary.getBusdAmount()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getBdoAmount()).isEqualTo(ZERO);
+        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
         assertThat(yieldSummary.getYieldEarnedPercentage()).isLessThan(ZERO);
         assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
+    }
+
+    @Test
+    void getYieldSummary3() throws IOException {
+        JsonNode jsonNode = TestFileUtils.getJson("yieldwatch-response-3.json");
+        YieldData yieldData = objectMapper.treeToValue(jsonNode, YieldData.class);
+        when(yieldApiService.getYieldData()).thenReturn(yieldData);
+
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+
+        assertThat(yieldSummary.getWbnbAmount()).isEqualByComparingTo(BigDecimal.valueOf(2.5348626098479263));
+        assertThat(yieldSummary.getBusdAmount()).isEqualByComparingTo(new BigDecimal("721.7863408457527900011628724605745615"));
+        assertThat(yieldSummary.getBdoAmount()).isEqualByComparingTo(new BigDecimal("571.7390739026846400009295052334499612"));
+        assertThat(yieldSummary.getSbdoAmount()).isEqualByComparingTo(new BigDecimal("0.058602391657103355"));
+        assertThat(yieldSummary.getYieldEarnedPercentage()).isEqualByComparingTo(new BigDecimal("0.00599010"));
     }
 }
