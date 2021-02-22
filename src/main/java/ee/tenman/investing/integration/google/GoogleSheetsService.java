@@ -52,7 +52,6 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.ETHEREUM_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.POLKADOT_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.SUSHI_SWAP_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.SYNTHETIX_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.USDT_ID;
@@ -76,6 +75,7 @@ public class GoogleSheetsService {
     private static final String EUR = "EUR";
     public static final String WBNB_CURRENCY = "wbnb";
     public static final String BDO_CURRENCY = "bdollar";
+    public static final String SBDO_CURRENCY = "bdollar-share";
     public static final String BUSD_CURRENCY = "binance-usd";
 
     private BigDecimal leftOverAmount;
@@ -300,10 +300,9 @@ public class GoogleSheetsService {
             cryptoCellsMap.put(UNISWAP_ID, "investing!G24:G24");
             cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
             cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
-            cryptoCellsMap.put(SYNTHETIX_ID, "investing!G27:G27");
             cryptoCellsMap.put(USDT_ID, "investing!G28:G28");
             cryptoCellsMap.put(CARDANO_ID, "investing!G29:G29");
-            cryptoCellsMap.put(ETHEREUM_ID, "investing!G30:G30");
+            cryptoCellsMap.put(ETHEREUM_ID, "investing!G27:G27");
 
             for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
                 String updateCell = e.getValue();
@@ -325,6 +324,10 @@ public class GoogleSheetsService {
             if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
                 googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
             }
+            BigDecimal sbdoToEurPrice = priceService.toEur(SBDO_CURRENCY);
+            if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
+                googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
+            }
             googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
 
             BigDecimal busdToEurPrice = priceService.toEur(BUSD_CURRENCY);
@@ -344,7 +347,7 @@ public class GoogleSheetsService {
     public void refreshBalances() throws Exception {
         int startingIndexNumber = 21;
         String startingIndexCombined = "E" + startingIndexNumber;
-        ValueRange valueRange = getValueRange(String.format("investing!%s:E30", startingIndexCombined));
+        ValueRange valueRange = getValueRange(String.format("investing!%s:E29", startingIndexCombined));
         String[] values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new);
