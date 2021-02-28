@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @SuppressWarnings("unused")
@@ -46,5 +47,6 @@ public class LPInfo {
     private BigDecimal iLInPerc;
     @JsonProperty("LPEarningsInPerc")
     private BigDecimal lPEarningsInPerc;
+    private List<List<CompactSession>> compactSessions;
 
 }

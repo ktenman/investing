@@ -34,5 +34,6 @@ public class Vault {
     private String rewardToken;
     private String type;
     private String totalTokensStaked;
+    private String depositTokenAddress;
 
 }

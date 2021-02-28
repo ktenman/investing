@@ -59,4 +59,21 @@ class YieldWatchServiceTest {
         assertThat(yieldSummary.getSbdoAmount()).isEqualByComparingTo(new BigDecimal("0.058602391657103355"));
         assertThat(yieldSummary.getYieldEarnedPercentage()).isEqualByComparingTo(new BigDecimal("0.00599010"));
     }
+
+
+    @Test
+    void getYieldSummary4() throws IOException {
+        JsonNode jsonNode = TestFileUtils.getJson("yieldwatch-response-4.json");
+        YieldData yieldData = objectMapper.treeToValue(jsonNode, YieldData.class);
+        when(yieldApiService.getYieldData()).thenReturn(yieldData);
+
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+
+        assertThat(yieldSummary.getWbnbAmount()).isEqualByComparingTo(BigDecimal.valueOf(2.8809212883482200));
+        assertThat(yieldSummary.getBusdAmount()).isEqualByComparingTo(new BigDecimal("689.4687459803066400010837083573536946"));
+        assertThat(yieldSummary.getBdoAmount()).isEqualByComparingTo(new BigDecimal("593.5699236463710800010015274691542726"));
+        assertThat(yieldSummary.getSbdoAmount()).isEqualByComparingTo(new BigDecimal("0.07738050381761301"));
+        assertThat(yieldSummary.getYieldEarnedPercentage()).isEqualByComparingTo(new BigDecimal("0.07001209"));
+    }
+
 }

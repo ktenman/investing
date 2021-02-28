@@ -18,4 +18,6 @@ public class Result {
     private PancakeSwap pancakeSwap;
     private Currencies currencies;
 
+    private WalletBalance walletBalance;
+
 }

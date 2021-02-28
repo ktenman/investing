@@ -1,0 +1,696 @@
+{
+  "result": {
+    "walletBalance": {
+      "totalUSDValue": 15.667671850120232,
+      "balances": [
+        {
+          "symbol": "BNB",
+          "name": "Binance Coin",
+          "contractAddress": "",
+          "balance": 0.05921706753816801,
+          "priceInUSD": 217.1335
+        },
+        {
+          "symbol": "BDO",
+          "name": "bDollar",
+          "contractAddress": "0x190b589cf9Fb8DDEabBFeae36a813FFb2A702454",
+          "balance": 0.11699094681649985,
+          "priceInUSD": 1.0827429331792744
+        },
+        {
+          "symbol": "AUTO",
+          "name": "AUTOv2",
+          "contractAddress": "0xa184088a740c695E156F91f5cC086a06bb78b827",
+          "balance": 0.000794148871859627,
+          "priceInUSD": 3320.4757369502904
+        },
+        {
+          "symbol": "BUSD",
+          "name": "BUSD",
+          "contractAddress": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+          "balance": 0.04603954012851944,
+          "priceInUSD": 0.999999875
+        }
+      ]
+    },
+    "Autofarm": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 2.1813349987500003e-16,
+          "total": 2.1813349987500003e-16
+        },
+        "vaults": [
+          {
+            "name": "WBNB Vault",
+            "id": 1,
+            "type": "vault",
+            "contractAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "platform": "auto",
+            "depositToken": "WBNB",
+            "rewardToken": "AUTO",
+            "priceInUSDDepositToken": 217.1335,
+            "priceInUSDRewardToken": 3320.4757369502904,
+            "apy": 0.20890818842377568,
+            "currentTokens": 1e-18,
+            "pendingRewards": 0,
+            "harvestedRewards": 0.000058678647448333,
+            "depositedTokens": 0
+          },
+          {
+            "name": "BUSD Vault",
+            "id": 2,
+            "type": "vault",
+            "contractAddress": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+            "platform": "auto",
+            "depositToken": "BUSD",
+            "rewardToken": "AUTO",
+            "priceInUSDDepositToken": 0.999999875,
+            "priceInUSDRewardToken": 3320.4757369502904,
+            "apy": 0.3407457873870286,
+            "currentTokens": 1e-18,
+            "pendingRewards": 0,
+            "harvestedRewards": 0.000095097620539299,
+            "depositedTokens": 0
+          }
+        ]
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 806.6792371178018,
+          "yield": 54.81062953284359,
+          "total": 861.4898666506454
+        },
+        "vaults": [
+          {
+            "name": "WBNB-BUSD Pool",
+            "id": 10,
+            "type": "lpVault",
+            "contractAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+            "platform": "auto",
+            "depositToken": "WBNB-BUSD LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0.000802470815512483,
+            "priceInUSDRewardToken": 3320.4757369502904,
+            "currentTokens": 13.396464539309628,
+            "harvestedRewards": 0.000698535350530434,
+            "totalRewards": 0.0015010061660429169,
+            "depositedTokens": 12.95556673306844,
+            "priceInUSDDepositToken": 32.45194077553508,
+            "apy": 1.4019873748575047,
+            "LPInfo": {
+              "compactSessions": [
+                [
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4998745",
+                    "hash": "0xae94a6ec10c5d4c20e77e14e9b09eb61cf2ccfdf90bf58381402bd7f5c43758f",
+                    "timeStamp": "1613683240",
+                    "amountLPToken": 20.09469673306844,
+                    "amountToken0": 1.5309108441261425,
+                    "amountToken1": 300,
+                    "token0InUSD": "193.7093",
+                    "token1InUSD": 0.9885055599269473,
+                    "timeIndex": 845
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "5087525",
+                    "hash": "0x9bac48e3575c1d964e78b9fadd4326692117e2f9a33a7cf52cb9389df2505b31",
+                    "timeStamp": "1613958448",
+                    "amountLPToken": 7.13913,
+                    "amountToken0": 0.4548671399520266,
+                    "amountToken1": 130.61166452186308,
+                    "token0InUSD": "294.9167",
+                    "token1InUSD": 1.0270745445605651,
+                    "timeIndex": 864
+                  }
+                ]
+              ],
+              "contractAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+              "symbolToken0": "WBNB",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 217.1335,
+              "priceInUSDToken1": 0.999999875,
+              "priceInUSDLPToken": 32.45194077553508,
+              "currentToken0": 1.0007571156585422,
+              "currentToken1": 217.44340583881356,
+              "currentBaseToken0": 0.9678206930987397,
+              "currentBaseToken1": 210.2870161559513,
+              "depositToken0": 0.9870175134723603,
+              "depositToken1": 193.41769978167972,
+              "changeToken0": -0.0496675670197938,
+              "changeToken1": 10.248666043111541,
+              "winningsToken0": 0.03293642255980231,
+              "winningsToken1": 7.156389682862224,
+              "actPrice": 217.27890058091293,
+              "depositPrice": 195.96177083143118,
+              "actInToken1": 420.5740323119026,
+              "hodlInToken1": 407.87577996306055,
+              "faktorIL": -0.001331406129403412,
+              "ILInToken1": -0.5430483134780162,
+              "LPEarningsInToken1": 12.698252348842084,
+              "feesEarnedInToken0": 0.060941493292346376,
+              "feesEarnedInToken1": 13.2413006623201,
+              "poolToken0": 374397.8121826036,
+              "poolToken1": 81348745.01093523,
+              "noOfLPTokens": 13.396464539309628,
+              "totalSupplyLPToken": 5011812.492783392
+            }
+          },
+          {
+            "name": "BDO-BUSD Pool",
+            "id": 12,
+            "type": "lpVault",
+            "contractAddress": "0xc5b0d73A7c0E4eaF66baBf7eE16A2096447f7aD6",
+            "platform": "auto",
+            "depositToken": "BDO-BUSD LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 3320.4757369502904,
+            "currentTokens": 1e-18,
+            "harvestedRewards": 0.000016564914324675,
+            "totalRewards": 0.000016564914324675,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 2.1681050115018623,
+            "apy": 21.961210799605222,
+            "LPInfo": {
+              "compactSessions": [
+                [
+                  {
+                    "type": "deposit",
+                    "blockNumber": "5087777",
+                    "hash": "0x9164ccf90d9662b429abd61269978198fb01e2cd7ca3a003d1060c86194eab25",
+                    "timeStamp": "1613959212",
+                    "amountLPToken": 202.27179118823918,
+                    "amountToken0": 187.811107414523,
+                    "amountToken1": 235.46803405742443,
+                    "token0InUSD": 1.2537492446477967,
+                    "token1InUSD": 1,
+                    "timeIndex": 864
+                  }
+                ],
+                [
+                  {
+                    "type": "deposit",
+                    "blockNumber": "5067682",
+                    "hash": "0x1aa4dc0a96fbf2ef7e24f298dad9c823ede90d2bfa49e5b4c9f27c9afccbcce4",
+                    "timeStamp": "1613897546",
+                    "amountLPToken": 310.97132398343706,
+                    "amountToken0": 290.037222952689,
+                    "amountToken1": 360.2405101590234,
+                    "token0InUSD": 1.2420492324800188,
+                    "token1InUSD": 1,
+                    "timeIndex": 860
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "5087542",
+                    "hash": "0xb84b3e1fd2a4429f58b6da0f07548d75887773b186f605694b8f3226965d79f4",
+                    "timeStamp": "1613958499",
+                    "amountLPToken": 314.0237233588437,
+                    "amountToken0": 291.2278159802903,
+                    "amountToken1": 365.99379486399124,
+                    "token0InUSD": 1.2567267780793334,
+                    "token1InUSD": 1,
+                    "timeIndex": 864
+                  }
+                ]
+              ],
+              "contractAddress": "0xc5b0d73A7c0E4eaF66baBf7eE16A2096447f7aD6",
+              "symbolToken0": "BDO",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 1.0827429331792744,
+              "priceInUSDToken1": 0.999999875,
+              "priceInUSDLPToken": 2.1681050115018623,
+              "currentToken0": 1.0015274691542726e-18,
+              "currentToken1": 1.0837083573536946e-18,
+              "currentBaseToken0": 0,
+              "currentBaseToken1": 0,
+              "depositToken0": 0,
+              "depositToken1": 0,
+              "changeToken0": 0,
+              "changeToken1": 0,
+              "winningsToken0": 1.0015274691542726e-18,
+              "winningsToken1": 1.0837083573536946e-18,
+              "actPrice": 1.0820555508765213,
+              "depositPrice": 0,
+              "actInToken1": 0,
+              "hodlInToken1": 0,
+              "faktorIL": 0,
+              "ILInToken1": 0,
+              "LPEarningsInToken1": 0,
+              "feesEarnedInToken0": 0,
+              "feesEarnedInToken1": 0,
+              "poolToken0": 19499625.311104402,
+              "poolToken1": 21099677.807892833,
+              "noOfLPTokens": 1e-18,
+              "totalSupplyLPToken": 19469885.661319524
+            }
+          },
+          {
+            "name": "BDO-WBNB Pool",
+            "id": 13,
+            "type": "lpVault",
+            "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+            "platform": "auto",
+            "depositToken": "BDO-WBNB LP",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0.000123770886622478,
+            "priceInUSDRewardToken": 3320.4757369502904,
+            "currentTokens": 13.180100669460371,
+            "harvestedRewards": 0.001409414710838943,
+            "totalRewards": 0.001533185597461421,
+            "depositedTokens": 12.015776751713236,
+            "priceInUSDDepositToken": 32.14490088855059,
+            "apy": 40.301426032237245,
+            "LPInfo": {
+              "compactSessions": [
+                [
+                  {
+                    "type": "deposit",
+                    "blockNumber": "5071614",
+                    "hash": "0x2e29dda5f0fbd3c61ec2b2ff1aa08d31581f1ddfc6ba839ed420c8e36d87181e",
+                    "timeStamp": "1613909432",
+                    "amountLPToken": 22.684196751713237,
+                    "amountToken0": 360.6532389444117,
+                    "amountToken1": 1.5533500717876982,
+                    "token0InUSD": 1.2252580946600122,
+                    "token1InUSD": "284.4776",
+                    "timeIndex": 861
+                  },
+                  {
+                    "type": "deposit",
+                    "blockNumber": "5087919",
+                    "hash": "0xda2ca78a370aea0b98b909e00ca3a9a31339a302a783d28c5b9ed1dd6f39eeec",
+                    "timeStamp": "1613959647",
+                    "amountLPToken": 12.2202966629902,
+                    "amountToken0": 191.96308514885743,
+                    "amountToken1": 0.8474142873535868,
+                    "token0InUSD": 1.3018993988629333,
+                    "token1InUSD": "294.9167",
+                    "timeIndex": 864
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "5087515",
+                    "hash": "0xcbf9c92d988ae2eaf9aab3ca52f5f0e1e329c83d8c38768b21388fd2d1915e06",
+                    "timeStamp": "1613958418",
+                    "amountLPToken": 10.66842,
+                    "amountToken0": 168.59522272433657,
+                    "amountToken1": 0.7353615542835429,
+                    "token0InUSD": 1.2863377703813685,
+                    "token1InUSD": "294.9167",
+                    "timeIndex": 864
+                  }
+                ],
+                [
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4781585",
+                    "hash": "0x3a4682ee7af2c81153efb3218e8a8ca6dc75efc3cd0579939d935ec6ab5d3f17",
+                    "timeStamp": "1613029921",
+                    "amountLPToken": 25.576513149059092,
+                    "amountToken0": 280.6253102368857,
+                    "amountToken1": 2.5094886246924033,
+                    "token0InUSD": 1.1291939629017478,
+                    "token1InUSD": "126.2729",
+                    "timeIndex": 799
+                  },
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4782620",
+                    "hash": "0x652df7bbe8e4c0ec4ab7bbe309a069f9b06a2dc138626abb1d30eed1e3f65fc3",
+                    "timeStamp": "1613033026",
+                    "amountLPToken": 25.472370002341407,
+                    "amountToken0": 280.87171542023145,
+                    "amountToken1": 2.487006122986086,
+                    "token0InUSD": 1.0851867659742456,
+                    "token1InUSD": "122.5563",
+                    "timeIndex": 800
+                  },
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4799785",
+                    "hash": "0x6e8f1c4f3af10c4c4674d64dfadf0b82e06ccd60cbc8c801a112fcf20ed7e092",
+                    "timeStamp": "1613084596",
+                    "amountLPToken": 51.173120050084854,
+                    "amountToken0": 565.3694632262943,
+                    "amountToken1": 4.991293510359265,
+                    "token0InUSD": 1.0762733492555128,
+                    "token1InUSD": "121.9107",
+                    "timeIndex": 803
+                  },
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4842472",
+                    "hash": "0x6df3720c8f761ac08ed2800a55516c88a4a83ab2339f16cffb129f1329928d04",
+                    "timeStamp": "1613212691",
+                    "amountLPToken": 26.787188124722483,
+                    "amountToken0": 289.0105631676705,
+                    "amountToken1": 2.6788612124122024,
+                    "token0InUSD": 1.209516318225852,
+                    "token1InUSD": "130.4894",
+                    "timeIndex": 812
+                  },
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4877695",
+                    "hash": "0x4141b13df530aa6dcb941200365692b82d033ae25061b338f300ccf65cd7c231",
+                    "timeStamp": "1613318360",
+                    "amountLPToken": 14.955084608240906,
+                    "amountToken0": 161.32147554580067,
+                    "amountToken1": 1.4971674915154234,
+                    "token0InUSD": 1.2619868705714459,
+                    "token1InUSD": "135.9805",
+                    "timeIndex": 819
+                  },
+                  {
+                    "type": "deposit",
+                    "blockNumber": "4975894",
+                    "hash": "0x2515aef6a41e2c78ecc9082fbbad69159223cf96223b65014be65e10f6e5f97e",
+                    "timeStamp": "1613613911",
+                    "amountLPToken": 11.513504803183444,
+                    "amountToken0": 133.77225607126456,
+                    "amountToken1": 1.073168009011622,
+                    "token0InUSD": 1.326235834372608,
+                    "token1InUSD": "165.3176",
+                    "timeIndex": 840
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "4842266",
+                    "hash": "0xd028c6a823f65f7742a45d5dcc76259ff097ee665d64970d98f615712a73028c",
+                    "timeStamp": "1613212073",
+                    "amountLPToken": 26.30940974,
+                    "amountToken0": 282.9372736285646,
+                    "amountToken1": 2.639604395956352,
+                    "token0InUSD": 1.2173736936402466,
+                    "token1InUSD": "130.4894",
+                    "timeIndex": 812
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "4918121",
+                    "hash": "0x36588e5fb8a1c5c7d9f5ce58005549d41180f06c163464cdcab840630d651580",
+                    "timeStamp": "1613439970",
+                    "amountLPToken": 31.42284076265619,
+                    "amountToken0": 323.2749124887574,
+                    "amountToken1": 3.3023325587822367,
+                    "token0InUSD": 1.3274639874688223,
+                    "token1InUSD": "129.9493",
+                    "timeIndex": 828
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "4946040",
+                    "hash": "0x12ae34e7909ae4eabd52375fd30db68e7cd9940287b3364a3339d57a28019100",
+                    "timeStamp": "1613524074",
+                    "amountLPToken": 34.70261901,
+                    "amountToken0": 360.05994216118876,
+                    "amountToken1": 3.618964477568275,
+                    "token0InUSD": 1.3084700557229996,
+                    "token1InUSD": "130.1830",
+                    "timeIndex": 834
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "4946124",
+                    "hash": "0xc70d5fff6ab7f5632c8c8bb2bc3e41b48baf5176dc43efb0a198c957ed27c2c5",
+                    "timeStamp": "1613524326",
+                    "amountLPToken": 34.23314259,
+                    "amountToken0": 355.3618025433551,
+                    "amountToken1": 3.568270210015517,
+                    "token0InUSD": 1.3071976712910114,
+                    "token1InUSD": "130.1830",
+                    "timeIndex": 834
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "4997670",
+                    "hash": "0x3041fd6fc67044b7ab1c6fc8979825fef342ef06f0a74d3e257449b9fe9b9400",
+                    "timeStamp": "1613679967",
+                    "amountLPToken": 24.6307061419095,
+                    "amountToken0": 315.8204712512862,
+                    "amountToken1": 2.0818550741741375,
+                    "token0InUSD": 1.2769111752697313,
+                    "token1InUSD": "193.7093",
+                    "timeIndex": 845
+                  },
+                  {
+                    "type": "withdrawal",
+                    "blockNumber": "4997743",
+                    "hash": "0x6e83485f54157713248f7d5a9c10dfaa32bf422886d1901f3ca587100ad94c48",
+                    "timeStamp": "1613680186",
+                    "amountLPToken": 12.875729960403824,
+                    "amountToken0": 165.20038345997077,
+                    "amountToken1": 1.087602324046203,
+                    "token0InUSD": 1.2752917424093757,
+                    "token1InUSD": "193.7093",
+                    "timeIndex": 845
+                  }
+                ]
+              ],
+              "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+              "symbolToken0": "BDO",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 1.0827429331792744,
+              "priceInUSDToken1": 217.1335,
+              "priceInUSDLPToken": 32.14490088855059,
+              "currentToken0": 195.64802352340706,
+              "currentToken1": 0.9756049382543984,
+              "currentBaseToken0": 178.3645687941054,
+              "currentBaseToken1": 0.889420455118101,
+              "depositToken0": 189.88421225319064,
+              "depositToken1": 0.8280632522254937,
+              "changeToken0": -12.337195963144893,
+              "changeToken1": 0.05728045197083054,
+              "winningsToken0": 17.283454729301663,
+              "winningsToken1": 0.08618448313629765,
+              "actPrice": 0.0049865310197609964,
+              "depositPrice": 0.004360885206829931,
+              "actInToken1": 1.778840910236202,
+              "hodlInToken1": 1.77492676678891,
+              "faktorIL": -0.002388469471296068,
+              "ILInToken1": -0.004239358396261547,
+              "LPEarningsInToken1": 0.003914143447291909,
+              "feesEarnedInToken0": 1.6351050081193024,
+              "feesEarnedInToken1": 0.008153501843553457,
+              "poolToken0": 4775968.7271447275,
+              "poolToken1": 23815.516207315628,
+              "noOfLPTokens": 13.180100669460371,
+              "totalSupplyLPToken": 321739.7624792823
+            }
+          }
+        ]
+      }
+    },
+    "PancakeSwap": {
+      "LPStaking": {
+        "totalUSDValues": {
+          "deposit": 392.82022506050544,
+          "yield": 17.950422131630717,
+          "total": 410.77064719213615
+        },
+        "vaults": [
+          {
+            "type": "LPStaking",
+            "name": "BDO-WBNB Pool",
+            "platform": "pancake",
+            "rewardToken": "CAKE",
+            "pendingRewards": "1.816419456415091008",
+            "harvestedRewards": 0,
+            "totalRewards": 1.816419456415091,
+            "priceInUSDRewardToken": 9.882311086370933,
+            "LPInfo": {
+              "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+              "symbolToken0": "BDO",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 1.0827429331792744,
+              "priceInUSDToken1": 217.1335,
+              "priceInUSDLPToken": 32.14490088855059,
+              "currentToken0": 181.40050284468794,
+              "currentToken1": 0.9045592344352794,
+              "depositToken0": 193.11622155607503,
+              "depositToken1": 0.842157673782779,
+              "changeToken0": -12.972267655036944,
+              "changeToken1": 0.05613574036714264,
+              "actPrice": 0.0049865310197609964,
+              "depositPrice": 0.004360885206829931,
+              "faktorIL": -0.004736965316924222,
+              "ILInToken1": -0.0085508746913415,
+              "ILInPerc": -0.4736965316924222,
+              "LPEarningsInToken1": 0.003980765879374152,
+              "LPEarningsInPerc": 0.22052422221184928,
+              "feesEarnedInToken0": 2.5130978872996743,
+              "feesEarnedInToken1": 0.012531640570715652,
+              "feesEarnedInPerc": 0.6942207539042715,
+              "hodlInToken1": 1.8051377029911846,
+              "actInToken1": 1.8091184688705588,
+              "poolToken0": 4775968.7271447275,
+              "poolToken1": 23815.516207315628,
+              "noOfLPTokens": 12.2202966629902,
+              "totalSupplyLPToken": 321739.7624792823
+            }
+          }
+        ]
+      },
+      "staking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      }
+    },
+    "BeefyFinance": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 861.7302316292023,
+          "yield": 82.41406084205992,
+          "total": 944.1442924712622
+        },
+        "vaults": [
+          {
+            "type": "lpVault",
+            "name": "BDO-BUSD LP",
+            "contractAddress": "0x0fA31301EaA9633b3e4F7dF22F7543115759cf5a",
+            "platform": "beefy",
+            "depositToken": "BDO-BUSD LP",
+            "depositTokenAddress": "0xc5b0d73a7c0e4eaf66babf7ee16a2096447f7ad6",
+            "currentTokens": 216.19117193172437,
+            "depositedTokens": 202.27179118823918,
+            "priceInUSDDepositToken": 2.1681050115018623,
+            "apy": 20.895235978035483,
+            "LPInfo": {
+              "contractAddress": "0xc5b0d73a7c0e4eaf66babf7ee16a2096447f7ad6",
+              "symbolToken0": "BDO",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 1.0827429331792744,
+              "priceInUSDToken1": 0.999999875,
+              "priceInUSDLPToken": 2.1681050115018623,
+              "currentToken0": 216.52139727827608,
+              "currentToken1": 234.2881798084992,
+              "currentBaseToken0": 202.58075511005865,
+              "currentBaseToken1": 219.20363056759618,
+              "depositToken0": 187.811107414523,
+              "depositToken1": 235.46803405742443,
+              "changeToken0": 14.351968625615598,
+              "changeToken1": -16.716355445920186,
+              "winningsToken0": 13.940642168217442,
+              "winningsToken1": 15.084549240902984,
+              "actPrice": 1.0820555508765213,
+              "depositPrice": 1.2537492446477967,
+              "actInToken1": 438.40726113519236,
+              "hodlInToken1": 438.69008535157565,
+              "faktorIL": -0.0027051628659811033,
+              "ILInToken1": -1.1867281285671631,
+              "LPEarningsInToken1": -0.282824216383299,
+              "feesEarnedInToken0": 0.8353581398400988,
+              "feesEarnedInToken1": 0.9039039121838641,
+              "poolToken0": 19499625.311104402,
+              "poolToken1": 21099677.807892833,
+              "noOfLPTokens": 216.19117193172437,
+              "totalSupplyLPToken": 19469885.661319524
+            }
+          },
+          {
+            "type": "lpVault",
+            "name": "SBDO-BUSD LP",
+            "contractAddress": "0x9327029cf20B78e445397dAf0c4e9c19a931D62e",
+            "platform": "beefy",
+            "depositToken": "SBDO-BUSD LP",
+            "depositTokenAddress": "0xa0718093baa3e7aae054eed71f303a4ebc1c076f",
+            "currentTokens": 4.0014575933755685,
+            "depositedTokens": 3.5618083409475747,
+            "priceInUSDDepositToken": 118.81148758159739,
+            "apy": 981.4042982634561,
+            "LPInfo": {
+              "contractAddress": "0xa0718093baa3e7aae054eed71f303a4ebc1c076f",
+              "symbolToken0": "sBDO",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 3071.6005559746823,
+              "priceInUSDToken1": 0.999999875,
+              "priceInUSDLPToken": 118.81148758159739,
+              "currentToken0": 0.07738050381761301,
+              "currentToken1": 237.73716033299388,
+              "currentBaseToken0": 0.0688785317581725,
+              "currentBaseToken1": 211.61643747745498,
+              "depositToken0": 0.05844758522789528,
+              "depositToken1": 247.78865608830134,
+              "changeToken0": 0.010210428890495546,
+              "changeToken1": -36.84971791491651,
+              "winningsToken0": 0.008501972059440492,
+              "winningsToken1": 26.12072285553889,
+              "actPrice": 3072.313420100545,
+              "depositPrice": 4239.502027708054,
+              "actInToken1": 423.23287495490996,
+              "hodlInToken1": 427.3579565564344,
+              "faktorIL": -0.012823161767765214,
+              "ILInToken1": -5.480080209664736,
+              "LPEarningsInToken1": -4.12508160152443,
+              "feesEarnedInToken0": 0.00044103527956335987,
+              "feesEarnedInToken1": 1.3549986081403063,
+              "poolToken0": 2037.5328700730463,
+              "poolToken1": 6259939.5806214,
+              "noOfLPTokens": 4.0014575933755685,
+              "totalSupplyLPToken": 105363.76700160919
+            }
+          }
+        ]
+      },
+      "staking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": [
+          {
+            "type": "staking",
+            "name": "Moo BIFI-Staking",
+            "platform": "beefy",
+            "depositToken": "BIFI",
+            "rewardToken": "WBNB",
+            "priceInUSDDepositToken": 807.3952003580155,
+            "priceInUSDRewardToken": 217.1335,
+            "depositedTokens": "0",
+            "totalTokensStaked": "65747.382571517239457922",
+            "pendingRewards": "0"
+          }
+        ]
+      },
+      "barnOfTrust": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      }
+    },
+    "currencies": {
+      "EUR": 1.20798065,
+      "RMB": 0.15437,
+      "JPY": 0.00938263,
+      "GBP": 1.3923186,
+      "BTCB": 45455.274030059285,
+      "WBNB": 217.1335,
+      "BRL": 0.178624,
+      "AUD": 0.77069588,
+      "HKD": 0.128927895,
+      "SGD": 0.750781325,
+      "RUB": 0.01341618,
+      "KRW": 0.00089
+    }
+  }
+}
