@@ -3,6 +3,8 @@ package ee.tenman.investing.integration.coinmarketcap.api;
 import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -42,6 +44,7 @@ public class CoinMarketCapApiService {
     @Resource
     private BinanceService binanceService;
 
+    @Retryable(value = {Exception.class}, maxAttempts = 4, backoff = @Backoff(delay = 200))
     public BigDecimal eurPrice(String currency) {
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(

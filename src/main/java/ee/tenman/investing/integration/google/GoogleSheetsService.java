@@ -208,9 +208,15 @@ public class GoogleSheetsService {
         cellData.add(sbdoToEurCell);
 
         CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!P1:P1").getValues().get(0).get(0);
+        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!U1:U1").getValues().get(0).get(0);
         earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
         cellData.add(earningsPerDayCell);
+
+        for (BigDecimal value : yieldSummary.getPools().values()) {
+            CellData newCellData = new CellData();
+            newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
+            cellData.add(newCellData);
+        }
 
         rowData.add(new RowData().setValues(cellData));
 
