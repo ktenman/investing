@@ -173,7 +173,9 @@ public class YieldWatchService {
         yieldSummary.add(first, symbolAmounts.get(first));
         yieldSummary.add(second, symbolAmounts.get(second));
 
-        yieldSummary.getPools().put(poolName, yieldSummary.getPools().getOrDefault(poolName, lpInfo.getPriceInUSDLPToken()));
+        String newPoolName = String.format("%s-%s Pool", first, second);
+
+        yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
     }
 
 }
