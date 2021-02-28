@@ -173,6 +173,13 @@ public class YieldWatchService {
 
         yieldSummary.add(first, symbolAmounts.get(first));
         yieldSummary.add(second, symbolAmounts.get(second));
+
+        Pool pool = Pool.builder()
+                .poolName(poolName)
+                .value(lpInfo.getPriceInUSDLPToken())
+                .build();
+
+        yieldSummary.getPools().add(pool);
     }
 
     public YieldSummary getYieldSummaryIK() {

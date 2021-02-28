@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +61,6 @@ class YieldWatchServiceTest {
         assertThat(yieldSummary.getYieldEarnedPercentage()).isEqualByComparingTo(new BigDecimal("0.00599010"));
     }
 
-
     @Test
     void getYieldSummary4() throws IOException {
         JsonNode jsonNode = TestFileUtils.getJson("yieldwatch-response-4.json");
@@ -74,6 +74,15 @@ class YieldWatchServiceTest {
         assertThat(yieldSummary.getBdoAmount()).isEqualByComparingTo(new BigDecimal("593.5699236463710800010015274691542726"));
         assertThat(yieldSummary.getSbdoAmount()).isEqualByComparingTo(new BigDecimal("0.07738050381761301"));
         assertThat(yieldSummary.getYieldEarnedPercentage()).isEqualByComparingTo(new BigDecimal("0.07001209"));
+        assertThat(yieldSummary.getPools())
+                .extracting(Pool::getPoolName, Pool::getValue)
+                .containsExactly(
+                        tuple("WBNB-BUSD Pool", new BigDecimal("32.45194077553508")),
+                        tuple("BDO-BUSD Pool", new BigDecimal("2.1681050115018623")),
+                        tuple("BDO-WBNB Pool", new BigDecimal("32.14490088855059")),
+                        tuple("BDO-BUSD LP", new BigDecimal("2.1681050115018623")),
+                        tuple("SBDO-BUSD LP", new BigDecimal("118.81148758159739"))
+                );
     }
 
 }
