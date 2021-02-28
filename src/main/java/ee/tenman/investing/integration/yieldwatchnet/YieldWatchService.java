@@ -14,7 +14,6 @@ import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
 import org.springframework.stereotype.Service;
 
@@ -181,54 +180,5 @@ public class YieldWatchService {
 
         yieldSummary.getPools().add(pool);
     }
-
-    public YieldSummary getYieldSummaryIK() {
-        YieldData yieldData = yieldApiService.getYieldData();
-
-        if (yieldData == null) {
-            return fetchYieldSummary();
-        }
-
-        Autofarm autofarm = Optional.ofNullable(yieldData.getResult())
-                .map(Result::getAutofarm)
-                .orElseThrow(() -> new RuntimeException("Couldn't fetch Autofarm"));
-
-        LPInfo lpInfo = autofarm
-                .getLPVaults()
-                .getVaults()
-                .stream()
-                .filter(vault -> "BDO-WBNB Pool".equals(vault.getName()))
-                .findFirst()
-                .map(Vault::getLPInfo)
-                .orElseThrow(() -> new RuntimeException("Failed to fetch BDO-WBNB Pool"));
-
-        BigDecimal bdoAmount = lpInfo.getCurrentToken0();
-        BigDecimal wbnAmount = lpInfo.getCurrentToken1();
-
-        BigDecimal yield = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getYield()
-                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getYield());
-
-        BigDecimal total = yieldData.getResult().getAutofarm().getLPVaults().getTotalUSDValues().getTotal()
-                .add(yieldData.getResult().getBeefyFinance().getLPVaults().getTotalUSDValues().getTotal());
-
-        BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
-
-        YieldSummary yieldSummary = YieldSummary.builder()
-                .bdoAmount(bdoAmount)
-                .wbnbAmount(wbnAmount)
-                .yieldEarnedPercentage(yieldEarnedPercentage)
-                .build();
-
-        boolean hasMissingAmounts = Stream.of(yieldSummary.getBdoAmount(), yieldSummary.getWbnbAmount(), yieldEarnedPercentage)
-                .filter(Objects::nonNull)
-                .anyMatch(bigDecimal -> ComparableUtils.is(bigDecimal).lessThanOrEqualTo(ZERO));
-
-        if (hasMissingAmounts) {
-            return fetchYieldSummary();
-        }
-
-        return yieldSummary;
-    }
-
 
 }

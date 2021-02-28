@@ -21,7 +21,6 @@ import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
-import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
@@ -89,8 +88,6 @@ public class GoogleSheetsService {
     private BinanceService binanceService;
     @Resource
     private BscScanService bscScanService;
-    @Resource
-    private SecretsService secretsService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -128,19 +125,6 @@ public class GoogleSheetsService {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
         BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
         googleSheetsClient.update(yieldBatchRequest);
-    }
-
-    //    @Scheduled(cron = "0 4/5 * * * *")
-    public void appendYieldInformationIK() {
-
-        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID_IK);
-        if (spreadsheetResponse == null) {
-            return;
-        }
-        Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
-        YieldSummary yieldSummary = yieldWatchService.getYieldSummaryIK();
-        BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
-        googleSheetsClient.update(yieldBatchRequest, SPREAD_SHEET_ID_IK);
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {

@@ -51,14 +51,6 @@ class GoogleSheetsServiceIntegrationTest {
         System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
-    @Test
-    @Disabled
-    void appendYieldInformationIK() {
-        long startTime = System.nanoTime();
-        googleService.appendYieldInformationIK();
-        System.out.println(String.format("Duration %ss", duration(startTime)));
-    }
-
     private double duration(long startTime) {
         return (System.nanoTime() - startTime) / 1.000_000_000;
     }
