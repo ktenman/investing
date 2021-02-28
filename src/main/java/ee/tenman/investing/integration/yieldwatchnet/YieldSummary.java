@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Data
 @Builder
@@ -25,7 +25,7 @@ public class YieldSummary {
     @Builder.Default
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 
-    private Set<Pool> pools = new HashSet<>();
+    private Map<String, BigDecimal> pools = new TreeMap<>();
 
     public void add(String symbol, BigDecimal amount) {
         switch (symbol) {
