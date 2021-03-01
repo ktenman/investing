@@ -18,7 +18,7 @@ class GoogleSheetsServiceTest {
     @Test
     void continueWorking() {
 
-        assertThat(IntStream.range(0, 100)
+        assertThat(IntStream.range(0, 999)
                 .parallel()
                 .anyMatch(i -> googleSheetsService.continueWorking())
         ).isTrue();
