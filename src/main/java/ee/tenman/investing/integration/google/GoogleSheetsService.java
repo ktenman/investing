@@ -117,11 +117,8 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0/10 * * * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     public void appendYieldInformation() {
-        if (!continueWorking()) {
-            return;
-        }
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
         if (spreadsheetResponse == null) {
@@ -134,7 +131,7 @@ public class GoogleSheetsService {
     }
 
     boolean continueWorking() {
-        return RandomUtils.nextDouble(0, 100) >= 98;
+        return RandomUtils.nextInt(0, 100) >= 99;
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {
