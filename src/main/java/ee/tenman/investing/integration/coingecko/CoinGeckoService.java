@@ -2,6 +2,8 @@ package ee.tenman.investing.integration.coingecko;
 
 import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,6 +25,7 @@ public class CoinGeckoService {
     @Resource
     BinanceService binanceService;
 
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public BigDecimal eurPrice(String currency) {
         open("https://www.coingecko.com/en/coins/" + currency);
 

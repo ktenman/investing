@@ -4,7 +4,6 @@ import com.binance.api.client.domain.account.AssetBalance;
 import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -24,20 +23,20 @@ public class RebalancingService {
     @Resource
     private BinanceService binanceService;
 
-    @Scheduled(cron = "0 0 21 1 4 ?")
-    @Scheduled(cron = "0 0 21 1 7 ?")
-    @Scheduled(cron = "0 0 21 30 9 ?")
-    @Scheduled(cron = "0 0 21 30 12 ?")
-    public void rebalance() {
-        log.info("Starting rebalancing...");
+//    @Scheduled(cron = "0 0 21 1 4 ?")
+//    @Scheduled(cron = "0 0 21 1 7 ?")
+//    @Scheduled(cron = "0 0 21 30 9 ?")
+//    @Scheduled(cron = "0 0 21 30 12 ?")
+public void rebalance() {
+    log.info("Starting rebalancing...");
 
-        List<String> symbolsToRebalance = Arrays.asList(
-                "BNB",
-                "DOT",
-                "UNI",
-                "BTC",
-                "SUSHI",
-                "ADA",
+    List<String> symbolsToRebalance = Arrays.asList(
+            "BNB",
+            "DOT",
+            "UNI",
+            "BTC",
+            "SUSHI",
+            "ADA",
                 "ETH",
                 "SNX"
         );
@@ -55,7 +54,7 @@ public class RebalancingService {
                     .map(assetBalance -> new BigDecimal(assetBalance.getFree()))
                     .orElseThrow(() -> new RuntimeException("Not found EUR"));
             BigDecimal priceToEur = binanceService.getPriceToEur(symbol);
-            ;
+
             assets.add(Asset.builder()
                     .symbol(symbol)
                     .eurPrice(priceToEur)
@@ -107,15 +106,15 @@ public class RebalancingService {
             String ticker = symbol + "EUR";
             if (eurTickers.contains(symbol)) {
                 if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).greaterThan(BigDecimal.valueOf(5))) {
-//                    binanceService.buy(ticker, TEN_EUROS);
+                    binanceService.buy(ticker, TEN_EUROS);
                 } else if (is(TEN_EUROS).greaterThan(difference.abs()) && is(difference.abs()).lessThanOrEqualTo(BigDecimal.valueOf(5))) {
-//                    log.info("Skipping buying {} with amount {}", ticker, difference.abs());
+                    log.info("Skipping buying {} with amount {}", ticker, difference.abs());
                 } else {
-//                    binanceService.buy(ticker, difference.abs());
+                    binanceService.buy(ticker, difference.abs());
                 }
             } else {
                 BigDecimal bnb = binanceService.getPriceToEur("BNB");
-//                binanceService.buy(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
+                binanceService.buy(symbol + "BNB", difference.divide(bnb, ROUND_UP).abs());
             }
             log.info("Skipping buying {} with amount {}", ticker, difference.abs());
         }

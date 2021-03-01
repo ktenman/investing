@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static ee.tenman.investing.integration.google.GoogleSheetsService.BDO_CURRENCY;
 import static ee.tenman.investing.integration.google.GoogleSheetsService.BUSD_CURRENCY;
+import static ee.tenman.investing.integration.google.GoogleSheetsService.EGG_CURRENCY;
 import static ee.tenman.investing.integration.google.GoogleSheetsService.SBDO_CURRENCY;
 import static ee.tenman.investing.integration.google.GoogleSheetsService.WBNB_CURRENCY;
 import static java.math.BigDecimal.ZERO;
@@ -36,6 +37,8 @@ public class CoinMarketCapApiService {
             .put("WBNB", 7192)
             .put(BUSD_CURRENCY, 4687)
             .put("BUSD", 468)
+            .put("EGG", 8449)
+            .put(EGG_CURRENCY, 8449)
             .build();
 
     @Resource

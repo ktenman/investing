@@ -22,6 +22,7 @@ import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
 import org.springframework.retry.annotation.Backoff;
@@ -76,6 +77,7 @@ public class GoogleSheetsService {
     public static final String BDO_CURRENCY = "bdollar";
     public static final String SBDO_CURRENCY = "bdollar-share";
     public static final String BUSD_CURRENCY = "binance-usd";
+    public static final String EGG_CURRENCY = "goose-finance";
 
     private BigDecimal leftOverAmount;
     @Resource
@@ -115,8 +117,12 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 0/3 * * * *")
+    @Scheduled(cron = "0/10 * * * * *")
     public void appendYieldInformation() {
+        if (!continueWorking()) {
+            return;
+        }
+
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
         if (spreadsheetResponse == null) {
             return;
@@ -125,6 +131,10 @@ public class GoogleSheetsService {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
         BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
         googleSheetsClient.update(yieldBatchRequest);
+    }
+
+    boolean continueWorking() {
+        return RandomUtils.nextDouble(0, 100) >= 98;
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {

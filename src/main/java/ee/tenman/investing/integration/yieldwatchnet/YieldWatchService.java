@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -59,7 +58,7 @@ public class YieldWatchService {
             addressInputField.append(String.valueOf(c));
         }
 
-        $$(tagName("i")).filter(cssClass("binoculars")).first().click();
+        addressInputField.pressEnter();
 
         $(tagName("span")).waitUntil(text("$"), 5000, 200);
 
