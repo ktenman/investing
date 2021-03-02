@@ -173,8 +173,8 @@ public class YieldWatchService {
                 lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1()
         );
 
-        String first = poolName.split("-")[0];
-        String second = poolName.split("-")[1].split(" ")[0];
+        String first = poolName.split("-")[0].toUpperCase();
+        String second = poolName.split("-")[1].split(" ")[0].toUpperCase();
 
         yieldSummary.add(first, symbolAmounts.get(first));
         yieldSummary.add(second, symbolAmounts.get(second));
