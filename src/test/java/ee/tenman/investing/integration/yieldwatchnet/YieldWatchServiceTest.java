@@ -82,6 +82,11 @@ class YieldWatchServiceTest {
                         entry("BDO-WBNB Pool", new BigDecimal("32.14490088855059")),
                         entry("SBDO-BUSD Pool", new BigDecimal("118.81148758159739"))
                 );
+        assertThat(yieldSummary.balanceOf("BNB")).isEqualByComparingTo(new BigDecimal("0.05921706753816801"));
+        assertThat(yieldSummary.balanceOf("AUTO")).isEqualByComparingTo(new BigDecimal("0.000794148871859627"));
+        assertThat(yieldSummary.balanceOf("BUSD")).isEqualByComparingTo(new BigDecimal("0.04603954012851944"));
+        assertThat(yieldSummary.balanceOf("BDO")).isEqualByComparingTo(new BigDecimal("0.11699094681649985"));
+
     }
 
 }

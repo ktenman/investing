@@ -377,6 +377,22 @@ public class GoogleSheetsService {
             googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
             googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
             googleSheetsClient.update("investing!F33:F33", yieldSummary.getBusdAmount());
+
+            startingIndexNumber = 30;
+            startingIndexCombined = "E" + startingIndexNumber;
+            valueRange = getValueRange(String.format("investing!%s:E33", startingIndexCombined));
+            values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+                    .map(v -> (String) v)
+                    .toArray(String[]::new);
+
+            for (int i = 0; i < values.length; i++) {
+                String coordinate = "D" + (startingIndexNumber + i);
+                String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+                String value = values[i];
+                BigDecimal balance = yieldSummary.balanceOf(value);
+                googleSheetsClient.update(coordinates, balance);
+            }
+
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());

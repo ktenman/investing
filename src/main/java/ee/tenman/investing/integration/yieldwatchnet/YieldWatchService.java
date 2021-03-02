@@ -10,6 +10,7 @@ import ee.tenman.investing.integration.yieldwatchnet.api.PancakeSwap;
 import ee.tenman.investing.integration.yieldwatchnet.api.Result;
 import ee.tenman.investing.integration.yieldwatchnet.api.TotalUSDValues;
 import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
+import ee.tenman.investing.integration.yieldwatchnet.api.WalletBalance;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
@@ -121,6 +122,12 @@ public class YieldWatchService {
                 .collect(Collectors.toList());
 
         YieldSummary yieldSummary = new YieldSummary();
+
+        Optional.of(yieldData)
+                .map(YieldData::getResult)
+                .map(Result::getWalletBalance)
+                .map(WalletBalance::getBalances)
+                .ifPresent(yieldSummary::setBalances);
 
         vaults.forEach(vault -> addPoolData(vault, yieldSummary));
 
