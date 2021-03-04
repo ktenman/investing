@@ -464,9 +464,9 @@ public class GoogleSheetsService {
     }
 
     private void updateTickerAmounts() throws IOException {
-        ValueRange valueRange = getValueRange("investing!E37:F40");
+        ValueRange valueRange = getValueRange("investing!E45:F48");
 
-        leftOverAmount = (BigDecimal) getValueRange("investing!Q36:Q36").getValues().get(0).get(0);
+        leftOverAmount = (BigDecimal) getValueRange("investing!Q44:Q44").getValues().get(0).get(0);
 
         Map<String, BigDecimal> values = new HashMap<>();
         for (int i = 0; i < valueRange.getValues().size(); i++) {
