@@ -374,7 +374,7 @@ public class GoogleSheetsService {
                     }
                 }
             }
-            googleSheetsClient.update("investing!L35:L35", availableBalances.get(EUR));
+            googleSheetsClient.update("investing!L39:L39", availableBalances.get(EUR));
             googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
             YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
             googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
