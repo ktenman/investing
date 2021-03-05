@@ -79,6 +79,7 @@ public class GoogleSheetsService {
     public static final String BUSD_CURRENCY = "binance-usd";
     public static final String EGG_CURRENCY = "goose-finance";
     public static final String CAKE_CURRENCY = "pancakeswap";
+    public static final String WATCH_CURRENCY = "yieldwatch";
 
     private BigDecimal leftOverAmount;
     @Resource
@@ -343,6 +344,11 @@ public class GoogleSheetsService {
                 googleSheetsClient.update("investing!G34:G34", cakeToEurPrice);
             }
 
+            BigDecimal watchToEurPrice = priceService.toEur(WATCH_CURRENCY);
+            if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
+                googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
+            }
+
         } catch (Exception e) {
             log.error("Error ", e);
             throw new Exception(e.getMessage());
@@ -385,7 +391,7 @@ public class GoogleSheetsService {
 
             startingIndexNumber = 30;
             startingIndexCombined = "E" + startingIndexNumber;
-            valueRange = getValueRange(String.format("investing!%s:E34", startingIndexCombined));
+            valueRange = getValueRange(String.format("investing!%s:E35", startingIndexCombined));
             values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                     .map(v -> (String) v)
                     .toArray(String[]::new);
