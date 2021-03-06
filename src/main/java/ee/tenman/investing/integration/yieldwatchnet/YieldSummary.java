@@ -44,17 +44,17 @@ public class YieldSummary {
         amounts.add(balance);
     }
 
-    public BigDecimal amountOf(String symbol) {
+    public BigDecimal amountOf(Symbol symbol) {
         return amounts.stream()
-                .filter(balance -> StringUtils.equalsIgnoreCase(symbol, balance.getSymbol()))
+                .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
                 .findFirst()
                 .map(Balance::getBalance)
                 .orElse(BigDecimal.ZERO);
     }
 
-    public BigDecimal balanceOf(String symbol) {
+    public BigDecimal balanceOf(Symbol symbol) {
         return balances.stream()
-                .filter(balance -> StringUtils.equalsIgnoreCase(symbol, balance.getSymbol()))
+                .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
                 .findFirst()
                 .map(Balance::getBalance)
                 .orElse(BigDecimal.ZERO);
