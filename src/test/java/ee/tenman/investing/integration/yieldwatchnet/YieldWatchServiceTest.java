@@ -70,8 +70,8 @@ class YieldWatchServiceTest {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
         assertThat(yieldSummary.amountOf(Symbol.WBNB)).isEqualByComparingTo(BigDecimal.valueOf(2.8809212883482200));
-        assertThat(yieldSummary.amountOf(Symbol.BUSD)).isEqualByComparingTo(new BigDecimal("689.4687459803066400010837083573536946"));
-        assertThat(yieldSummary.amountOf(Symbol.BDO)).isEqualByComparingTo(new BigDecimal("593.5699236463710800010015274691542726"));
+        assertThat(yieldSummary.amountOf(Symbol.BUSD)).isEqualByComparingTo(new BigDecimal("689.5147855204351594410837083573536946"));
+        assertThat(yieldSummary.amountOf(Symbol.BDO)).isEqualByComparingTo(new BigDecimal("593.6869145931875798510015274691542726"));
         assertThat(yieldSummary.amountOf(Symbol.SBDO)).isEqualByComparingTo(new BigDecimal("0.07738050381761301"));
         assertThat(yieldSummary.getYieldEarnedPercentage()).isEqualByComparingTo(new BigDecimal("0.07001209"));
         assertThat(yieldSummary.getPools())
@@ -82,10 +82,8 @@ class YieldWatchServiceTest {
                         entry("BDO-WBNB Pool", new BigDecimal("32.14490088855059")),
                         entry("SBDO-BUSD Pool", new BigDecimal("118.81148758159739"))
                 );
-        assertThat(yieldSummary.balanceOf(Symbol.BNB)).isEqualByComparingTo(new BigDecimal("0.05921706753816801"));
-        assertThat(yieldSummary.balanceOf(Symbol.AUTO)).isEqualByComparingTo(new BigDecimal("0.000794148871859627"));
-        assertThat(yieldSummary.balanceOf(Symbol.BUSD)).isEqualByComparingTo(new BigDecimal("0.04603954012851944"));
-        assertThat(yieldSummary.balanceOf(Symbol.BDO)).isEqualByComparingTo(new BigDecimal("0.11699094681649985"));
+        assertThat(yieldSummary.amountOf(Symbol.BNB)).isEqualByComparingTo(new BigDecimal("0.05921706753816801"));
+        assertThat(yieldSummary.amountOf(Symbol.AUTO)).isEqualByComparingTo(new BigDecimal("0.000794148871859627"));
 
     }
 

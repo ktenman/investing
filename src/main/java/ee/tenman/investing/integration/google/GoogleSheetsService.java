@@ -412,14 +412,9 @@ public class GoogleSheetsService {
                     .toArray(String[]::new);
 
             for (int i = 0; i < values.length; i++) {
-                String coordinate = "D" + (startingIndexNumber + i);
+                String coordinate = "F" + (startingIndexNumber + i);
                 String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
                 String value = values[i];
-                BigDecimal balance = yieldSummary.balanceOf(Symbol.valueOf(value));
-                googleSheetsClient.update(coordinates, balance);
-
-                coordinate = "F" + (startingIndexNumber + i);
-                coordinates = String.format("investing!%s:%s", coordinate, coordinate);
                 BigDecimal amount = yieldSummary.amountOf(Symbol.valueOf(value));
                 googleSheetsClient.update(coordinates, amount);
             }

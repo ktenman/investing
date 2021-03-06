@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -138,7 +139,8 @@ public class YieldWatchService {
                 .map(YieldData::getResult)
                 .map(Result::getWalletBalance)
                 .map(WalletBalance::getBalances)
-                .ifPresent(yieldSummary::setBalances);
+                .orElse(Collections.emptyList())
+                .forEach(balance -> yieldSummary.add(balance.getSymbol(), balance.getBalance()));
 
         vaults.forEach(vault -> addPoolData(vault, yieldSummary));
 

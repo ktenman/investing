@@ -8,9 +8,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -25,7 +23,6 @@ public class YieldSummary {
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 
     private Map<String, BigDecimal> pools = new TreeMap<>();
-    private List<Balance> balances = new ArrayList<>();
     private Set<Balance> amounts = new HashSet<>();
 
     public void add(String symbol, BigDecimal amount) {
@@ -52,11 +49,4 @@ public class YieldSummary {
                 .orElse(BigDecimal.ZERO);
     }
 
-    public BigDecimal balanceOf(Symbol symbol) {
-        return balances.stream()
-                .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
-                .findFirst()
-                .map(Balance::getBalance)
-                .orElse(BigDecimal.ZERO);
-    }
 }
