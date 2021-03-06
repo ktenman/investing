@@ -174,24 +174,29 @@ public class GoogleSheetsService {
 
         CellData sbdoAmountCell = new CellData();
         sbdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("SBDO").doubleValue()));
-
-        CellData watchAmountCell = new CellData();
-        watchAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("WATCH").doubleValue()));
-
         CellData sbdoToEurCell = new CellData();
         BigDecimal sbdoToEur = priceService.toEur(SBDO_CURRENCY);
         sbdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(sbdoToEur.doubleValue()));
 
+        CellData watchAmountCell = new CellData();
+        watchAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("WATCH").doubleValue()));
         CellData watchToEurCell = new CellData();
         BigDecimal watchToEur = priceService.toEur(WATCH_CURRENCY);
         watchToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(watchToEur.doubleValue()));
+
+        CellData cakeAmountCell = new CellData();
+        cakeAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("WATCH").doubleValue()));
+        CellData cakeToEurCell = new CellData();
+        BigDecimal cakeToEur = priceService.toEur(CAKE_CURRENCY);
+        cakeToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(cakeToEur.doubleValue()));
 
         CellData totalEurCell = new CellData();
         BigDecimal total = yieldSummary.amountOf("BUSD").multiply(busdToEur)
                 .add(yieldSummary.amountOf("WBNB").multiply(wbnbToEur))
                 .add(yieldSummary.amountOf("BDO").multiply(bdoToEur))
                 .add(yieldSummary.amountOf("SBDO").multiply(sbdoToEur))
-                .add(yieldSummary.amountOf("WATCH").multiply(watchToEur));
+                .add(yieldSummary.amountOf("WATCH").multiply(watchToEur)
+                        .add(yieldSummary.amountOf("CAKE").multiply(cakeToEur)));
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
 
@@ -225,7 +230,7 @@ public class GoogleSheetsService {
         cellData.add(sbdoToEurCell);
 
         CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!X1:X1").getValues().get(0).get(0);
+        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!Y1:Y1").getValues().get(0).get(0);
         earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
         cellData.add(earningsPerDayCell);
 
@@ -237,6 +242,8 @@ public class GoogleSheetsService {
 
         cellData.add(watchAmountCell);
         cellData.add(watchToEurCell);
+        cellData.add(cakeAmountCell);
+        cellData.add(cakeToEurCell);
 
         rowData.add(new RowData().setValues(cellData));
 
