@@ -44,6 +44,7 @@ public class YieldSummary {
                 busdAmount = busdAmount.add(amount);
                 break;
             case "WBNB":
+            case "BNB":
                 wbnbAmount = wbnbAmount.add(amount);
                 break;
             default:

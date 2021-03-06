@@ -166,20 +166,16 @@ public class YieldWatchService {
 
     private void addPoolData(Vault vault, YieldSummary yieldSummary) {
         LPInfo lpInfo = vault.getLPInfo();
-        String poolName = vault.getName();
 
         Map<String, BigDecimal> symbolAmounts = ImmutableMap.of(
                 lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0(),
                 lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1()
         );
 
-        String first = poolName.split("-")[0].toUpperCase();
-        String second = poolName.split("-")[1].split(" ")[0].toUpperCase();
+        yieldSummary.add(lpInfo.getSymbolToken0().toUpperCase(), symbolAmounts.get(lpInfo.getSymbolToken0().toUpperCase()));
+        yieldSummary.add(lpInfo.getSymbolToken1().toUpperCase(), symbolAmounts.get(lpInfo.getSymbolToken1().toUpperCase()));
 
-        yieldSummary.add(first, symbolAmounts.get(first));
-        yieldSummary.add(second, symbolAmounts.get(second));
-
-        String newPoolName = String.format("%s-%s Pool", first, second);
+        String newPoolName = String.format("%s-%s Pool", lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getSymbolToken1().toUpperCase());
 
         yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
     }
