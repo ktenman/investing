@@ -50,6 +50,7 @@ public class YieldWatchService {
     @Resource
     private YieldApiService yieldApiService;
 
+    @Deprecated
     YieldSummary fetchYieldSummary() {
         closeWebDriver();
         open(YIELD_WATCH_NET);
@@ -94,9 +95,10 @@ public class YieldWatchService {
 
         closeWebDriver();
         return YieldSummary.builder()
-                .bdoAmount(bdoAmount)
-                .wbnbAmount(wbnbAmount)
-                .yieldEarnedPercentage(yieldEarnedPercentage)
+                // TODO fix implementation
+//                .bdoAmount(bdoAmount)
+//                .wbnbAmount(wbnbAmount)
+//                .yieldEarnedPercentage(yieldEarnedPercentage)
                 .build();
     }
 

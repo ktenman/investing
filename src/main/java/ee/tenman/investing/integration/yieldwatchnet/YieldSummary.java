@@ -9,8 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 
 @Data
@@ -19,47 +22,34 @@ import java.util.TreeMap;
 @AllArgsConstructor
 public class YieldSummary {
     @Builder.Default
-    private BigDecimal bdoAmount = BigDecimal.ZERO;
-    @Builder.Default
-    private BigDecimal sbdoAmount = BigDecimal.ZERO;
-    @Builder.Default
-    private BigDecimal wbnbAmount = BigDecimal.ZERO;
-    @Builder.Default
-    private BigDecimal busdAmount = BigDecimal.ZERO;
-    @Builder.Default
-    private BigDecimal watchAmount = BigDecimal.ZERO;
-    @Builder.Default
-    private BigDecimal cakeAmount = BigDecimal.ZERO;
-    @Builder.Default
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 
     private Map<String, BigDecimal> pools = new TreeMap<>();
     private List<Balance> balances = new ArrayList<>();
+    private Set<Balance> amounts = new HashSet<>();
 
     public void add(String symbol, BigDecimal amount) {
-        switch (symbol) {
-            case "BDO":
-                bdoAmount = bdoAmount.add(amount);
-                break;
-            case "SBDO":
-                sbdoAmount = sbdoAmount.add(amount);
-                break;
-            case "BUSD":
-                busdAmount = busdAmount.add(amount);
-                break;
-            case "WBNB":
-            case "BNB":
-                wbnbAmount = wbnbAmount.add(amount);
-                break;
-            case "WATCH":
-                watchAmount = watchAmount.add(amount);
-                break;
-            case "CAKE":
-                cakeAmount = cakeAmount.add(amount);
-                break;
-            default:
-                throw new IllegalArgumentException(String.format("Symbol %s not supported", symbol));
-        }
+        Optional<Balance> optionalBalance = amounts.stream()
+                .filter(balance -> StringUtils.equalsIgnoreCase(symbol, balance.getSymbol()))
+                .findFirst();
+
+        BigDecimal newBalance = optionalBalance
+                .map(Balance::getBalance)
+                .orElse(BigDecimal.ZERO)
+                .add(amount);
+
+        Balance balance = optionalBalance.orElseGet(() -> Balance.builder().symbol(symbol).build());
+        balance.setBalance(newBalance);
+
+        amounts.add(balance);
+    }
+
+    public BigDecimal amountOf(String symbol) {
+        return amounts.stream()
+                .filter(balance -> StringUtils.equalsIgnoreCase(symbol, balance.getSymbol()))
+                .findFirst()
+                .map(Balance::getBalance)
+                .orElse(BigDecimal.ZERO);
     }
 
     public BigDecimal balanceOf(String symbol) {

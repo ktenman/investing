@@ -148,7 +148,7 @@ public class GoogleSheetsService {
         cellData.add(yieldEarnedPercentageCell);
 
         CellData wbnbAmountCell = new CellData();
-        wbnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getWbnbAmount().doubleValue()));
+        wbnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("WBNB").doubleValue()));
         cellData.add(wbnbAmountCell);
 
         CellData wbnbToEurCell = new CellData();
@@ -157,7 +157,7 @@ public class GoogleSheetsService {
         cellData.add(wbnbToEurCell);
 
         CellData busdAmountCell = new CellData();
-        busdAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBusdAmount().doubleValue()));
+        busdAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("BUSD").doubleValue()));
         cellData.add(busdAmountCell);
 
         CellData busdToEurCell = new CellData();
@@ -166,24 +166,32 @@ public class GoogleSheetsService {
         cellData.add(busdToEurCell);
 
         CellData bdoAmountCell = new CellData();
-        bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getBdoAmount().doubleValue()));
+        bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("BDO").doubleValue()));
 
         CellData bdoToEurCell = new CellData();
         BigDecimal bdoToEur = priceService.toEur(BDO_CURRENCY);
         bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
 
         CellData sbdoAmountCell = new CellData();
-        sbdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.getSbdoAmount().doubleValue()));
+        sbdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("SBDO").doubleValue()));
+
+        CellData watchAmountCell = new CellData();
+        watchAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf("WATCH").doubleValue()));
 
         CellData sbdoToEurCell = new CellData();
         BigDecimal sbdoToEur = priceService.toEur(SBDO_CURRENCY);
         sbdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(sbdoToEur.doubleValue()));
 
+        CellData watchToEurCell = new CellData();
+        BigDecimal watchToEur = priceService.toEur(WATCH_CURRENCY);
+        watchToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(watchToEur.doubleValue()));
+
         CellData totalEurCell = new CellData();
-        BigDecimal total = yieldSummary.getBusdAmount().multiply(busdToEur)
-                .add(yieldSummary.getWbnbAmount().multiply(wbnbToEur))
-                .add(yieldSummary.getBdoAmount().multiply(bdoToEur))
-                .add(yieldSummary.getSbdoAmount().multiply(sbdoToEur));
+        BigDecimal total = yieldSummary.amountOf("BUSD").multiply(busdToEur)
+                .add(yieldSummary.amountOf("WBNB").multiply(wbnbToEur))
+                .add(yieldSummary.amountOf("BDO").multiply(bdoToEur))
+                .add(yieldSummary.amountOf("SBDO").multiply(sbdoToEur))
+                .add(yieldSummary.amountOf("WATCH").multiply(watchToEur));
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
 
@@ -217,7 +225,7 @@ public class GoogleSheetsService {
         cellData.add(sbdoToEurCell);
 
         CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!T1:T1").getValues().get(0).get(0);
+        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!X1:X1").getValues().get(0).get(0);
         earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
         cellData.add(earningsPerDayCell);
 
@@ -226,6 +234,9 @@ public class GoogleSheetsService {
             newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
             cellData.add(newCellData);
         }
+
+        cellData.add(watchAmountCell);
+        cellData.add(watchToEurCell);
 
         rowData.add(new RowData().setValues(cellData));
 
@@ -384,10 +395,6 @@ public class GoogleSheetsService {
             googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
             YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
             googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
-            googleSheetsClient.update("investing!F30:F30", yieldSummary.getSbdoAmount());
-            googleSheetsClient.update("investing!F31:F31", yieldSummary.getWbnbAmount());
-            googleSheetsClient.update("investing!F32:F32", yieldSummary.getBdoAmount());
-            googleSheetsClient.update("investing!F33:F33", yieldSummary.getBusdAmount());
 
             startingIndexNumber = 30;
             startingIndexCombined = "E" + startingIndexNumber;
@@ -402,6 +409,11 @@ public class GoogleSheetsService {
                 String value = values[i];
                 BigDecimal balance = yieldSummary.balanceOf(value);
                 googleSheetsClient.update(coordinates, balance);
+
+                coordinate = "F" + (startingIndexNumber + i);
+                coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+                BigDecimal amount = yieldSummary.amountOf(value);
+                googleSheetsClient.update(coordinates, amount);
             }
 
         } catch (Exception e) {

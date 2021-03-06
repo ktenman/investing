@@ -38,9 +38,9 @@ class YieldWatchServiceIntegrationTest {
     void fetchEarnedYield() {
         YieldSummary yieldSummary = yieldWatchService.fetchYieldSummary();
 
-        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountOf("BDO")).isGreaterThan(ZERO);
         assertThat(yieldSummary.getYieldEarnedPercentage()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountOf("WBNB")).isGreaterThan(ZERO);
     }
 
     @Test
@@ -51,9 +51,9 @@ class YieldWatchServiceIntegrationTest {
 
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
-        assertThat(yieldSummary.getBusdAmount()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.getBdoAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountOf("BUSD")).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountOf("BDO")).isGreaterThan(ZERO);
         assertThat(yieldSummary.getYieldEarnedPercentage()).isLessThan(ZERO);
-        assertThat(yieldSummary.getWbnbAmount()).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountOf("WBNB")).isGreaterThan(ZERO);
     }
 }
