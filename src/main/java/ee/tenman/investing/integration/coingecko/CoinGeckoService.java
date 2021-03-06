@@ -25,7 +25,7 @@ public class CoinGeckoService {
     @Resource
     BinanceService binanceService;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public BigDecimal eurPrice(String currency) {
         open("https://www.coingecko.com/en/coins/" + currency);
 

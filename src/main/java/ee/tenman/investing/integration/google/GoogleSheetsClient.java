@@ -23,7 +23,7 @@ public class GoogleSheetsClient {
     @Resource
     private Sheets googleSheetsApiClient;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void update(String updateCell, Object requestBody) throws IOException {
         ValueRange value = new ValueRange()
                 .setValues(Arrays.asList(Arrays.asList(requestBody)));
@@ -33,7 +33,7 @@ public class GoogleSheetsClient {
         log.info("{}", response);
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void update(BatchUpdateSpreadsheetRequest batchRequest) {
         try {
             BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()
@@ -46,7 +46,7 @@ public class GoogleSheetsClient {
     }
 
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void update(BatchUpdateSpreadsheetRequest batchRequest, String spreadSheetId) {
         try {
             BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()

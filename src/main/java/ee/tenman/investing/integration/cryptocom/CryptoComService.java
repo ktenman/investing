@@ -19,7 +19,7 @@ public class CryptoComService {
     @Resource
     CryptoComApiClient cryptoComApiClient;
 
-    @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public BigDecimal getInstrumentPrice(String from, String to) {
         String instrumentName = String.format("%s_%s", from, to);
 

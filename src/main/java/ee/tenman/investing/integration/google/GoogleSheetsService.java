@@ -94,7 +94,7 @@ public class GoogleSheetsService {
     @Resource
     private BscScanService bscScanService;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     @Scheduled(cron = "0 0/5 * * * *")
     public void appendProfits() {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
@@ -120,7 +120,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 0/10 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
@@ -262,7 +262,7 @@ public class GoogleSheetsService {
     }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 90000)
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void updateSumOfTickers() throws Exception {
 
         try {
@@ -315,7 +315,7 @@ public class GoogleSheetsService {
     }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 30000)
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshCryptoPrices() throws Exception {
 
         try {
@@ -374,8 +374,8 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 36_000, initialDelay = 6_000)
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    @Scheduled(fixedDelay = 120_000, initialDelay = 60_000)
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshBalances() throws Exception {
         int startingIndexNumber = 21;
         String startingIndexCombined = "E" + startingIndexNumber;

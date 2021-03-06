@@ -219,7 +219,7 @@ public class BinanceService {
         return Math.round(value / factor) * factor;
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval) {
 
         return getCandlestickBars(fromTo, candlestickInterval).stream()
@@ -235,7 +235,7 @@ public class BinanceService {
         return binanceApiRestClient.getCandlestickBars(fromTo, candlestickInterval);
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 200))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<LocalDateTime, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval, int limit) {
 
         return getCandlestickBars(fromTo, candlestickInterval, limit).stream()

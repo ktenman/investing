@@ -60,7 +60,7 @@ public class CoinMarketCapService {
         return prices;
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<String, BigDecimal> getPricesInEur(List<String> tickers, BigDecimal busdToEur) {
         Map<String, BigDecimal> pricesInUsd = getPricesInUsd(tickers);
         Map<String, BigDecimal> pricesInEUr = new HashMap<>();

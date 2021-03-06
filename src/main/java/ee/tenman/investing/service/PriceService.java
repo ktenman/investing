@@ -84,7 +84,7 @@ public class PriceService {
         throw new NotSupportedSymbolException(String.format("%s not supported", fromTo));
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 300))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<String, BigDecimal> getPrices(Collection<String> input) {
         List<String> tickers = new ArrayList<>(input);
         Map<String, BigDecimal> binancePrices = new HashMap<>();
