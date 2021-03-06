@@ -1,13 +1,13 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
 import com.codeborne.selenide.SelenideElement;
-import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.yieldwatchnet.api.Autofarm;
 import ee.tenman.investing.integration.yieldwatchnet.api.BeefyFinance;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPInfo;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPVaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.PancakeSwap;
 import ee.tenman.investing.integration.yieldwatchnet.api.Result;
+import ee.tenman.investing.integration.yieldwatchnet.api.Staking;
 import ee.tenman.investing.integration.yieldwatchnet.api.TotalUSDValues;
 import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
 import ee.tenman.investing.integration.yieldwatchnet.api.WalletBalance;
@@ -15,13 +15,13 @@ import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -107,16 +107,25 @@ public class YieldWatchService {
 
         List<Vault> vaults = Stream.of(
                 Optional.ofNullable(yieldData.getResult()
-                        .getAutofarm()).map(Autofarm::getLPVaults)
+                        .getAutofarm())
+                        .map(Autofarm::getLPVaults)
+                        .map(LPVaults::getVaults)
                         .orElse(null),
                 Optional.ofNullable(yieldData.getResult()
-                        .getBeefyFinance()).map(BeefyFinance::getLPVaults)
+                        .getBeefyFinance())
+                        .map(BeefyFinance::getLPVaults)
+                        .map(LPVaults::getVaults)
                         .orElse(null),
                 Optional.ofNullable(yieldData.getResult()
-                        .getPancakeSwap()).map(PancakeSwap::getLPVaults)
+                        .getPancakeSwap())
+                        .map(PancakeSwap::getLPVaults)
+                        .map(LPVaults::getVaults)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult()
+                        .getPancakeSwap())
+                        .map(PancakeSwap::getStaking)
+                        .map(Staking::getVaults)
                         .orElse(null))
-                .filter(Objects::nonNull)
-                .map(LPVaults::getVaults)
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
@@ -146,6 +155,11 @@ public class YieldWatchService {
                         .map(Result::getPancakeSwap)
                         .map(PancakeSwap::getLPVaults)
                         .map(LPVaults::getTotalUSDValues)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult())
+                        .map(Result::getPancakeSwap)
+                        .map(PancakeSwap::getStaking)
+                        .map(Staking::getTotalUSDValues)
                         .orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -167,17 +181,18 @@ public class YieldWatchService {
     private void addPoolData(Vault vault, YieldSummary yieldSummary) {
         LPInfo lpInfo = vault.getLPInfo();
 
-        Map<String, BigDecimal> symbolAmounts = ImmutableMap.of(
-                lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0(),
-                lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1()
-        );
+        log.info("{}", vault);
 
-        yieldSummary.add(lpInfo.getSymbolToken0().toUpperCase(), symbolAmounts.get(lpInfo.getSymbolToken0().toUpperCase()));
-        yieldSummary.add(lpInfo.getSymbolToken1().toUpperCase(), symbolAmounts.get(lpInfo.getSymbolToken1().toUpperCase()));
-
-        String newPoolName = String.format("%s-%s Pool", lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getSymbolToken1().toUpperCase());
-
-        yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
+        if (lpInfo != null) {
+            yieldSummary.add(lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0());
+            yieldSummary.add(lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1());
+            String newPoolName = String.format("%s-%s Pool", lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getSymbolToken1().toUpperCase());
+            yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
+        } else if (StringUtils.isNotEmpty(vault.getDepositToken())) {
+            yieldSummary.add(vault.getDepositToken().toUpperCase(), vault.getDepositedTokens());
+        } else {
+            throw new IllegalArgumentException(String.format("Not supported. %s", vault.toString()));
+        }
     }
 
 }
