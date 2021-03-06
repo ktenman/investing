@@ -27,6 +27,10 @@ public class YieldSummary {
     @Builder.Default
     private BigDecimal busdAmount = BigDecimal.ZERO;
     @Builder.Default
+    private BigDecimal watchAmount = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal cakeAmount = BigDecimal.ZERO;
+    @Builder.Default
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 
     private Map<String, BigDecimal> pools = new TreeMap<>();
@@ -46,6 +50,12 @@ public class YieldSummary {
             case "WBNB":
             case "BNB":
                 wbnbAmount = wbnbAmount.add(amount);
+                break;
+            case "WATCH":
+                watchAmount = watchAmount.add(amount);
+                break;
+            case "CAKE":
+                cakeAmount = cakeAmount.add(amount);
                 break;
             default:
                 throw new IllegalArgumentException(String.format("Symbol %s not supported", symbol));
