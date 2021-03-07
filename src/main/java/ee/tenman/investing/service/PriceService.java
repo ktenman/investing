@@ -140,17 +140,22 @@ public class PriceService {
                 return priceToEur;
             }
         } catch (NotSupportedSymbolException ignored) {
-
         }
 
-        BigDecimal coinMarketCapApiPrice = coinMarketCapApiService.eurPrice(symbol.name());
-        if (coinMarketCapApiPrice != null && ComparableUtils.is(coinMarketCapApiPrice).greaterThan(ZERO)) {
-            return coinMarketCapApiPrice;
+        try {
+            BigDecimal coinMarketCapApiPrice = coinMarketCapApiService.eurPrice(symbol.name());
+            if (coinMarketCapApiPrice != null && ComparableUtils.is(coinMarketCapApiPrice).greaterThan(ZERO)) {
+                return coinMarketCapApiPrice;
+            }
+        } catch (Exception ignored) {
         }
 
-        BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(symbol);
-        if (coinMarketCapPrice != null && ComparableUtils.is(coinMarketCapPrice).greaterThan(ZERO)) {
-            return coinMarketCapPrice;
+        try {
+            BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(symbol);
+            if (coinMarketCapPrice != null && ComparableUtils.is(coinMarketCapPrice).greaterThan(ZERO)) {
+                return coinMarketCapPrice;
+            }
+        } catch (Exception ignored) {
         }
 
         return coinGeckoService.eurPrice(symbol);
