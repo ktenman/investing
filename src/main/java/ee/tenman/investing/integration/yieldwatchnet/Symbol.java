@@ -25,23 +25,23 @@ public enum Symbol {
     WBNB;
 
     private static final Map<Symbol, Integer> COIN_MARKET_CAP_IDS = ImmutableMap.<Symbol, Integer>builder()
-            .put(BDO, 8219)
-            .put(SBDO, 8172)
-            .put(WBNB, 7192)
-            .put(BUSD, 4687)
-            .put(EGG, 8449)
-            .put(CAKE, 7186)
-            .put(WATCH, 8621)
             .put(ADA, 2010)
             .put(AUTO, 8387)
+            .put(BDO, 8219)
             .put(BNB, 1839)
             .put(BTC, 1)
+            .put(BUSD, 4687)
+            .put(CAKE, 7186)
             .put(CRO, 3635)
             .put(DOT, 6636)
+            .put(EGG, 8449)
             .put(ETH, 1027)
+            .put(SBDO, 8172)
             .put(SUSHI, 6758)
             .put(UNI, 7083)
             .put(USDT, 825)
+            .put(WATCH, 8621)
+            .put(WBNB, 7192)
             .build();
 
     public int getCoinMarketCapId() {

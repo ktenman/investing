@@ -4,6 +4,7 @@ import ee.tenman.investing.integration.coingecko.CoinGeckoService;
 import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.service.PriceService;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -12,9 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
@@ -53,17 +52,19 @@ class CoinMarketCapApiServiceIntegrationTest {
         BigDecimal symbolToEurPriceCoinGecko = coinGeckoService.eurPrice(symbol);
 
         List<BigDecimal> prices = Arrays.asList(priceToEur, symbolToEurPrice, symbolToEurPriceApi, symbolToEurPriceCoinGecko);
-        Set<BigDecimal> differences = new HashSet<>();
 
         for (BigDecimal priceA : prices) {
             for (BigDecimal priceB : prices) {
-                differences.add(priceA.divide(priceB, HALF_UP));
+                if (ComparableUtils.is(priceB).equalTo(ZERO)) {
+                    continue;
+                }
+
+                BigDecimal difference = priceA.divide(priceB, HALF_UP);
+
+                assertThat(difference)
+                        .isGreaterThan(BigDecimal.valueOf(0.98))
+                        .isLessThan(BigDecimal.valueOf(1.02));
             }
         }
-
-        differences.forEach(difference -> assertThat(difference)
-                .isGreaterThan(BigDecimal.valueOf(0.98))
-                .isLessThan(BigDecimal.valueOf(1.02))
-        );
     }
 }

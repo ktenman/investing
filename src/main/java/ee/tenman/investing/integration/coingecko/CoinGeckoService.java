@@ -44,6 +44,7 @@ public class CoinGeckoService {
             .put(Symbol.UNI, "uniswap")
             .put(Symbol.USDT, "tether")
             .build();
+
     @Resource
     private BinanceService binanceService;
 
@@ -51,7 +52,7 @@ public class CoinGeckoService {
     public BigDecimal eurPrice(Symbol symbol) {
         open("https://www.coingecko.com/en/coins/" + SYMBOL_TO_CURRENCY.get(symbol));
 
-        $(tagName("h1")).waitUntil(text(symbol.name()), 2000, 200);
+        $(tagName("h1")).waitUntil(text(symbol.name()), 3000, 50);
 
         BigDecimal btcPrice = Optional.of($$(className("text-muted"))
                 .filter(text("BTC"))

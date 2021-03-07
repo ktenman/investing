@@ -93,6 +93,8 @@ public class CoinMarketCapService {
 
         open("https://coinmarketcap.com/currencies/" + SYMBOL_TO_CURRENCY.get(symbol));
 
+        $(By.tagName("div")).waitUntil(text("$"), 3000, 50);
+
         ElementsCollection selenideElements = Selenide.$$(By.tagName("p"));
 
         List<BigDecimal> prices = new ArrayList<>();
