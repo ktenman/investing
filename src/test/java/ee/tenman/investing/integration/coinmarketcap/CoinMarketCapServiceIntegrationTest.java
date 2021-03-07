@@ -65,10 +65,4 @@ class CoinMarketCapServiceIntegrationTest {
         assertThat(eurPrice).isGreaterThan(ZERO);
     }
 
-    @Test
-    void eurPrice() {
-        BigDecimal eurPrice = coinMarketCapService.eurPrice(Symbol.ETH);
-
-        assertThat(eurPrice).isGreaterThan(ZERO);
-    }
 }

@@ -5,6 +5,7 @@ import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.service.PriceService;
 import org.apache.commons.lang3.compare.ComparableUtils;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -44,6 +45,7 @@ class CoinMarketCapApiServiceIntegrationTest {
 
     @ParameterizedTest
     @EnumSource(Symbol.class)
+    @Disabled
     @DisplayName("Compare CoinGecko and CoinMarketCap prices. Should not differ more than 2%")
     void eur2(Symbol symbol) {
         BigDecimal priceToEur = priceService.toEur(symbol);

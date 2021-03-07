@@ -21,6 +21,7 @@ import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
+import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
@@ -43,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -56,11 +59,19 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.SUSHI_SWAP
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.USDT_ID;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BUSD;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.CAKE;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static java.lang.Math.abs;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @Slf4j
@@ -130,66 +141,34 @@ public class GoogleSheetsService {
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {
+        Map<Symbol, BigDecimal> prices = yieldSummary.getAmounts().stream()
+                .map(Balance::getSymbol)
+                .map(String::toUpperCase)
+                .map(Symbol::valueOf)
+                .collect(toMap(
+                        identity(),
+                        symbol -> priceService.toEur(symbol),
+                        (v1, v2) -> {
+                            throw new IllegalStateException(String.format("Duplicate key for values %s and %s", v1, v2));
+                        },
+                        TreeMap::new
+                ));
+
         BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
 
         List<RowData> rowData = new ArrayList<>();
         List<CellData> cellData = new ArrayList<>();
 
-        CellData yieldEarnedPercentageCell = new CellData();
-        yieldEarnedPercentageCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldEarnedPercentage.doubleValue()));
-        yieldEarnedPercentageCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
-        cellData.add(yieldEarnedPercentageCell);
-
-        CellData wbnbAmountCell = new CellData();
-        wbnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.WBNB).doubleValue()));
-        cellData.add(wbnbAmountCell);
-
-        CellData wbnbToEurCell = new CellData();
-        BigDecimal wbnbToEur = priceService.toEur(Symbol.WBNB);
-        wbnbToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(wbnbToEur.doubleValue()));
-        cellData.add(wbnbToEurCell);
-
-        CellData busdAmountCell = new CellData();
-        busdAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.BUSD).doubleValue()));
-        cellData.add(busdAmountCell);
-
-        CellData busdToEurCell = new CellData();
-        BigDecimal busdToEur = priceService.toEur(Symbol.BUSD);
-        busdToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(busdToEur.doubleValue()));
-        cellData.add(busdToEurCell);
-
-        CellData bdoAmountCell = new CellData();
-        bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.BDO).doubleValue()));
-
-        CellData bdoToEurCell = new CellData();
-        BigDecimal bdoToEur = priceService.toEur(Symbol.BDO);
-        bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
-
-        CellData sbdoAmountCell = new CellData();
-        sbdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.SBDO).doubleValue()));
-        CellData sbdoToEurCell = new CellData();
-        BigDecimal sbdoToEur = priceService.toEur(Symbol.SBDO);
-        sbdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(sbdoToEur.doubleValue()));
-
-        CellData watchAmountCell = new CellData();
-        watchAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.WATCH).doubleValue()));
-        CellData watchToEurCell = new CellData();
-        BigDecimal watchToEur = priceService.toEur(Symbol.WATCH);
-        watchToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(watchToEur.doubleValue()));
-
-        CellData cakeAmountCell = new CellData();
-        cakeAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.CAKE).doubleValue()));
-        CellData cakeToEurCell = new CellData();
-        BigDecimal cakeToEur = priceService.toEur(Symbol.CAKE);
-        cakeToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(cakeToEur.doubleValue()));
+        Instant now = Instant.now();
+        CellData machineDateTimeCell = new CellData();
+        machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond() / 86400.0 + 25569));
+        machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
+        cellData.add(machineDateTimeCell);
 
         CellData totalEurCell = new CellData();
-        BigDecimal total = yieldSummary.amountOf(Symbol.BUSD).multiply(busdToEur)
-                .add(yieldSummary.amountOf(Symbol.WBNB).multiply(wbnbToEur))
-                .add(yieldSummary.amountOf(Symbol.BDO).multiply(bdoToEur))
-                .add(yieldSummary.amountOf(Symbol.SBDO).multiply(sbdoToEur))
-                .add(yieldSummary.amountOf(Symbol.WATCH).multiply(watchToEur)
-                        .add(yieldSummary.amountOf(Symbol.CAKE).multiply(cakeToEur)));
+        BigDecimal total = prices.entrySet().stream()
+                .map(e -> e.getValue().multiply(yieldSummary.amountOf(e.getKey())))
+                .reduce(ZERO, BigDecimal::add);
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
 
@@ -198,45 +177,58 @@ public class GoogleSheetsService {
         earnedYieldCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earnedYield.doubleValue()));
         cellData.add(earnedYieldCell);
 
-        Instant now = Instant.now();
-        CellData machineDateTimeCell = new CellData();
-        machineDateTimeCell.setUserEnteredValue(new ExtendedValue().setNumberValue(now.getEpochSecond() / 86400.0 + 25569));
-        machineDateTimeCell.setUserEnteredFormat(new CellFormat().setNumberFormat(DATE_TIME_FORMAT));
-        cellData.add(machineDateTimeCell);
+        CellData earningsPerDayCell = new CellData();
+        BigDecimal earningsPerDay = Optional.ofNullable(getValueRange("yield!A1:A1"))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .map(BigDecimal::new)
+                .orElseThrow(() -> new IllegalStateException("Couldn't fetch earnings per day value"));
+        earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
+        cellData.add(earningsPerDayCell);
 
-        BigDecimal investedBnbAmount = (BigDecimal) getValueRange("investing!H21:H21").getValues().get(0).get(0);
-        BigDecimal totalEurInvested = wbnbToEur.multiply(investedBnbAmount);
+        CellData yieldEarnedPercentageCell = new CellData();
+        yieldEarnedPercentageCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldEarnedPercentage.doubleValue()));
+        yieldEarnedPercentageCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
+        cellData.add(yieldEarnedPercentageCell);
+
+        int index = 1;
+        for (Map.Entry<String, BigDecimal> entry : yieldSummary.getPools().entrySet()) {
+            CellData newCellData = new CellData();
+            newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(entry.getValue().doubleValue()));
+            cellData.add(newCellData);
+
+            log.info("{}. {} value {}", index++, entry.getKey(), entry.getValue());
+        }
+
+        index = 1;
+        for (Map.Entry<Symbol, BigDecimal> entry : prices.entrySet()) {
+            CellData amountCell = new CellData();
+            BigDecimal amount = yieldSummary.amountOf(entry.getKey());
+            amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
+            cellData.add(amountCell);
+
+            CellData priceCell = new CellData();
+            priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(entry.getValue().doubleValue()));
+            cellData.add(priceCell);
+
+            log.info("{}. {} amount: {}, price: {}", index++, entry.getKey(), amount, entry.getValue());
+        }
+
+        BigDecimal investedBnbAmount = BigDecimal.valueOf(13.6048272167);
+        BigDecimal totalEurInvested = prices.get(WBNB).multiply(investedBnbAmount);
 
         CellData investedEurDifferenceCell = new CellData();
         BigDecimal investedEurDifference = total.subtract(totalEurInvested);
         investedEurDifferenceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(investedEurDifference.doubleValue()));
-        cellData.add(investedEurDifferenceCell);
 
         CellData earnedBnbAmountCell = new CellData();
-        BigDecimal earnedBnb = investedEurDifference.divide(wbnbToEur, RoundingMode.HALF_UP);
+        BigDecimal earnedBnb = investedEurDifference.divide(prices.get(WBNB), RoundingMode.HALF_UP);
         earnedBnbAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earnedBnb.doubleValue()));
+
         cellData.add(earnedBnbAmountCell);
-
-        cellData.add(bdoAmountCell);
-        cellData.add(bdoToEurCell);
-        cellData.add(sbdoAmountCell);
-        cellData.add(sbdoToEurCell);
-
-        CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = (BigDecimal) getValueRange("yield!Y1:Y1").getValues().get(0).get(0);
-        earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
-        cellData.add(earningsPerDayCell);
-
-        for (BigDecimal value : yieldSummary.getPools().values()) {
-            CellData newCellData = new CellData();
-            newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
-            cellData.add(newCellData);
-        }
-
-        cellData.add(watchAmountCell);
-        cellData.add(watchToEurCell);
-        cellData.add(cakeAmountCell);
-        cellData.add(cakeToEurCell);
+        cellData.add(investedEurDifferenceCell);
 
         rowData.add(new RowData().setValues(cellData));
 
@@ -317,31 +309,31 @@ public class GoogleSheetsService {
             googleSheetsClient.update(updateCell, prices.get(e.getKey()));
         }
 
-        BigDecimal sbdoToEurPrice = priceService.toEur(Symbol.SBDO);
+        BigDecimal sbdoToEurPrice = priceService.toEur(SBDO);
         if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
         }
 
-        BigDecimal wbnbToEurPrice = priceService.toEur(Symbol.WBNB);
+        BigDecimal wbnbToEurPrice = priceService.toEur(WBNB);
         if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
         }
 
-        BigDecimal bdoToEurPrice = priceService.toEur(Symbol.BDO);
+        BigDecimal bdoToEurPrice = priceService.toEur(BDO);
         if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
         }
 
-        BigDecimal busdToEurPrice = priceService.toEur(Symbol.BUSD);
+        BigDecimal busdToEurPrice = priceService.toEur(BUSD);
         if (ComparableUtils.is(busdToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G33:G33", busdToEurPrice);
         }
-        BigDecimal cakeToEurPrice = priceService.toEur(Symbol.CAKE);
+        BigDecimal cakeToEurPrice = priceService.toEur(CAKE);
         if (ComparableUtils.is(cakeToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G34:G34", cakeToEurPrice);
         }
 
-        BigDecimal watchToEurPrice = priceService.toEur(Symbol.WATCH);
+        BigDecimal watchToEurPrice = priceService.toEur(WATCH);
         if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
         }
