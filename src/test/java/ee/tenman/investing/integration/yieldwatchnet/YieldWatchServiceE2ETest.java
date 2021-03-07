@@ -24,9 +24,9 @@ class YieldWatchServiceE2ETest {
     void getYieldSummary() {
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
-        assertThat(yieldSummary.amountOf(Symbol.BUSD)).isGreaterThan(ZERO);
-        assertThat(yieldSummary.amountOf(Symbol.BDO)).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountInPool(Symbol.BUSD)).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountInPool(Symbol.BDO)).isGreaterThan(ZERO);
         assertThat(yieldSummary.getYieldEarnedPercentage()).isGreaterThan(ZERO);
-        assertThat(yieldSummary.amountOf(Symbol.WBNB)).isGreaterThan(ZERO);
+        assertThat(yieldSummary.amountInPool(Symbol.WBNB)).isGreaterThan(ZERO);
     }
 }

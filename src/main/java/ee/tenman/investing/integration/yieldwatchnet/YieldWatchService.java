@@ -2,6 +2,7 @@ package ee.tenman.investing.integration.yieldwatchnet;
 
 import com.codeborne.selenide.SelenideElement;
 import ee.tenman.investing.integration.yieldwatchnet.api.Autofarm;
+import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import ee.tenman.investing.integration.yieldwatchnet.api.BeefyFinance;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPInfo;
 import ee.tenman.investing.integration.yieldwatchnet.api.LPVaults;
@@ -22,9 +23,11 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -135,12 +138,13 @@ public class YieldWatchService {
 
         YieldSummary yieldSummary = new YieldSummary();
 
-        Optional.of(yieldData)
+        Set<Balance> walletBalances = new HashSet<>(Optional.of(yieldData)
                 .map(YieldData::getResult)
                 .map(Result::getWalletBalance)
                 .map(WalletBalance::getBalances)
-                .orElse(Collections.emptyList())
-                .forEach(balance -> yieldSummary.add(balance.getSymbol(), balance.getBalance()));
+                .orElse(Collections.emptyList()));
+
+        yieldSummary.setWalletBalances(walletBalances);
 
         vaults.forEach(vault -> addPoolData(vault, yieldSummary));
 
@@ -188,12 +192,12 @@ public class YieldWatchService {
         log.info("{}", vault);
 
         if (lpInfo != null) {
-            yieldSummary.add(lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0());
-            yieldSummary.add(lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1());
+            yieldSummary.addToPoolAmounts(lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0());
+            yieldSummary.addToPoolAmounts(lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1());
             String newPoolName = String.format("%s-%s Pool", lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getSymbolToken1().toUpperCase());
             yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
         } else if (StringUtils.isNotEmpty(vault.getDepositToken())) {
-            yieldSummary.add(vault.getDepositToken().toUpperCase(), vault.getDepositedTokens());
+            yieldSummary.addToPoolAmounts(vault.getDepositToken().toUpperCase(), vault.getDepositedTokens());
         } else {
             throw new IllegalArgumentException(String.format("Not supported. %s", vault.toString()));
         }

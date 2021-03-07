@@ -5,7 +5,6 @@ import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.service.PriceService;
 import org.apache.commons.lang3.compare.ComparableUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -13,11 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -45,7 +44,6 @@ class CoinMarketCapApiServiceIntegrationTest {
 
     @ParameterizedTest
     @EnumSource(Symbol.class)
-    @Disabled
     @DisplayName("Compare CoinGecko and CoinMarketCap prices. Should not differ more than 2%")
     void eur2(Symbol symbol) {
         BigDecimal priceToEur = priceService.toEur(symbol);
@@ -53,7 +51,7 @@ class CoinMarketCapApiServiceIntegrationTest {
         BigDecimal symbolToEurPriceApi = coinMarketCapApiService.eurPrice(symbol.name());
         BigDecimal symbolToEurPriceCoinGecko = coinGeckoService.eurPrice(symbol);
 
-        List<BigDecimal> prices = Arrays.asList(priceToEur, symbolToEurPrice, symbolToEurPriceApi, symbolToEurPriceCoinGecko);
+        List<BigDecimal> prices = asList(priceToEur, symbolToEurPrice, symbolToEurPriceApi, symbolToEurPriceCoinGecko);
 
         for (BigDecimal priceA : prices) {
             for (BigDecimal priceB : prices) {

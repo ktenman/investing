@@ -141,7 +141,7 @@ public class GoogleSheetsService {
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {
-        Map<Symbol, BigDecimal> prices = yieldSummary.getAmounts().stream()
+        Map<Symbol, BigDecimal> prices = yieldSummary.getPoolBalances().stream()
                 .map(Balance::getSymbol)
                 .map(String::toUpperCase)
                 .map(Symbol::valueOf)
@@ -167,7 +167,7 @@ public class GoogleSheetsService {
 
         CellData totalEurCell = new CellData();
         BigDecimal total = prices.entrySet().stream()
-                .map(e -> e.getValue().multiply(yieldSummary.amountOf(e.getKey())))
+                .map(e -> e.getValue().multiply(yieldSummary.amountInPool(e.getKey())))
                 .reduce(ZERO, BigDecimal::add);
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
@@ -205,7 +205,7 @@ public class GoogleSheetsService {
         index = 1;
         for (Map.Entry<Symbol, BigDecimal> entry : prices.entrySet()) {
             CellData amountCell = new CellData();
-            BigDecimal amount = yieldSummary.amountOf(entry.getKey());
+            BigDecimal amount = yieldSummary.amountInPool(entry.getKey());
             amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
             cellData.add(amountCell);
 
@@ -379,8 +379,16 @@ public class GoogleSheetsService {
             String coordinate = "F" + (startingIndexNumber + i);
             String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
             String value = values[i];
-            BigDecimal amount = yieldSummary.amountOf(Symbol.valueOf(value));
-            googleSheetsClient.update(coordinates, amount);
+            Symbol symbol = Symbol.valueOf(value);
+
+            BigDecimal poolAmount = yieldSummary.amountInPool(symbol);
+            googleSheetsClient.update(coordinates, poolAmount);
+
+            coordinate = "D" + (startingIndexNumber + i);
+            coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+
+            BigDecimal walletAmount = yieldSummary.amountInWallet(symbol);
+            googleSheetsClient.update(coordinates, walletAmount);
         }
     }
 

@@ -23,10 +23,11 @@ public class YieldSummary {
     private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
 
     private Map<String, BigDecimal> pools = new TreeMap<>();
-    private Set<Balance> amounts = new HashSet<>();
+    private Set<Balance> poolBalances = new HashSet<>();
+    private Set<Balance> walletBalances = new HashSet<>();
 
-    public void add(String symbol, BigDecimal amount) {
-        Optional<Balance> optionalBalance = amounts.stream()
+    public void addToPoolAmounts(String symbol, BigDecimal amount) {
+        Optional<Balance> optionalBalance = poolBalances.stream()
                 .filter(balance -> StringUtils.equalsIgnoreCase(symbol, balance.getSymbol()))
                 .findFirst();
 
@@ -38,11 +39,19 @@ public class YieldSummary {
         Balance balance = optionalBalance.orElseGet(() -> Balance.builder().symbol(symbol).build());
         balance.setBalance(newBalance);
 
-        amounts.add(balance);
+        poolBalances.add(balance);
     }
 
-    public BigDecimal amountOf(Symbol symbol) {
-        return amounts.stream()
+    public BigDecimal amountInPool(Symbol symbol) {
+        return poolBalances.stream()
+                .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
+                .findFirst()
+                .map(Balance::getBalance)
+                .orElse(BigDecimal.ZERO);
+    }
+
+    public BigDecimal amountInWallet(Symbol symbol) {
+        return walletBalances.stream()
                 .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
                 .findFirst()
                 .map(Balance::getBalance)
