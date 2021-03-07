@@ -120,7 +120,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 0/10 * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
@@ -374,7 +374,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 120_000, initialDelay = 60_000)
+    @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshBalances() throws Exception {
         int startingIndexNumber = 21;
