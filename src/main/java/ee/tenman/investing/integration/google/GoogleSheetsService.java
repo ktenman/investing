@@ -25,6 +25,7 @@ import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
 import org.springframework.retry.annotation.Backoff;
@@ -184,6 +185,7 @@ public class GoogleSheetsService {
                 .map(o -> o.get(0))
                 .map(o -> o.get(0))
                 .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
                 .map(BigDecimal::new)
                 .orElseThrow(() -> new IllegalStateException("Couldn't fetch earnings per day value"));
         earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
