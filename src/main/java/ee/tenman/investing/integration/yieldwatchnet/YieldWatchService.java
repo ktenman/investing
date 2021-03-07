@@ -18,6 +18,8 @@ import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -106,6 +108,7 @@ public class YieldWatchService {
                 .build();
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public YieldSummary getYieldSummary() {
         YieldData yieldData = yieldApiService.getYieldData();
 

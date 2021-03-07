@@ -33,7 +33,7 @@ public class GoogleSheetsClient {
         log.info("{}", response);
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 3000))
     public void update(BatchUpdateSpreadsheetRequest batchRequest) {
         try {
             BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()
