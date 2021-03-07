@@ -120,7 +120,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
@@ -263,120 +263,103 @@ public class GoogleSheetsService {
 
     @Scheduled(fixedDelay = 60000, initialDelay = 90000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    public void updateSumOfTickers() throws Exception {
-
-        try {
-            updateTickerAmounts();
-        } catch (Exception e) {
-            log.error("Error ", e);
-            throw new Exception(e.getMessage());
-        }
+    public void updateSumOfTickers() throws IOException {
+        updateTickerAmounts();
     }
 
-    public void removeCells() {
-        try {
-            Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
+    public void removeCells() throws IOException {
+        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
 
-            SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
-            Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
+        SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
+        Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
 
-            Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                    googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
-            getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
-            getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
+        Sheets.Spreadsheets.Values.Get getInvestingRequest =
+                googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
+        getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
+        getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
 
-            ValueRange valueRange = getInvestingRequest.execute();
+        ValueRange valueRange = getInvestingRequest.execute();
 
-            String maximum = valueRange.getRange().split(":")[1].replaceAll("[^\\d.]", "");
-            int setEndIndex = Integer.parseInt(maximum);
+        String maximum = valueRange.getRange().split(":")[1].replaceAll("[^\\d.]", "");
+        int setEndIndex = Integer.parseInt(maximum);
 
-            DeleteDimensionRequest deleteDimensionRequest = new DeleteDimensionRequest();
-            DimensionRange dimensionRange = new DimensionRange();
-            dimensionRange.setSheetId(sheetID);
-            dimensionRange.setDimension("ROWS");
-            dimensionRange.setStartIndex(10000);
-            dimensionRange.setEndIndex(setEndIndex);
+        DeleteDimensionRequest deleteDimensionRequest = new DeleteDimensionRequest();
+        DimensionRange dimensionRange = new DimensionRange();
+        dimensionRange.setSheetId(sheetID);
+        dimensionRange.setDimension("ROWS");
+        dimensionRange.setStartIndex(10000);
+        dimensionRange.setEndIndex(setEndIndex);
 
-            deleteDimensionRequest.setRange(dimensionRange);
+        deleteDimensionRequest.setRange(dimensionRange);
 
-            List<Request> requests = new ArrayList<>();
-            requests.add(new Request().setDeleteDimension(deleteDimensionRequest));
-            BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
-            batchRequests.setRequests(requests);
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request().setDeleteDimension(deleteDimensionRequest));
+        BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
+        batchRequests.setRequests(requests);
 
-            BatchUpdateSpreadsheetResponse response = googleSheetsClient.get().spreadsheets()
-                    .batchUpdate(SPREAD_SHEET_ID, batchRequests)
-                    .execute();
+        BatchUpdateSpreadsheetResponse response = googleSheetsClient.get().spreadsheets()
+                .batchUpdate(SPREAD_SHEET_ID, batchRequests)
+                .execute();
 
-            log.info("{}", response);
-        } catch (Exception e) {
-            log.error("Error ", e);
-        }
+        log.info("{}", response);
     }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 30000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    public void refreshCryptoPrices() throws Exception {
+    public void refreshCryptoPrices() throws IOException {
+        Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
 
-        try {
-            Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
+        Map<String, String> cryptoCellsMap = new HashMap<>();
+        cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
+        cryptoCellsMap.put(CRO_ID, "investing!G22:G22");
+        cryptoCellsMap.put(POLKADOT_ID, "investing!G23:G23");
+        cryptoCellsMap.put(UNISWAP_ID, "investing!G24:G24");
+        cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
+        cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
+        cryptoCellsMap.put(USDT_ID, "investing!G28:G28");
+        cryptoCellsMap.put(CARDANO_ID, "investing!G29:G29");
+        cryptoCellsMap.put(ETHEREUM_ID, "investing!G27:G27");
 
-            Map<String, String> cryptoCellsMap = new HashMap<>();
-            cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
-            cryptoCellsMap.put(CRO_ID, "investing!G22:G22");
-            cryptoCellsMap.put(POLKADOT_ID, "investing!G23:G23");
-            cryptoCellsMap.put(UNISWAP_ID, "investing!G24:G24");
-            cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
-            cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
-            cryptoCellsMap.put(USDT_ID, "investing!G28:G28");
-            cryptoCellsMap.put(CARDANO_ID, "investing!G29:G29");
-            cryptoCellsMap.put(ETHEREUM_ID, "investing!G27:G27");
+        for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
+            String updateCell = e.getValue();
+            googleSheetsClient.update(updateCell, prices.get(e.getKey()));
+        }
 
-            for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
-                String updateCell = e.getValue();
-                googleSheetsClient.update(updateCell, prices.get(e.getKey()));
-            }
+        BigDecimal sbdoToEurPrice = priceService.toEur(SBDO_CURRENCY);
+        if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
+            googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
+        }
 
-            BigDecimal sbdoToEurPrice = priceService.toEur(SBDO_CURRENCY);
-            if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
-            }
+        BigDecimal wbnbToEurPrice = priceService.toEur(WBNB_CURRENCY);
+        if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
+            googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
+        } else {
+            googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
+        }
 
-            BigDecimal wbnbToEurPrice = priceService.toEur(WBNB_CURRENCY);
-            if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
-            } else {
-                googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
-            }
+        BigDecimal bdoToEurPrice = priceService.toEur(BDO_CURRENCY);
+        if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
+            googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
+        }
 
-            BigDecimal bdoToEurPrice = priceService.toEur(BDO_CURRENCY);
-            if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
-            }
+        BigDecimal busdToEurPrice = priceService.toEur(BUSD_CURRENCY);
+        if (ComparableUtils.is(busdToEurPrice).greaterThan(ZERO)) {
+            googleSheetsClient.update("investing!G33:G33", busdToEurPrice);
+        }
+        BigDecimal cakeToEurPrice = priceService.toEur(CAKE_CURRENCY);
+        if (ComparableUtils.is(cakeToEurPrice).greaterThan(ZERO)) {
+            googleSheetsClient.update("investing!G34:G34", cakeToEurPrice);
+        }
 
-            BigDecimal busdToEurPrice = priceService.toEur(BUSD_CURRENCY);
-            if (ComparableUtils.is(busdToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G33:G33", busdToEurPrice);
-            }
-            BigDecimal cakeToEurPrice = priceService.toEur(CAKE_CURRENCY);
-            if (ComparableUtils.is(cakeToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G34:G34", cakeToEurPrice);
-            }
-
-            BigDecimal watchToEurPrice = priceService.toEur(WATCH_CURRENCY);
-            if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
-                googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
-            }
-
-        } catch (Exception e) {
-            log.error("Error ", e);
-            throw new Exception(e.getMessage());
+        BigDecimal watchToEurPrice = priceService.toEur(WATCH_CURRENCY);
+        if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
+            googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
         }
     }
 
-    @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
+    @Scheduled(fixedDelay = 100_000, initialDelay = 60_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    public void refreshBalances() throws Exception {
+    public void refreshBalances() throws IOException {
         int startingIndexNumber = 21;
         String startingIndexCombined = "E" + startingIndexNumber;
         ValueRange valueRange = getValueRange(String.format("investing!%s:E29", startingIndexCombined));
@@ -389,39 +372,33 @@ public class GoogleSheetsService {
 
         Map<String, BigDecimal> availableBalances = binanceService.fetchAvailableBalances(symbols);
 
-        try {
-            for (int i = 0; i < values.length; i++) {
-                for (Map.Entry<String, BigDecimal> entry : availableBalances.entrySet()) {
-                    if (entry.getKey().equals(values[i])) {
-                        String coordinate = "D" + (startingIndexNumber + i);
-                        String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
-                        googleSheetsClient.update(coordinates, entry.getValue());
-                    }
+        for (int i = 0; i < values.length; i++) {
+            for (Map.Entry<String, BigDecimal> entry : availableBalances.entrySet()) {
+                if (entry.getKey().equals(values[i])) {
+                    String coordinate = "D" + (startingIndexNumber + i);
+                    String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+                    googleSheetsClient.update(coordinates, entry.getValue());
                 }
             }
-            googleSheetsClient.update("investing!L39:L39", availableBalances.get(EUR));
-            googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
-            YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
-            googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
+        }
+        googleSheetsClient.update("investing!L39:L39", availableBalances.get(EUR));
+        googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
+        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+        googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
 
-            startingIndexNumber = 30;
-            startingIndexCombined = "E" + startingIndexNumber;
-            valueRange = getValueRange(String.format("investing!%s:E35", startingIndexCombined));
-            values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
-                    .map(v -> (String) v)
-                    .toArray(String[]::new);
+        startingIndexNumber = 30;
+        startingIndexCombined = "E" + startingIndexNumber;
+        valueRange = getValueRange(String.format("investing!%s:E35", startingIndexCombined));
+        values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new);
 
-            for (int i = 0; i < values.length; i++) {
-                String coordinate = "F" + (startingIndexNumber + i);
-                String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
-                String value = values[i];
-                BigDecimal amount = yieldSummary.amountOf(Symbol.valueOf(value));
-                googleSheetsClient.update(coordinates, amount);
-            }
-
-        } catch (Exception e) {
-            log.error("Error ", e);
-            throw new Exception(e.getMessage());
+        for (int i = 0; i < values.length; i++) {
+            String coordinate = "F" + (startingIndexNumber + i);
+            String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+            String value = values[i];
+            BigDecimal amount = yieldSummary.amountOf(Symbol.valueOf(value));
+            googleSheetsClient.update(coordinates, amount);
         }
     }
 
