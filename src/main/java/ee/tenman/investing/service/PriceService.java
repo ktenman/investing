@@ -5,6 +5,7 @@ import ee.tenman.investing.exception.NotSupportedSymbolException;
 import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.coingecko.CoinGeckoService;
 import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
+import ee.tenman.investing.integration.coinmarketcap.api.CoinMarketCapApiService;
 import ee.tenman.investing.integration.cryptocom.CryptoComService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,8 @@ public class PriceService {
 
     @Resource
     private CoinMarketCapService coinMarketCapService;
+    @Resource
+    private CoinMarketCapApiService coinMarketCapApiService;
     @Resource
     private BinanceService binanceService;
     @Resource
@@ -130,8 +133,22 @@ public class PriceService {
     }
 
     public BigDecimal toEur(Symbol symbol) {
-        BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(symbol);
 
+        try {
+            BigDecimal priceToEur = binanceService.getPriceToEur(symbol.name());
+            if (priceToEur != null && ComparableUtils.is(priceToEur).greaterThan(ZERO)) {
+                return priceToEur;
+            }
+        } catch (NotSupportedSymbolException ignored) {
+
+        }
+
+        BigDecimal coinMarketCapApiPrice = coinMarketCapApiService.eurPrice(symbol.name());
+        if (coinMarketCapApiPrice != null && ComparableUtils.is(coinMarketCapApiPrice).greaterThan(ZERO)) {
+            return coinMarketCapApiPrice;
+        }
+
+        BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(symbol);
         if (coinMarketCapPrice != null && ComparableUtils.is(coinMarketCapPrice).greaterThan(ZERO)) {
             return coinMarketCapPrice;
         }

@@ -4,10 +4,8 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.binance.BinanceService;
-import ee.tenman.investing.integration.coinmarketcap.api.CoinMarketCapApiService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -15,12 +13,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -33,29 +32,28 @@ import static java.math.RoundingMode.HALF_UP;
 @Service
 public class CoinMarketCapService {
 
-    private static final String WBNB_CURRENCY = "wbnb";
-    private static final String BDO_CURRENCY = "bdollar";
-    private static final String SBDO_CURRENCY = "bdollar-share";
-    private static final String BUSD_CURRENCY = "binance-usd";
-    private static final String EGG_CURRENCY = "goose-finance";
-    private static final String CAKE_CURRENCY = "pancakeswap";
-    private static final String WATCH_CURRENCY = "yieldwatch";
-
     private static final Map<Symbol, String> SYMBOL_TO_CURRENCY = ImmutableMap.<Symbol, String>builder()
-            .put(Symbol.WBNB, WBNB_CURRENCY)
-            .put(Symbol.BDO, BDO_CURRENCY)
-            .put(Symbol.SBDO, SBDO_CURRENCY)
-            .put(Symbol.BUSD, BUSD_CURRENCY)
-            .put(Symbol.EGG, EGG_CURRENCY)
-            .put(Symbol.CAKE, CAKE_CURRENCY)
-            .put(Symbol.WATCH, WATCH_CURRENCY)
+            .put(Symbol.WBNB, "wbnb")
+            .put(Symbol.BDO, "bdollar")
+            .put(Symbol.SBDO, "bdollar-share")
+            .put(Symbol.BUSD, "binance-usd")
+            .put(Symbol.EGG, "goose-finance")
+            .put(Symbol.CAKE, "pancakeswap")
+            .put(Symbol.WATCH, "yieldwatch")
+            .put(Symbol.ADA, "cardano")
+            .put(Symbol.AUTO, "auto")
+            .put(Symbol.BNB, "binance-coin")
+            .put(Symbol.BTC, "bitcoin")
+            .put(Symbol.CRO, "crypto-com-coin")
+            .put(Symbol.DOT, "polkadot-new")
+            .put(Symbol.SUSHI, "sushiswap")
+            .put(Symbol.USDT, "tether")
+            .put(Symbol.UNI, "uniswap")
+            .put(Symbol.ETH, "ethereum")
             .build();
 
     @Resource
     private BinanceService binanceService;
-
-    @Resource
-    private CoinMarketCapApiService coinMarketCapApiService;
 
     private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
         Map<String, BigDecimal> prices = new HashMap<>();
@@ -90,40 +88,49 @@ public class CoinMarketCapService {
         return pricesInEUr;
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public BigDecimal eurPrice(Symbol symbol) {
-
-        BigDecimal eurPrice = coinMarketCapApiService.eurPrice(symbol.name());
-        if (eurPrice != null && ComparableUtils.is(eurPrice).greaterThan(BigDecimal.ZERO)) {
-            return eurPrice;
-        }
 
         open("https://coinmarketcap.com/currencies/" + SYMBOL_TO_CURRENCY.get(symbol));
 
-        $(By.tagName("div")).waitUntil(text("$"), 1000, 100);
-
         ElementsCollection selenideElements = Selenide.$$(By.tagName("p"));
 
-        List<String> strings = Arrays.asList("BTC", "ETH");
-        BigDecimal sum = strings.stream()
+        List<BigDecimal> prices = new ArrayList<>();
+
+        Stream.of(Symbol.BTC.name(), Symbol.ETH.name())
                 .map(s -> Optional.of(selenideElements
                         .filter(text(s))
                         .first()
                         .text()
-                        .replace(String.format(" %s", s), ""))
+                        .split(" ")[0])
+                        .filter(this::isANumber)
                         .map(amount -> {
                             log.info("{}: {}", s, amount);
                             return new BigDecimal(amount);
                         })
                         .map(a -> a.multiply(binanceService.getPriceToEur(s)))
-                        .orElseThrow(() -> new RuntimeException(String.format("Price for %s not found", s)))
+                        .orElse(null)
                 )
-                .map(Objects::requireNonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(Objects::nonNull)
+                .forEach(prices::add);
 
         closeWebDriver();
-        BigDecimal average = sum.divide(BigDecimal.valueOf(strings.size()), HALF_UP);
+
+        BigDecimal average = prices.stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(prices.size()), HALF_UP);
+
         log.info("{}/EUR: {}", symbol.name(), average);
         return average;
+    }
+
+    private boolean isANumber(String string) {
+        try {
+            new BigDecimal(string);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
 }

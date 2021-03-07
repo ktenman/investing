@@ -28,7 +28,7 @@ public class CoinMarketCapApiService {
     @Resource
     private BinanceService binanceService;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public BigDecimal eurPrice(String currency) {
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(

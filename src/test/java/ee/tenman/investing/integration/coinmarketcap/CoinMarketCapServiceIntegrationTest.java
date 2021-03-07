@@ -4,6 +4,8 @@ import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
@@ -55,10 +57,18 @@ class CoinMarketCapServiceIntegrationTest {
         });
     }
 
-    @Test
-    void getBtoToBtc() {
-        BigDecimal btoToEur = coinMarketCapService.eurPrice(Symbol.BDO);
+    @ParameterizedTest
+    @EnumSource(Symbol.class)
+    void eurPrice(Symbol symbol) {
+        BigDecimal eurPrice = coinMarketCapService.eurPrice(symbol);
 
-        assertThat(btoToEur).isGreaterThan(ZERO);
+        assertThat(eurPrice).isGreaterThan(ZERO);
+    }
+
+    @Test
+    void eurPrice() {
+        BigDecimal eurPrice = coinMarketCapService.eurPrice(Symbol.ETH);
+
+        assertThat(eurPrice).isGreaterThan(ZERO);
     }
 }

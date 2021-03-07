@@ -325,8 +325,6 @@ public class GoogleSheetsService {
         BigDecimal wbnbToEurPrice = priceService.toEur(Symbol.WBNB);
         if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
-        } else {
-            googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
         }
 
         BigDecimal bdoToEurPrice = priceService.toEur(Symbol.BDO);

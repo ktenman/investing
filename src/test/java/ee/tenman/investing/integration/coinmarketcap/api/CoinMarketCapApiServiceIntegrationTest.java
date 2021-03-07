@@ -15,7 +15,7 @@ import static java.math.RoundingMode.HALF_UP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class CoinMarketCapApiServiceTest {
+class CoinMarketCapApiServiceIntegrationTest {
 
     @Resource
     CoinMarketCapApiService coinMarketCapApiService;
