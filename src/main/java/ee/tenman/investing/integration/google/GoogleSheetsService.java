@@ -123,7 +123,8 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 30 0/2 * * *")
+    @Scheduled(cron = "0 0 0/2 * * *") // every odd hour
+//    @Scheduled(cron = "0 * * * * *")  // every minute
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
