@@ -1,7 +1,10 @@
 package ee.tenman.investing.integration.google;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
@@ -9,6 +12,7 @@ import javax.annotation.Resource;
 
 @SpringBootTest
 @TestPropertySource(properties = "yieldwatch.url=https://yieldwatch.net/api/")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class GoogleSheetsServiceIntegrationTest {
 
     @Resource
@@ -23,7 +27,7 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
-    @Disabled
+    @Order(1)
     void refreshCryptoPrices() throws Exception {
         long startTime = System.nanoTime();
         googleService.refreshCryptoPrices();
@@ -39,12 +43,13 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    @Order(2)
     void refreshBalances() throws Exception {
         googleService.refreshBalances();
     }
 
     @Test
-    @Disabled
+    @Order(3)
     void appendYieldInformation() {
         long startTime = System.nanoTime();
         googleService.appendYieldInformation();
