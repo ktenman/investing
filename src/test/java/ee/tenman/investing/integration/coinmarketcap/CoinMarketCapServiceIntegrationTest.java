@@ -1,6 +1,7 @@
 package ee.tenman.investing.integration.coinmarketcap;
 
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,7 +57,7 @@ class CoinMarketCapServiceIntegrationTest {
 
     @Test
     void getBtoToBtc() {
-        BigDecimal btoToEur = coinMarketCapService.eurPrice("bdollar");
+        BigDecimal btoToEur = coinMarketCapService.eurPrice(Symbol.BDO);
 
         assertThat(btoToEur).isGreaterThan(ZERO);
     }

@@ -1,9 +1,11 @@
 package ee.tenman.investing.service;
 
+import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -66,8 +68,8 @@ class PriceServiceIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"bdollar", "wbnb"})
-    void toEur(String symbol) {
+    @EnumSource(Symbol.class)
+    void toEur(Symbol symbol) {
         BigDecimal symbolToEurPrice = priceService.toEur(symbol);
 
         assertThat(symbolToEurPrice).isGreaterThan(ZERO);

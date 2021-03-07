@@ -67,20 +67,12 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public class GoogleSheetsService {
 
     public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
-    public static final String SPREAD_SHEET_ID_IK = "1Lhi4TVM9PCpbv7mRphXUaKvyI_DymN2EB7_BAsyOJ2Y";
     private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
     private static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
     private static final String EUR = "EUR";
-    public static final String WBNB_CURRENCY = "wbnb";
-    public static final String BDO_CURRENCY = "bdollar";
-    public static final String SBDO_CURRENCY = "bdollar-share";
-    public static final String BUSD_CURRENCY = "binance-usd";
-    public static final String EGG_CURRENCY = "goose-finance";
-    public static final String CAKE_CURRENCY = "pancakeswap";
-    public static final String WATCH_CURRENCY = "yieldwatch";
 
     private BigDecimal leftOverAmount;
     @Resource
@@ -120,7 +112,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 0/5 * * * *")
+    @Scheduled(cron = "0 0/15 * * * *")
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
@@ -153,7 +145,7 @@ public class GoogleSheetsService {
         cellData.add(wbnbAmountCell);
 
         CellData wbnbToEurCell = new CellData();
-        BigDecimal wbnbToEur = priceService.toEur(WBNB_CURRENCY);
+        BigDecimal wbnbToEur = priceService.toEur(Symbol.WBNB);
         wbnbToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(wbnbToEur.doubleValue()));
         cellData.add(wbnbToEurCell);
 
@@ -162,7 +154,7 @@ public class GoogleSheetsService {
         cellData.add(busdAmountCell);
 
         CellData busdToEurCell = new CellData();
-        BigDecimal busdToEur = priceService.toEur(BUSD_CURRENCY);
+        BigDecimal busdToEur = priceService.toEur(Symbol.BUSD);
         busdToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(busdToEur.doubleValue()));
         cellData.add(busdToEurCell);
 
@@ -170,25 +162,25 @@ public class GoogleSheetsService {
         bdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.BDO).doubleValue()));
 
         CellData bdoToEurCell = new CellData();
-        BigDecimal bdoToEur = priceService.toEur(BDO_CURRENCY);
+        BigDecimal bdoToEur = priceService.toEur(Symbol.BDO);
         bdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(bdoToEur.doubleValue()));
 
         CellData sbdoAmountCell = new CellData();
         sbdoAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.SBDO).doubleValue()));
         CellData sbdoToEurCell = new CellData();
-        BigDecimal sbdoToEur = priceService.toEur(SBDO_CURRENCY);
+        BigDecimal sbdoToEur = priceService.toEur(Symbol.SBDO);
         sbdoToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(sbdoToEur.doubleValue()));
 
         CellData watchAmountCell = new CellData();
         watchAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.WATCH).doubleValue()));
         CellData watchToEurCell = new CellData();
-        BigDecimal watchToEur = priceService.toEur(WATCH_CURRENCY);
+        BigDecimal watchToEur = priceService.toEur(Symbol.WATCH);
         watchToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(watchToEur.doubleValue()));
 
         CellData cakeAmountCell = new CellData();
         cakeAmountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldSummary.amountOf(Symbol.CAKE).doubleValue()));
         CellData cakeToEurCell = new CellData();
-        BigDecimal cakeToEur = priceService.toEur(CAKE_CURRENCY);
+        BigDecimal cakeToEur = priceService.toEur(Symbol.CAKE);
         cakeToEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(cakeToEur.doubleValue()));
 
         CellData totalEurCell = new CellData();
@@ -325,39 +317,39 @@ public class GoogleSheetsService {
             googleSheetsClient.update(updateCell, prices.get(e.getKey()));
         }
 
-        BigDecimal sbdoToEurPrice = priceService.toEur(SBDO_CURRENCY);
+        BigDecimal sbdoToEurPrice = priceService.toEur(Symbol.SBDO);
         if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
         }
 
-        BigDecimal wbnbToEurPrice = priceService.toEur(WBNB_CURRENCY);
+        BigDecimal wbnbToEurPrice = priceService.toEur(Symbol.WBNB);
         if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
         } else {
             googleSheetsClient.update("investing!G31:G31", binanceService.getPriceToEur("BNB"));
         }
 
-        BigDecimal bdoToEurPrice = priceService.toEur(BDO_CURRENCY);
+        BigDecimal bdoToEurPrice = priceService.toEur(Symbol.BDO);
         if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
         }
 
-        BigDecimal busdToEurPrice = priceService.toEur(BUSD_CURRENCY);
+        BigDecimal busdToEurPrice = priceService.toEur(Symbol.BUSD);
         if (ComparableUtils.is(busdToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G33:G33", busdToEurPrice);
         }
-        BigDecimal cakeToEurPrice = priceService.toEur(CAKE_CURRENCY);
+        BigDecimal cakeToEurPrice = priceService.toEur(Symbol.CAKE);
         if (ComparableUtils.is(cakeToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G34:G34", cakeToEurPrice);
         }
 
-        BigDecimal watchToEurPrice = priceService.toEur(WATCH_CURRENCY);
+        BigDecimal watchToEurPrice = priceService.toEur(Symbol.WATCH);
         if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
         }
     }
 
-    @Scheduled(fixedDelay = 100_000, initialDelay = 60_000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshBalances() throws IOException {
         int startingIndexNumber = 21;

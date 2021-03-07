@@ -6,6 +6,7 @@ import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.coingecko.CoinGeckoService;
 import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.cryptocom.CryptoComService;
+import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.retry.annotation.Backoff;
@@ -128,14 +129,14 @@ public class PriceService {
         return binancePrices;
     }
 
-    public BigDecimal toEur(String currency) {
-        BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(currency);
+    public BigDecimal toEur(Symbol symbol) {
+        BigDecimal coinMarketCapPrice = coinMarketCapService.eurPrice(symbol);
 
         if (coinMarketCapPrice != null && ComparableUtils.is(coinMarketCapPrice).greaterThan(ZERO)) {
             return coinMarketCapPrice;
         }
 
-        return coinGeckoService.eurPrice(currency);
+        return coinGeckoService.eurPrice(symbol);
     }
 
 }

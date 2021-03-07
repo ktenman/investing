@@ -1,7 +1,8 @@
 package ee.tenman.investing.integration.coingecko;
 
+import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
@@ -17,8 +18,8 @@ class CoinGeckoServiceTest {
     CoinGeckoService coinGeckoService;
 
     @ParameterizedTest
-    @ValueSource(strings = {"bdollar", "wbnb"})
-    void eur(String symbol) {
+    @EnumSource(Symbol.class)
+    void eur(Symbol symbol) {
         BigDecimal symbolToEurPrice = coinGeckoService.eurPrice(symbol);
 
         assertThat(symbolToEurPrice).isGreaterThan(ZERO);
