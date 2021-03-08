@@ -233,6 +233,19 @@ public class GoogleSheetsService {
         cellData.add(earnedBnbAmountCell);
         cellData.add(investedEurDifferenceCell);
 
+        CellData earningsPerDayRoiCell = new CellData();
+        BigDecimal earningsPerRoiDay = Optional.ofNullable(getValueRange("yield!B1:B1"))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(BigDecimal::new)
+                .orElse(ZERO);
+        earningsPerDayRoiCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerRoiDay.doubleValue()));
+        earningsPerDayRoiCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
+        cellData.add(earningsPerDayRoiCell);
+
         rowData.add(new RowData().setValues(cellData));
 
         AppendCellsRequest appendCellRequest = new AppendCellsRequest();
