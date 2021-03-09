@@ -15,6 +15,7 @@ class InformingServiceTest {
 
     @Test
     void informAboutPortfolios() {
+
         informingService.informAboutPortfolios();
     }
 }

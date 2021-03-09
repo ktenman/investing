@@ -55,11 +55,15 @@ public class InformingService {
 
         StringBuilder stringBuilder = new StringBuilder();
 
+        stringBuilder.append("```");
+
         yieldSummaries.forEach((key, value) -> {
             BigDecimal total = value.getTotal(prices);
-            stringBuilder.append(String.format("%s <- %s", NUMBER_FORMAT.format(total), key));
+            stringBuilder.append(String.format("%s - %s", key, NUMBER_FORMAT.format(total)));
             stringBuilder.append("\n");
         });
+
+        stringBuilder.append("```");
 
         slackService.post(SlackMessage.builder().text(stringBuilder.toString()).build());
     }
