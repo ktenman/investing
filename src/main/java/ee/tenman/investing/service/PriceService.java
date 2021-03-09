@@ -172,6 +172,7 @@ public class PriceService {
                 .filter(StringUtils::isNotBlank)
                 .map(String::toUpperCase)
                 .map(Symbol::valueOf)
+                .parallel()
                 .collect(toMap(
                         identity(),
                         this::toEur,

@@ -14,19 +14,19 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 @Service
 @Slf4j
 public class InformingService {
 
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.US);
+    private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.00 '€'");
     @Resource
     private SlackService slackService;
     @Resource
@@ -49,7 +49,7 @@ public class InformingService {
         Set<Balance> allUniqueBalances = yieldSummaries.values().stream()
                 .map(YieldSummary::getPoolBalances)
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
 
