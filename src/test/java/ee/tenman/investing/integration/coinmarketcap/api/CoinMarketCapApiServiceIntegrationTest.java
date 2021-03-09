@@ -44,7 +44,7 @@ class CoinMarketCapApiServiceIntegrationTest {
 
     @ParameterizedTest
     @EnumSource(Symbol.class)
-    @DisplayName("Compare CoinGecko and CoinMarketCap prices. Should not differ more than 2%")
+    @DisplayName("Compare CoinGecko and CoinMarketCap prices. Should not differ more than 3%")
     void eur2(Symbol symbol) {
         BigDecimal priceToEur = priceService.toEur(symbol);
         BigDecimal symbolToEurPrice = coinMarketCapService.eurPrice(symbol);
@@ -61,9 +61,7 @@ class CoinMarketCapApiServiceIntegrationTest {
 
                 BigDecimal difference = priceA.divide(priceB, HALF_UP);
 
-                assertThat(difference)
-                        .isGreaterThan(BigDecimal.valueOf(0.98))
-                        .isLessThan(BigDecimal.valueOf(1.02));
+                assertThat(difference).isBetween(BigDecimal.valueOf(0.97), BigDecimal.valueOf(1.03));
             }
         }
     }

@@ -1,6 +1,5 @@
 package ee.tenman.investing.integration.coinmarketcap.api;
 
-import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
+import static ee.tenman.investing.integration.coinmarketcap.api.CoinMarketCapApiClient.USER_AGENT;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.function.Function.identity;
@@ -36,7 +37,7 @@ public class CoinMarketCapApiService {
         Instant fromDateTime = toDateTime.minus(1, ChronoUnit.DAYS);
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(
-                symbol.getCoinMarketCapId(), "Mozilla/5.0",
+                symbol.getCoinMarketCapId(), USER_AGENT,
                 fromDateTime.getEpochSecond(),
                 toDateTime.getEpochSecond(),
                 "EUR"
@@ -50,22 +51,18 @@ public class CoinMarketCapApiService {
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
     public BigDecimal eurPrice(String currency) {
 
-        Instant toDateTime = Instant.now();
-        Instant fromDateTime = toDateTime.minus(1, ChronoUnit.HOURS);
+        String[] baseSymbols = {Symbol.BTC.name(), Symbol.ETH.name()};
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(
-                Symbol.valueOf(currency).getCoinMarketCapId(), "Mozilla/5.0",
-                fromDateTime.getEpochSecond(),
-                toDateTime.getEpochSecond(),
-                Symbol.BTC.name(), Symbol.ETH.name()
+                Symbol.valueOf(currency).getCoinMarketCapId(),
+                USER_AGENT,
+                baseSymbols
         );
 
         log.info("{}", coinInformation);
 
-        ImmutableMap<String, BigDecimal> prices = ImmutableMap.of(
-                Symbol.BTC.name(), coinInformation.getLastBtcPrice(),
-                Symbol.ETH.name(), coinInformation.getLastEthPrice()
-        );
+        Map<String, BigDecimal> prices = Stream.of(baseSymbols)
+                .collect(toMap(identity(), coinInformation::getLastPriceOf));
 
         Map<String, BigDecimal> binanceEurPrices = prices.keySet()
                 .parallelStream()

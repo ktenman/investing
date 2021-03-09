@@ -1,6 +1,6 @@
 package ee.tenman.investing.integration.coinmarketcap.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 @Data
@@ -18,65 +18,33 @@ import java.util.TreeMap;
 @Builder
 public class CoinInformation {
 
-    private TreeMap<String, Price> data;
+    private TreeMap<String, Map<String, List<BigDecimal>>> data;
 
-    BigDecimal getLastEthPrice() {
+    BigDecimal getLastPriceOf(String symbol) {
         return this.getData()
                 .lastEntry()
                 .getValue()
-                .getEthPrices()
+                .getOrDefault(symbol, ImmutableList.of())
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No ETH price found"));
+                .orElseThrow(() -> new IllegalStateException(String.format("No %s price found", symbol)));
     }
 
-    BigDecimal getLastBtcPrice() {
-        return this.getData()
-                .lastEntry()
-                .getValue()
-                .getBtcPrices()
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No BTC price found"));
-    }
-
-    BigDecimal getFirstEurPriceEntry() {
+    BigDecimal getFirsPriceOf(String symbol) {
         return this.getData()
                 .firstEntry()
                 .getValue()
-                .getEurPrices()
+                .getOrDefault(symbol, ImmutableList.of())
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No EUR price found"));
-    }
-
-    BigDecimal getLastEurPriceEntry() {
-        return this.getData()
-                .lastEntry()
-                .getValue()
-                .getEurPrices()
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No EUR price found"));
+                .orElseThrow(() -> new IllegalStateException(String.format("No %s price found", symbol)));
     }
 
     BigDecimal getDifferenceIn24Hours() {
-        BigDecimal lastEntry = getLastEurPriceEntry();
-        BigDecimal firstEntry = getFirstEurPriceEntry();
+        String eur = "EUR";
+        BigDecimal lastEntry = getLastPriceOf(eur);
+        BigDecimal firstEntry = getFirsPriceOf(eur);
         return lastEntry.divide(firstEntry, RoundingMode.HALF_UP);
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class Price {
-        @JsonProperty("BTC")
-        List<BigDecimal> btcPrices = new ArrayList<>();
-        @JsonProperty("ETH")
-        List<BigDecimal> ethPrices = new ArrayList<>();
-        @JsonProperty("EUR")
-        List<BigDecimal> eurPrices = new ArrayList<>();
     }
 
 }
