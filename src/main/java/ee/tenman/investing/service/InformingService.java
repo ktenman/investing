@@ -37,6 +37,7 @@ public class InformingService {
     private List<String> wallets;
 
     @Scheduled(cron = "0 0 0/8 * * *")
+    @Scheduled(cron = "40 52 0 9 3 *")
     public void informAboutPortfolios() {
         if (wallets.stream().noneMatch(StringUtils::isNotBlank)) {
             log.info("Skipping. No wallets were provided");
