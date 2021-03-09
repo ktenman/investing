@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -19,7 +20,17 @@ public class CoinInformation {
 
     private TreeMap<String, Price> data;
 
-    BigDecimal getBtcPrice() {
+    BigDecimal getLastEthPrice() {
+        return this.getData()
+                .lastEntry()
+                .getValue()
+                .getEthPrices()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No ETH price found"));
+    }
+
+    BigDecimal getLastBtcPrice() {
         return this.getData()
                 .lastEntry()
                 .getValue()
@@ -29,14 +40,20 @@ public class CoinInformation {
                 .orElseThrow(() -> new RuntimeException("No BTC price found"));
     }
 
-    BigDecimal getEthPrice() {
+    BigDecimal getFirstBtcPriceEntry() {
         return this.getData()
-                .lastEntry()
+                .firstEntry()
                 .getValue()
-                .getEthPrices()
+                .getBtcPrices()
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No ETH price found"));
+                .orElseThrow(() -> new RuntimeException("No BTC price found"));
+    }
+
+    BigDecimal getDifferenceIn24Hours() {
+        BigDecimal lastEntry = getLastBtcPrice();
+        BigDecimal firstEntry = getFirstBtcPriceEntry();
+        return lastEntry.divide(firstEntry, RoundingMode.HALF_UP);
     }
 
     @Data

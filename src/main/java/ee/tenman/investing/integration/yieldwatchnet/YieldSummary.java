@@ -1,5 +1,6 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,11 +23,16 @@ import static java.math.BigDecimal.ZERO;
 @AllArgsConstructor
 public class YieldSummary {
     @Builder.Default
-    private BigDecimal yieldEarnedPercentage = BigDecimal.ZERO;
-
+    @JsonIgnore
+    private BigDecimal yieldEarnedPercentage = ZERO;
+    @JsonIgnore
     private Map<String, BigDecimal> pools = new TreeMap<>();
+    @JsonIgnore
     private Set<Balance> poolBalances = new HashSet<>();
+    @JsonIgnore
     private Set<Balance> walletBalances = new HashSet<>();
+
+    private BigDecimal total = ZERO;
 
     public void addToPoolAmounts(String symbol, BigDecimal amount) {
         Optional<Balance> optionalBalance = poolBalances.stream()
@@ -35,7 +41,7 @@ public class YieldSummary {
 
         BigDecimal newBalance = optionalBalance
                 .map(Balance::getBalance)
-                .orElse(BigDecimal.ZERO)
+                .orElse(ZERO)
                 .add(amount);
 
         Balance balance = optionalBalance.orElseGet(() -> Balance.builder().symbol(symbol).build());
@@ -49,7 +55,7 @@ public class YieldSummary {
                 .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
                 .findFirst()
                 .map(Balance::getBalance)
-                .orElse(BigDecimal.ZERO);
+                .orElse(ZERO);
     }
 
     public BigDecimal amountInWallet(Symbol symbol) {
@@ -57,7 +63,7 @@ public class YieldSummary {
                 .filter(balance -> StringUtils.equalsIgnoreCase(symbol.name(), balance.getSymbol()))
                 .findFirst()
                 .map(Balance::getBalance)
-                .orElse(BigDecimal.ZERO);
+                .orElse(ZERO);
     }
 
     public BigDecimal getTotal(Map<Symbol, BigDecimal> prices) {

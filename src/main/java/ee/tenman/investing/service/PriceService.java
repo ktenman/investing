@@ -166,6 +166,17 @@ public class PriceService {
         return coinGeckoService.eurPrice(symbol);
     }
 
+    public Map<Symbol, BigDecimal> to24HDifference(List<Symbol> symbols) {
+        return symbols.stream()
+                .parallel()
+                .collect(toMap(
+                        identity(),
+                        symbol -> coinMarketCapApiService.differenceIn24Hours(symbol),
+                        (a, b) -> b,
+                        TreeMap::new
+                ));
+    }
+
     public Map<Symbol, BigDecimal> getPricesOfBalances(Set<Balance> poolBalances) {
         return poolBalances.stream()
                 .map(Balance::getSymbol)

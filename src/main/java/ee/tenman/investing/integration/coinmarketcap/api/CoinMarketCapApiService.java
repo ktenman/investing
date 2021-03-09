@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,17 +31,40 @@ public class CoinMarketCapApiService {
     private BinanceService binanceService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public BigDecimal eurPrice(String currency) {
+    public BigDecimal differenceIn24Hours(Symbol symbol) {
+        Instant toDateTime = Instant.now();
+        Instant fromDateTime = toDateTime.minus(1, ChronoUnit.DAYS);
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(
-                Symbol.valueOf(currency).getCoinMarketCapId(), "Mozilla/5.0", Symbol.BTC.name(), Symbol.ETH.name()
+                symbol.getCoinMarketCapId(), "Mozilla/5.0",
+                fromDateTime.getEpochSecond(),
+                toDateTime.getEpochSecond(),
+                Symbol.BTC.name(), Symbol.ETH.name()
+        );
+
+        return coinInformation.getDifferenceIn24Hours()
+                .subtract(BigDecimal.ONE)
+                .multiply(new BigDecimal("100.00"));
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    public BigDecimal eurPrice(String currency) {
+
+        Instant toDateTime = Instant.now();
+        Instant fromDateTime = toDateTime.minus(1, ChronoUnit.HOURS);
+
+        CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(
+                Symbol.valueOf(currency).getCoinMarketCapId(), "Mozilla/5.0",
+                fromDateTime.getEpochSecond(),
+                toDateTime.getEpochSecond(),
+                Symbol.BTC.name(), Symbol.ETH.name()
         );
 
         log.info("{}", coinInformation);
 
         ImmutableMap<String, BigDecimal> prices = ImmutableMap.of(
-                Symbol.BTC.name(), coinInformation.getBtcPrice(),
-                Symbol.ETH.name(), coinInformation.getEthPrice()
+                Symbol.BTC.name(), coinInformation.getLastBtcPrice(),
+                Symbol.ETH.name(), coinInformation.getLastEthPrice()
         );
 
         Map<String, BigDecimal> binanceEurPrices = prices.keySet()

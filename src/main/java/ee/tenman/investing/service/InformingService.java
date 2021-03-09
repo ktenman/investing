@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import static java.util.stream.Collectors.toSet;
 public class InformingService {
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.00 '€'");
+
     @Resource
     private SlackService slackService;
     @Resource
@@ -37,7 +39,6 @@ public class InformingService {
     private List<String> wallets;
 
     @Scheduled(cron = "0 0 0/8 * * *")
-    @Scheduled(cron = "40 52 0 9 3 *")
     public void informAboutPortfolios() {
         if (wallets.stream().noneMatch(StringUtils::isNotBlank)) {
             log.info("Skipping. No wallets were provided");
@@ -55,17 +56,37 @@ public class InformingService {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("```");
-
         yieldSummaries.forEach((key, value) -> {
             BigDecimal total = value.getTotal(prices);
             stringBuilder.append(String.format("%s - %s", key, NUMBER_FORMAT.format(total)));
             stringBuilder.append("\n");
         });
 
-        stringBuilder.append("```");
+        postToSlack(stringBuilder.toString());
+    }
 
-        slackService.post(SlackMessage.builder().text(stringBuilder.toString()).build());
+    @Scheduled(cron = "0 0 2/8 * * *")
+    public void informAboutPerformance() {
+
+        DecimalFormat decimalFormat = new DecimalFormat("#0.00'%'");
+        decimalFormat.setPositivePrefix("+");
+
+        Map<Symbol, BigDecimal> differences = priceService.to24HDifference(
+                Arrays.asList(Symbol.WBNB, Symbol.EGG, Symbol.BDO, Symbol.SBDO, Symbol.WATCH)
+        );
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        differences.forEach((key, value) -> {
+            stringBuilder.append(String.format("%-5s %-5s", key, decimalFormat.format(value)));
+            stringBuilder.append("\n");
+        });
+
+        postToSlack(stringBuilder.toString());
+    }
+
+    private void postToSlack(String message) {
+        slackService.post(SlackMessage.builder().text("```" + message + "```").build());
     }
 
 }

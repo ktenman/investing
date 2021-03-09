@@ -11,6 +11,8 @@ public interface CoinMarketCapApiClient {
     CoinInformation fetchCoinData(
             @RequestParam("id") Integer id,
             @RequestHeader("User-Agent") String userAgent,
+            @RequestParam("time_start") long fromDateTime,
+            @RequestParam("time_end") long toDateTime,
             @RequestParam("convert") String... convert
     );
 

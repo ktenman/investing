@@ -20,6 +20,13 @@ class InformingServiceTest {
         System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
+    @Test
+    void informAboutPerformance() {
+        long startTime = System.nanoTime();
+        informingService.informAboutPerformance();
+        System.out.println(String.format("Duration %ss", duration(startTime)));
+    }
+
     private double duration(long startTime) {
         return (System.nanoTime() - startTime) / 1.000_000_000;
     }
