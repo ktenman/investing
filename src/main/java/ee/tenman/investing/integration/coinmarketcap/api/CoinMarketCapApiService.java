@@ -39,7 +39,7 @@ public class CoinMarketCapApiService {
                 symbol.getCoinMarketCapId(), "Mozilla/5.0",
                 fromDateTime.getEpochSecond(),
                 toDateTime.getEpochSecond(),
-                Symbol.BTC.name(), Symbol.ETH.name()
+                "EUR"
         );
 
         return coinInformation.getDifferenceIn24Hours()

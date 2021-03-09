@@ -40,19 +40,29 @@ public class CoinInformation {
                 .orElseThrow(() -> new RuntimeException("No BTC price found"));
     }
 
-    BigDecimal getFirstBtcPriceEntry() {
+    BigDecimal getFirstEurPriceEntry() {
         return this.getData()
                 .firstEntry()
                 .getValue()
-                .getBtcPrices()
+                .getEurPrices()
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No BTC price found"));
+                .orElseThrow(() -> new RuntimeException("No EUR price found"));
+    }
+
+    BigDecimal getLastEurPriceEntry() {
+        return this.getData()
+                .lastEntry()
+                .getValue()
+                .getEurPrices()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No EUR price found"));
     }
 
     BigDecimal getDifferenceIn24Hours() {
-        BigDecimal lastEntry = getLastBtcPrice();
-        BigDecimal firstEntry = getFirstBtcPriceEntry();
+        BigDecimal lastEntry = getLastEurPriceEntry();
+        BigDecimal firstEntry = getFirstEurPriceEntry();
         return lastEntry.divide(firstEntry, RoundingMode.HALF_UP);
     }
 
@@ -65,6 +75,8 @@ public class CoinInformation {
         List<BigDecimal> btcPrices = new ArrayList<>();
         @JsonProperty("ETH")
         List<BigDecimal> ethPrices = new ArrayList<>();
+        @JsonProperty("EUR")
+        List<BigDecimal> eurPrices = new ArrayList<>();
     }
 
 }
