@@ -19,3 +19,12 @@ logging:
 
 yieldwatch:
   url: "https://yieldwatch.net/api/"
+
+slack:
+  enabled: ${SLACK_ENABLED:false}
+  url: ${SLACK_URL:https://hooks.slack.com/}
+  id: ${SLACK_ID:}
+  key: ${SLACK_KEY:}
+  secret: ${SLACK_SECRET:}
+
+wallets:

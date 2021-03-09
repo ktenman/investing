@@ -8,7 +8,9 @@ import ee.tenman.investing.integration.coinmarketcap.CoinMarketCapService;
 import ee.tenman.investing.integration.coinmarketcap.api.CoinMarketCapApiService;
 import ee.tenman.investing.integration.cryptocom.CryptoComService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
+import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -21,6 +23,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
@@ -28,6 +31,8 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @Slf4j
@@ -161,4 +166,19 @@ public class PriceService {
         return coinGeckoService.eurPrice(symbol);
     }
 
+    public Map<Symbol, BigDecimal> getPricesOfBalances(Set<Balance> poolBalances) {
+        return poolBalances.stream()
+                .map(Balance::getSymbol)
+                .filter(StringUtils::isNotBlank)
+                .map(String::toUpperCase)
+                .map(Symbol::valueOf)
+                .collect(toMap(
+                        identity(),
+                        this::toEur,
+                        (v1, v2) -> {
+                            throw new IllegalStateException(String.format("Duplicate key for values %s and %s", v1, v2));
+                        },
+                        TreeMap::new
+                ));
+    }
 }

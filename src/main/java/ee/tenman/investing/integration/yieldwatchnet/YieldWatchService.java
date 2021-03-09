@@ -27,10 +27,11 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.codeborne.selenide.Condition.not;
@@ -43,6 +44,8 @@ import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.openqa.selenium.By.tagName;
 
 @Service
@@ -79,7 +82,7 @@ public class YieldWatchService {
                 .map(a -> a.replace("$", "").replace(",", ""))
                 .map(BigDecimal::new)
                 .sorted(reverseOrder())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         BigDecimal total = amounts.get(1).add(amounts.get(2));
         BigDecimal deposit = amounts.get(0);
@@ -93,7 +96,7 @@ public class YieldWatchService {
                 .flatMap(Stream::of)
                 .map(BigDecimal::new)
                 .sorted(reverseOrder())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         BigDecimal bdoAmount = coinAmounts.get(0).add(coinAmounts.get(1));
         BigDecimal wbnbAmount = coinAmounts.get(2).add(coinAmounts.get(3));
@@ -109,9 +112,21 @@ public class YieldWatchService {
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public Map<String, YieldSummary> getYieldSummary(List<String> walletAddresses) {
+        return walletAddresses.stream()
+                .collect(toMap(Function.identity(), walletAddress -> {
+                    YieldData yieldData = yieldApiService.getYieldData(walletAddress);
+                    return buildYieldSummary(yieldData);
+                }));
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public YieldSummary getYieldSummary() {
         YieldData yieldData = yieldApiService.getYieldData();
+        return buildYieldSummary(yieldData);
+    }
 
+    private YieldSummary buildYieldSummary(YieldData yieldData) {
         log.info("{}", yieldData);
 
         List<Vault> vaults = Stream.of(
@@ -137,7 +152,7 @@ public class YieldWatchService {
                         .orElse(null))
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         YieldSummary yieldSummary = new YieldSummary();
 
@@ -173,7 +188,7 @@ public class YieldWatchService {
                         .map(Staking::getTotalUSDValues)
                         .orElse(null))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         BigDecimal yield = totalUsdValues.stream()
                 .map(TotalUSDValues::getYield)
@@ -185,7 +200,6 @@ public class YieldWatchService {
         BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
 
         yieldSummary.setYieldEarnedPercentage(yieldEarnedPercentage);
-
         return yieldSummary;
     }
 

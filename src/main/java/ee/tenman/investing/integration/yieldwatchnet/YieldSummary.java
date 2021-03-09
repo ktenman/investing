@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static java.math.BigDecimal.ZERO;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -58,4 +60,9 @@ public class YieldSummary {
                 .orElse(BigDecimal.ZERO);
     }
 
+    public BigDecimal getTotal(Map<Symbol, BigDecimal> prices) {
+        return prices.entrySet().stream()
+                .map(e -> e.getValue().multiply(this.amountInPool(e.getKey())))
+                .reduce(ZERO, BigDecimal::add);
+    }
 }

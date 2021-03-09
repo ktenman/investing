@@ -21,7 +21,6 @@ import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
-import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import ee.tenman.investing.service.PriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -71,8 +69,6 @@ import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 
 @Service
 @Slf4j
@@ -143,18 +139,7 @@ public class GoogleSheetsService {
     }
 
     private BatchUpdateSpreadsheetRequest buildYieldBatchRequest(Integer sheetID, YieldSummary yieldSummary) {
-        Map<Symbol, BigDecimal> prices = yieldSummary.getPoolBalances().stream()
-                .map(Balance::getSymbol)
-                .map(String::toUpperCase)
-                .map(Symbol::valueOf)
-                .collect(toMap(
-                        identity(),
-                        symbol -> priceService.toEur(symbol),
-                        (v1, v2) -> {
-                            throw new IllegalStateException(String.format("Duplicate key for values %s and %s", v1, v2));
-                        },
-                        TreeMap::new
-                ));
+        Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(yieldSummary.getPoolBalances());
 
         BigDecimal yieldEarnedPercentage = yieldSummary.getYieldEarnedPercentage();
 
@@ -168,9 +153,7 @@ public class GoogleSheetsService {
         cellData.add(machineDateTimeCell);
 
         CellData totalEurCell = new CellData();
-        BigDecimal total = prices.entrySet().stream()
-                .map(e -> e.getValue().multiply(yieldSummary.amountInPool(e.getKey())))
-                .reduce(ZERO, BigDecimal::add);
+        BigDecimal total = yieldSummary.getTotal(prices);
         totalEurCell.setUserEnteredValue(new ExtendedValue().setNumberValue(total.doubleValue()));
         cellData.add(totalEurCell);
 
