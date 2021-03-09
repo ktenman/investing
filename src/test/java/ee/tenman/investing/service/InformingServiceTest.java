@@ -1,5 +1,6 @@
 package ee.tenman.investing.service;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
@@ -14,6 +15,7 @@ class InformingServiceTest {
     private InformingService informingService;
 
     @Test
+    @Disabled
     void informAboutPortfolios() {
         long startTime = System.nanoTime();
         informingService.informAboutPortfolios();
@@ -21,6 +23,7 @@ class InformingServiceTest {
     }
 
     @Test
+    @Disabled
     void informAboutPerformance() {
         long startTime = System.nanoTime();
         informingService.informAboutPerformance();
