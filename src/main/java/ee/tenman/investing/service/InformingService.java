@@ -21,8 +21,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTC;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.EGG;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -93,10 +101,15 @@ public class InformingService {
         DecimalFormat decimalFormat = new DecimalFormat("#0.00'%'");
         decimalFormat.setPositivePrefix("+");
 
-        List<Symbol> symbols = Arrays.asList(Symbol.WBNB, Symbol.EGG, Symbol.BDO, Symbol.SBDO, Symbol.WATCH);
+        List<Symbol> symbols = Arrays.asList(WBNB, EGG, BDO, SBDO, WATCH, BTC, BNB);
         Map<Symbol, BigDecimal> differences = priceService.to24HDifference(symbols);
 
-        return symbols.stream().collect(toMap(identity(), s -> decimalFormat.format(differences.get(s))));
+        return symbols.stream().collect(toMap(
+                identity(),
+                s -> decimalFormat.format(differences.get(s)),
+                (a, b) -> a,
+                TreeMap::new
+        ));
     }
 
     private void postToSlack(String message) {
