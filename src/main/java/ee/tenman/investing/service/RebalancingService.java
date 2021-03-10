@@ -2,6 +2,7 @@ package ee.tenman.investing.service;
 
 import com.binance.api.client.domain.account.AssetBalance;
 import com.google.common.collect.ImmutableMap;
+import ee.tenman.investing.domain.Asset;
 import ee.tenman.investing.integration.binance.BinanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

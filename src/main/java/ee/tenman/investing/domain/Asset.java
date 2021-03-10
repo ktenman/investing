@@ -1,4 +1,4 @@
-package ee.tenman.investing.service;
+package ee.tenman.investing.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,9 +21,5 @@ public class Asset {
 
     public BigDecimal getAvailableAmount() {
         return totalAmount.subtract(lockedAmount);
-    }
-
-    public BigDecimal multiplier() {
-        return null;
     }
 }

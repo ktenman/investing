@@ -1,5 +1,6 @@
 package ee.tenman.investing.service;
 
+import ee.tenman.investing.domain.Portfolio;
 import ee.tenman.investing.integration.slack.SlackMessage;
 import ee.tenman.investing.integration.slack.SlackService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
@@ -20,14 +21,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 @Service
 @Slf4j
 public class InformingService {
 
-    private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.00 '€'");
+    public static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.00 '€'");
 
     @Resource
     private SlackService slackService;
@@ -45,6 +50,16 @@ public class InformingService {
             return;
         }
 
+        List<Portfolio> portfolios = getPortfolioTotalValues();
+
+        String message = portfolios.stream()
+                .map(Portfolio::toString)
+                .collect(joining("\n"));
+
+        postToSlack(message);
+    }
+
+    public List<Portfolio> getPortfolioTotalValues() {
         Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets);
 
         Set<Balance> allUniqueBalances = yieldSummaries.values().stream()
@@ -54,39 +69,40 @@ public class InformingService {
 
         Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
 
-        StringBuilder stringBuilder = new StringBuilder();
-
-        yieldSummaries.forEach((key, value) -> {
-            BigDecimal total = value.getTotal(prices);
-            stringBuilder.append(String.format("%s - %s", key, NUMBER_FORMAT.format(total)));
-            stringBuilder.append("\n");
-        });
-
-        postToSlack(stringBuilder.toString());
+        return yieldSummaries.entrySet().stream()
+                .map(entry -> Portfolio.builder()
+                        .wallet(entry.getKey())
+                        .totalValue(entry.getValue().getTotal(prices))
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Scheduled(cron = "0 0 2/8 * * *")
     public void informAboutPerformance() {
 
+        Map<Symbol, String> differences = getDifferencesIn24Hours();
+
+        String messagePayload = differences.entrySet().stream()
+                .map(entry -> String.format("%-5s %-5s", entry.getKey(), entry.getValue()))
+                .collect(joining("\n"));
+
+        postToSlack(messagePayload);
+    }
+
+    public Map<Symbol, String> getDifferencesIn24Hours() {
         DecimalFormat decimalFormat = new DecimalFormat("#0.00'%'");
         decimalFormat.setPositivePrefix("+");
 
-        Map<Symbol, BigDecimal> differences = priceService.to24HDifference(
-                Arrays.asList(Symbol.WBNB, Symbol.EGG, Symbol.BDO, Symbol.SBDO, Symbol.WATCH)
-        );
+        List<Symbol> symbols = Arrays.asList(Symbol.WBNB, Symbol.EGG, Symbol.BDO, Symbol.SBDO, Symbol.WATCH);
+        Map<Symbol, BigDecimal> differences = priceService.to24HDifference(symbols);
 
-        StringBuilder stringBuilder = new StringBuilder();
-
-        differences.forEach((key, value) -> {
-            stringBuilder.append(String.format("%-5s %-5s", key, decimalFormat.format(value)));
-            stringBuilder.append("\n");
-        });
-
-        postToSlack(stringBuilder.toString());
+        return symbols.stream().collect(toMap(identity(), s -> decimalFormat.format(differences.get(s))));
     }
 
     private void postToSlack(String message) {
-        slackService.post(SlackMessage.builder().text("```" + message + "```").build());
+        log.info("{}", message);
+
+        slackService.post(new SlackMessage("```" + message + "```"));
     }
 
 }

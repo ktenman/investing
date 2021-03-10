@@ -4,10 +4,10 @@ yieldwatch:
   url: "http://localhost:${wiremock.server.port:9999}"
 
 slack:
-  enabled: ${SLACK_ENABLED:false}
+  enabled: ${SLACK_ENABLED:true}
   url: ${SLACK_URL:https://hooks.slack.com/}
-  id: ${SLACK_ID:}
-  key: ${SLACK_KEY:}
-  secret: ${SLACK_SECRET:}
+  id: ${SLACK_ID:T01NC4K3BL7}
+  key: ${SLACK_KEY:B01NTF1AMSN}
+  secret: ${SLACK_SECRET:APqXLwFSIUdJZXwZdXsm67Dd}
 
-wallets:
+wallets: 0x37413c688A3F03C919C5Ae83f4fb373fbABC5515,0xE6e98E7D91Ec1ECdF18057611Ab31FEd2D17208b,0xce79Aa9caC3C23903dcAcaB2E76ce10b4C1d200B
