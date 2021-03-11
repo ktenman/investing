@@ -102,6 +102,7 @@ public class InformingService {
         decimalFormat.setPositivePrefix("+");
 
         List<Symbol> symbols = asList(WBNB, EGG, BDO, SBDO, WATCH, BTC, BNB);
+
         Map<Symbol, BigDecimal> differences = priceService.to24HDifference(symbols);
 
         return symbols.stream().collect(toMap(
