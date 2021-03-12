@@ -51,7 +51,7 @@ public class InformingService {
     @Value("#{'${wallets:}'.split(',')}")
     private List<String> wallets;
 
-    @Scheduled(cron = "0 0 0/8 * * *")
+    @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPortfolios() {
         if (wallets.stream().noneMatch(StringUtils::isNotBlank)) {
             log.info("Skipping. No wallets were provided");
@@ -85,8 +85,7 @@ public class InformingService {
                 .collect(toList());
     }
 
-    @Scheduled(cron = "0 0 2/8 * * *")
-    @Scheduled(cron = "0 51 1 11 3 *")
+    @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPerformance() {
 
         Map<Symbol, String> differences = getDifferencesIn24Hours();
