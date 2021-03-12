@@ -77,18 +77,19 @@ public class BinanceService {
 
     public BigDecimal getPriceToEur(String symbol) {
 
-        String symbolToEur = symbol + "EUR";
+        String eur = "EUR";
+        String symbolToEur = symbol + eur;
         if (!isSupportedTicker(symbolToEur)) {
             if (isSupportedTicker(symbol + "BTC")) {
                 BigDecimal symbolInBtc = getPriceToEur(symbol, "BTC");
-                BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
+                BigDecimal btcInEuro = getPriceToEur("BTC", eur);
                 BigDecimal price = symbolInBtc.multiply(btcInEuro);
                 log.info("{} price {}", symbolToEur, price);
                 return price;
             }
             if (isSupportedTicker("BTC" + symbol)) {
                 BigDecimal btcInSymbol = getPriceToEur("BTC", symbol);
-                BigDecimal btcInEuro = getPriceToEur("BTC", "EUR");
+                BigDecimal btcInEuro = getPriceToEur("BTC", eur);
                 BigDecimal price = btcInEuro.divide(btcInSymbol, RoundingMode.HALF_UP);
                 log.info("{} price {}", symbolToEur, price);
                 return price;
@@ -96,7 +97,7 @@ public class BinanceService {
             throw new NotSupportedSymbolException(String.format("%s not supported", symbolToEur));
         }
 
-        BigDecimal price = getPriceToEur(symbol, "EUR");
+        BigDecimal price = getPriceToEur(symbol, eur);
         log.info("{} price {}", symbolToEur, price);
         return price;
     }

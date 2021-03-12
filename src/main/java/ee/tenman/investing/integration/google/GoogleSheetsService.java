@@ -478,10 +478,22 @@ public class GoogleSheetsService {
     }
 
     private void updateTickerAmounts() throws IOException {
+        leftOverAmount = Optional.ofNullable(getValueRange("investing!Q44:Q44"))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(text -> text.replaceAll("[^\\d.]", ""))
+                .map(BigDecimal::new)
+                .orElse(ZERO);
+
+        if (leftOverAmount.equals(ZERO)) {
+            log.info("Skipping of updating ticker amounts");
+            return;
+        }
+
         ValueRange valueRange = getValueRange("investing!E45:F48");
-
-        leftOverAmount = (BigDecimal) getValueRange("investing!Q44:Q44").getValues().get(0).get(0);
-
         Map<String, BigDecimal> values = new HashMap<>();
         for (int i = 0; i < valueRange.getValues().size(); i++) {
             values.put(
