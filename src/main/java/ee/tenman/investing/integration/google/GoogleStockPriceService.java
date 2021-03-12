@@ -18,7 +18,6 @@ import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.domain.Currency.GBP;
 import static ee.tenman.investing.domain.Currency.GBX;
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.replace;
 import static org.openqa.selenium.By.name;
 import static org.openqa.selenium.By.tagName;
@@ -53,10 +52,12 @@ public class GoogleStockPriceService {
                 .build();
     }
 
-    private String removeComma(String element) {
+    String removeComma(String element) {
         log.info("Removing commas: `{}`", element);
-        return contains(element, ".") ?
-                replace(element, ",", "") :
-                replace(element, ",", ".");
+        if (StringUtils.indexOf(element, ".") > StringUtils.indexOf(element, ",")) {
+            return replace(replace(element, ",", ""), ".", ".");
+        } else {
+            return replace(replace(element, ".", ""), ",", ".");
+        }
     }
 }
