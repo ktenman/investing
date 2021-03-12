@@ -21,6 +21,10 @@ public class CurrencyConversionService {
 
     public BigDecimal convert(Currency from, Currency to) {
 
+        if (from == to) {
+            return BigDecimal.ONE;
+        }
+
         if (from == GBX || to == GBX) {
             throw new IllegalArgumentException("GBX not supported");
         }
