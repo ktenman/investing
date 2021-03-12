@@ -18,6 +18,8 @@ import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.domain.Currency.GBP;
 import static ee.tenman.investing.domain.Currency.GBX;
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.replace;
 import static org.openqa.selenium.By.name;
 import static org.openqa.selenium.By.tagName;
 
@@ -36,20 +38,25 @@ public class GoogleStockPriceService {
         String currency = stockSymbol.currency().name();
         BigDecimal price = Optional.of($$(tagName("span"))
                 .find(text(currency)).text().split(currency)[0])
-                .map(StringUtils::trim)
-                .map(element -> StringUtils.replace(element, ",", ""))
-                .map(StringUtils::trim)
-                .map(el -> {
-                    log.info("{}, {}", stockSymbol, el);
-                    return new BigDecimal(el);
-                })
+                .map(StringUtils::deleteWhitespace)
+                .map(this::removeComma)
+                .map(BigDecimal::new)
                 .orElseThrow(() -> new IllegalStateException(format("Couldn't fetch %s", stockSymbol)))
                 .movePointLeft(stockSymbol.currency() == GBX ? 2 : 0);
+
+        log.info("{}: {}", stockSymbol, price);
 
         return StockPrice.builder()
                 .currency(stockSymbol.currency() == GBX ? GBP : stockSymbol.currency())
                 .price(price)
                 .stockSymbol(stockSymbol)
                 .build();
+    }
+
+    private String removeComma(String element) {
+        log.info("Removing commas: `{}`", element);
+        return contains(element, ".") ?
+                replace(element, ",", "") :
+                replace(element, ",", ".");
     }
 }

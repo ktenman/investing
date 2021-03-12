@@ -18,7 +18,7 @@ class GoogleStockPriceServiceTest {
 
     static {
         Configuration.startMaximized = true;
-        Configuration.headless = false;
+        Configuration.headless = true;
         Configuration.proxyEnabled = false;
         Configuration.screenshots = false;
         Configuration.browser = "firefox";

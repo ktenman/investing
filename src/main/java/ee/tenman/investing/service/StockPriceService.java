@@ -4,6 +4,7 @@ import ee.tenman.investing.domain.Currency;
 import ee.tenman.investing.domain.StockPrice;
 import ee.tenman.investing.domain.StockSymbol;
 import ee.tenman.investing.integration.google.GoogleStockPriceService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,6 +21,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 @Service
+@Slf4j
 public class StockPriceService {
 
     @Resource
@@ -36,6 +38,8 @@ public class StockPriceService {
 
         Map<Currency, BigDecimal> currenciesInEur = possibleCurrencies.stream()
                 .collect(toMap(identity(), c -> currencyConversionService.convert(c, EUR)));
+
+        log.info("Currencies to EUR {}", currenciesInEur);
 
         List<StockPrice> collect = stockSymbols.stream()
                 .parallel()
