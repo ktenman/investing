@@ -17,11 +17,13 @@ import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.borsefrankfurt.StockSymbol;
 import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
+import ee.tenman.investing.service.StockPriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.BINANCE_COIN_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.BITCOIN_ID;
@@ -93,6 +96,8 @@ public class GoogleSheetsService {
     private BinanceService binanceService;
     @Resource
     private BscScanService bscScanService;
+    @Resource
+    private StockPriceService stockPriceService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     @Scheduled(cron = "0 0/5 * * * *")
@@ -335,6 +340,28 @@ public class GoogleSheetsService {
         BigDecimal watchToEurPrice = priceService.toEur(WATCH);
         if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
             googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
+        }
+    }
+
+    @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
+    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    public void refreshStockPrices() throws IOException {
+        int startingIndexNumber = 4;
+        String startingIndexCombined = "E" + startingIndexNumber;
+        ValueRange valueRange = getValueRange(String.format("investing!%s:E20", startingIndexCombined));
+        List<StockSymbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new))
+                .map(s -> s.replace(":", "_"))
+                .map(StockSymbol::valueOf)
+                .collect(Collectors.toList());
+
+        Map<StockSymbol, BigDecimal> prices = stockPriceService.priceInEur(values);
+
+        for (int i = 0; i < values.size(); i++) {
+            String coordinate = "G" + (startingIndexNumber + i);
+            String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+            googleSheetsClient.update(coordinates, prices.get(values.get(i)));
         }
     }
 

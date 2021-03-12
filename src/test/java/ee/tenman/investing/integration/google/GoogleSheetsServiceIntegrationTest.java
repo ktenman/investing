@@ -35,6 +35,13 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    void refreshStockPrices() throws Exception {
+        long startTime = System.nanoTime();
+        googleService.refreshStockPrices();
+        System.out.println(String.format("Duration %ss", duration(startTime)));
+    }
+
+    @Test
     @Disabled
     void appendProfits() {
         long startTime = System.nanoTime();
