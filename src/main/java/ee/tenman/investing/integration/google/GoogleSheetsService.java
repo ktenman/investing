@@ -343,7 +343,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
+    @Scheduled(cron = "0 2/5 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshStockPrices() throws IOException {
         int startingIndexNumber = 4;
