@@ -249,7 +249,7 @@ public class GoogleSheetsService {
         return batchRequests;
     }
 
-    @Scheduled(fixedDelay = 60000, initialDelay = 90000)
+    @Scheduled(fixedDelay = 600000, initialDelay = 600000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void updateSumOfTickers() throws IOException {
         updateTickerAmounts();
