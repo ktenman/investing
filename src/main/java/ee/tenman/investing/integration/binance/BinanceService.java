@@ -136,8 +136,6 @@ public class BinanceService {
 //        buy("SUSHIBNB", boughtBnbAmount.multiply(thirtyThreePercent));
     }
 
-    //    @Scheduled(cron = "0 0 12 1-7 * MON")
-//    @Scheduled(cron = "0 0 20 23-29 * THU")
     public void buyCrypto() {
 
         buy("BTCEUR", TEN_EUROS);

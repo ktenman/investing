@@ -125,8 +125,7 @@ public class GoogleSheetsService {
                 .orElseThrow(() -> new RuntimeException(String.format("%s sheet not found", sheetTitle)));
     }
 
-    @Scheduled(cron = "0 0 * * * *") // every hour
-//    @Scheduled(cron = "0 * * * * *")  // every minute
+    @Scheduled(cron = "0 0 * * * *")
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
@@ -249,7 +248,7 @@ public class GoogleSheetsService {
         return batchRequests;
     }
 
-    @Scheduled(fixedDelay = 600000, initialDelay = 600000)
+    @Scheduled(fixedDelay = 600_000, initialDelay = 600_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void updateSumOfTickers() throws IOException {
         updateTickerAmounts();
@@ -292,7 +291,7 @@ public class GoogleSheetsService {
         log.info("{}", response);
     }
 
-    @Scheduled(fixedDelay = 60000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 300_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshCryptoPrices() throws IOException {
         Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
@@ -366,7 +365,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 150_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshBalances() throws IOException {
         int startingIndexNumber = 21;
