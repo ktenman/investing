@@ -100,7 +100,7 @@ public class GoogleSheetsService {
     private StockPriceService stockPriceService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    @Scheduled(cron = "0 0/5 * * * *")
+    @Scheduled(cron = "0 0/10 * * * *")
     public void appendProfits() {
         Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
         if (spreadsheetResponse == null) {
@@ -343,7 +343,8 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(cron = "0 2/5 * * * *")
+    @Scheduled(cron = "0 3/10 * * * *")
+    @Scheduled(cron = "0 8/10 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshStockPrices() throws IOException {
         int startingIndexNumber = 4;
