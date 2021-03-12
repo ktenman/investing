@@ -1,8 +1,8 @@
 package ee.tenman.investing.service;
 
+import ee.tenman.investing.domain.Currency;
 import ee.tenman.investing.domain.StockPrice;
-import ee.tenman.investing.integration.borsefrankfurt.Currency;
-import ee.tenman.investing.integration.borsefrankfurt.StockSymbol;
+import ee.tenman.investing.domain.StockSymbol;
 import ee.tenman.investing.integration.google.GoogleStockPriceService;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.EUR;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBX;
+import static ee.tenman.investing.domain.Currency.EUR;
+import static ee.tenman.investing.domain.Currency.GBX;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;

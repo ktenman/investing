@@ -1,7 +1,7 @@
 package ee.tenman.investing.integration.google;
 
 import ee.tenman.investing.domain.StockPrice;
-import ee.tenman.investing.integration.borsefrankfurt.StockSymbol;
+import ee.tenman.investing.domain.StockSymbol;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.retry.annotation.Backoff;
@@ -15,8 +15,8 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBP;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBX;
+import static ee.tenman.investing.domain.Currency.GBP;
+import static ee.tenman.investing.domain.Currency.GBX;
 import static java.lang.String.format;
 import static org.openqa.selenium.By.name;
 import static org.openqa.selenium.By.tagName;

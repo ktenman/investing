@@ -1,11 +1,11 @@
-package ee.tenman.investing.integration.borsefrankfurt;
+package ee.tenman.investing.domain;
 
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.EUR;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBP;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBX;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.USD;
-import static ee.tenman.investing.integration.borsefrankfurt.Exchange.FRA;
-import static ee.tenman.investing.integration.borsefrankfurt.Exchange.LON;
+import static ee.tenman.investing.domain.Currency.EUR;
+import static ee.tenman.investing.domain.Currency.GBP;
+import static ee.tenman.investing.domain.Currency.GBX;
+import static ee.tenman.investing.domain.Currency.USD;
+import static ee.tenman.investing.domain.Exchange.FRA;
+import static ee.tenman.investing.domain.Exchange.LON;
 
 public enum StockSymbol {
     LON_IITU(LON, "IITU", GBX),

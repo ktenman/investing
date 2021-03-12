@@ -1,6 +1,6 @@
 package ee.tenman.investing.service;
 
-import ee.tenman.investing.integration.borsefrankfurt.StockSymbol;
+import ee.tenman.investing.domain.StockSymbol;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

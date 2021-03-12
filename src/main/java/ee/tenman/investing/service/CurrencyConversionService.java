@@ -1,6 +1,6 @@
 package ee.tenman.investing.service;
 
-import ee.tenman.investing.integration.borsefrankfurt.Currency;
+import ee.tenman.investing.domain.Currency;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBX;
+import static ee.tenman.investing.domain.Currency.GBX;
 import static java.lang.String.format;
 import static org.openqa.selenium.By.name;
 import static org.openqa.selenium.By.tagName;

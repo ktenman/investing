@@ -12,8 +12,8 @@ import static com.codeborne.selenide.Configuration.headless;
 import static com.codeborne.selenide.Configuration.proxyEnabled;
 import static com.codeborne.selenide.Configuration.screenshots;
 import static com.codeborne.selenide.Configuration.startMaximized;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.EUR;
-import static ee.tenman.investing.integration.borsefrankfurt.Currency.GBP;
+import static ee.tenman.investing.domain.Currency.EUR;
+import static ee.tenman.investing.domain.Currency.GBP;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyConversionServiceTest {

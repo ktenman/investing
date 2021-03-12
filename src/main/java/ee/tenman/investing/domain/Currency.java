@@ -1,4 +1,4 @@
-package ee.tenman.investing.integration.borsefrankfurt;
+package ee.tenman.investing.domain;
 
 public enum Currency {
     EUR("Euro"),

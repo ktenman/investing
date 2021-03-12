@@ -2,7 +2,7 @@ package ee.tenman.investing.integration.google;
 
 import com.codeborne.selenide.Configuration;
 import ee.tenman.investing.domain.StockPrice;
-import ee.tenman.investing.integration.borsefrankfurt.StockSymbol;
+import ee.tenman.investing.domain.StockSymbol;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
