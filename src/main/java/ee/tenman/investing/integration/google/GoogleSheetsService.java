@@ -191,51 +191,18 @@ public class GoogleSheetsService {
         yieldEarnedPercentageCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
         cellData.add(yieldEarnedPercentageCell);
 
-        ValueRange pools = getValueRange("yield!G2:K2");
-        List<String> poolNames = Stream.of(Objects.requireNonNull(pools).getValues()
-                .stream()
-                .flatMap(Collection::stream)
-                .map(v -> (String) v)
-                .toArray(String[]::new))
-                .collect(Collectors.toList());
-
-        int index = 1;
-        for (String poolName : poolNames) {
-            CellData newCellData = new CellData();
-            BigDecimal value = yieldSummary.getPools().get(poolName);
-            newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
-            cellData.add(newCellData);
-
-            log.info("{}. {} value {}", index++, poolName, value);
-        }
-
-        ValueRange coins = getValueRange("yield!L2:W2");
-        List<String> coinNames = Stream.of(Objects.requireNonNull(coins).getValues()
-                .stream()
-                .flatMap(Collection::stream)
-                .map(v -> (String) v)
-                .toArray(String[]::new))
-                .collect(Collectors.toList());
-
-        for (String coinName : coinNames) {
-            if (!coinName.contains("€")) {
-                CellData amountCell = new CellData();
-                BigDecimal amount = yieldSummary.amountInPool(Symbol.valueOf(coinName));
-                amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
-                cellData.add(amountCell);
-                log.info("{} amount: {}", coinName, amount);
-                continue;
-            }
-
-            Symbol symbol = Symbol.valueOf(coinName.split(" ")[0]);
-
-            CellData priceCell = new CellData();
-            BigDecimal price = prices.get(symbol);
-            priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(price.doubleValue()));
-            cellData.add(priceCell);
-
-            log.info("{} price: {}", coinName, price);
-        }
+        CellData earningsPerDayRoiCell = new CellData();
+        BigDecimal earningsPerRoiDay = Optional.ofNullable(getValueRange("yield!B1:B1"))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(BigDecimal::new)
+                .orElse(ZERO);
+        earningsPerDayRoiCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerRoiDay.doubleValue()));
+        earningsPerDayRoiCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
+        cellData.add(earningsPerDayRoiCell);
 
         BigDecimal investedBnbAmount = BigDecimal.valueOf(13.6048272167);
         BigDecimal totalEurInvested = prices.get(WBNB).multiply(investedBnbAmount);
@@ -251,18 +218,38 @@ public class GoogleSheetsService {
         cellData.add(earnedBnbAmountCell);
         cellData.add(investedEurDifferenceCell);
 
-        CellData earningsPerDayRoiCell = new CellData();
-        BigDecimal earningsPerRoiDay = Optional.ofNullable(getValueRange("yield!B1:B1"))
-                .map(ValueRange::getValues)
-                .map(o -> o.get(0))
-                .map(o -> o.get(0))
-                .map(Object::toString)
-                .filter(StringUtils::isNotBlank)
-                .map(BigDecimal::new)
-                .orElse(ZERO);
-        earningsPerDayRoiCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerRoiDay.doubleValue()));
-        earningsPerDayRoiCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
-        cellData.add(earningsPerDayRoiCell);
+        ValueRange values = getValueRange("yield!J2:Z2");
+        List<String> headers = Stream.of(Objects.requireNonNull(values).getValues()
+                .stream()
+                .flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new))
+                .collect(Collectors.toList());
+
+        headers.forEach(header -> {
+            if (header.contains("-")) {
+                CellData newCellData = new CellData();
+                BigDecimal value = yieldSummary.getPools().get(header);
+                newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
+                cellData.add(newCellData);
+                log.info("{} pool: {}", header, value);
+                return;
+            }
+            if (!header.contains("€")) {
+                CellData amountCell = new CellData();
+                BigDecimal amount = yieldSummary.amountInPool(Symbol.valueOf(header));
+                amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
+                cellData.add(amountCell);
+                log.info("{} amount: {}", header, amount);
+                return;
+            }
+            Symbol symbol = Symbol.valueOf(header.split(" ")[0]);
+            CellData priceCell = new CellData();
+            BigDecimal price = prices.get(symbol);
+            priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(price.doubleValue()));
+            cellData.add(priceCell);
+            log.info("{} price: {}", header, price);
+        });
 
         rowData.add(new RowData().setValues(cellData));
 
