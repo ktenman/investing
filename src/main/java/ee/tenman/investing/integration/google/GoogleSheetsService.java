@@ -163,26 +163,12 @@ public class GoogleSheetsService {
         cellData.add(earnedYieldCell);
 
         CellData yieldPerDayCell = new CellData();
-        BigDecimal yieldPerDay = Optional.ofNullable(getValueRange("yield!A1:A1"))
-                .map(ValueRange::getValues)
-                .map(o -> o.get(0))
-                .map(o -> o.get(0))
-                .map(Object::toString)
-                .filter(StringUtils::isNotBlank)
-                .map(BigDecimal::new)
-                .orElseThrow(() -> new IllegalStateException("Couldn't fetch yield per day value"));
+        BigDecimal yieldPerDay = extractValueRangeFrom("yield!A1:A1", "Couldn't fetch yield per day value");
         yieldPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldPerDay.doubleValue()));
         cellData.add(yieldPerDayCell);
 
         CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = Optional.ofNullable(getValueRange("yield!C1:C1"))
-                .map(ValueRange::getValues)
-                .map(o -> o.get(0))
-                .map(o -> o.get(0))
-                .map(Object::toString)
-                .filter(StringUtils::isNotBlank)
-                .map(BigDecimal::new)
-                .orElseThrow(() -> new IllegalStateException("Couldn't fetch earnings per day value"));
+        BigDecimal earningsPerDay = extractValueRangeFrom("yield!C1:C1", "Couldn't fetch earnings per day value");
         earningsPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerDay.doubleValue()));
         cellData.add(earningsPerDayCell);
 
@@ -192,14 +178,7 @@ public class GoogleSheetsService {
         cellData.add(yieldEarnedPercentageCell);
 
         CellData earningsPerDayRoiCell = new CellData();
-        BigDecimal earningsPerRoiDay = Optional.ofNullable(getValueRange("yield!B1:B1"))
-                .map(ValueRange::getValues)
-                .map(o -> o.get(0))
-                .map(o -> o.get(0))
-                .map(Object::toString)
-                .filter(StringUtils::isNotBlank)
-                .map(BigDecimal::new)
-                .orElse(ZERO);
+        BigDecimal earningsPerRoiDay = extractBigDecimalFromValueRange("yield!B1:B1");
         earningsPerDayRoiCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earningsPerRoiDay.doubleValue()));
         earningsPerDayRoiCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
         cellData.add(earningsPerDayRoiCell);
@@ -264,6 +243,30 @@ public class GoogleSheetsService {
         batchRequests.setRequests(requests);
 
         return batchRequests;
+    }
+
+    private BigDecimal extractValueRangeFrom(String valueRange, String errorMessage) {
+        return Optional.ofNullable(getValueRange(valueRange))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(text -> text.replaceAll("[^\\d.]", ""))
+                .map(BigDecimal::new)
+                .orElseThrow(() -> new IllegalStateException(errorMessage));
+    }
+
+    private BigDecimal extractBigDecimalFromValueRange(String valueRange) {
+        return Optional.ofNullable(getValueRange(valueRange))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(text -> text.replaceAll("[^\\d.]", ""))
+                .map(BigDecimal::new)
+                .orElse(ZERO);
     }
 
     @Scheduled(fixedDelay = 600_000, initialDelay = 600_000)
@@ -483,15 +486,7 @@ public class GoogleSheetsService {
     }
 
     private void updateTickerAmounts() throws IOException {
-        leftOverAmount = Optional.ofNullable(getValueRange("investing!Q44:Q44"))
-                .map(ValueRange::getValues)
-                .map(o -> o.get(0))
-                .map(o -> o.get(0))
-                .map(Object::toString)
-                .filter(StringUtils::isNotBlank)
-                .map(text -> text.replaceAll("[^\\d.]", ""))
-                .map(BigDecimal::new)
-                .orElse(ZERO);
+        leftOverAmount = extractBigDecimalFromValueRange("investing!Q44:Q44");
 
         if (leftOverAmount.equals(ZERO)) {
             log.info("Skipping of updating ticker amounts");
