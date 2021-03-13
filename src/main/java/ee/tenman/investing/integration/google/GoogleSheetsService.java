@@ -379,7 +379,7 @@ public class GoogleSheetsService {
 
         startingIndexNumber = 30;
         startingIndexCombined = "E" + startingIndexNumber;
-        valueRange = getValueRange(String.format("investing!%s:E35", startingIndexCombined));
+        valueRange = getValueRange(String.format("investing!%s:E37", startingIndexCombined));
         values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new);
