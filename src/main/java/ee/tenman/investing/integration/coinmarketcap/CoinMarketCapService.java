@@ -101,6 +101,7 @@ public class CoinMarketCapService {
         List<BigDecimal> prices = new ArrayList<>();
 
         Stream.of(Symbol.BTC.name(), Symbol.ETH.name())
+                .parallel()
                 .map(s -> Optional.of(selenideElements
                         .filter(text(s))
                         .first()

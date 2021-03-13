@@ -68,7 +68,7 @@ public class CoinMarketCapApiService {
                 .parallelStream()
                 .collect(toMap(identity(), symbol -> binanceService.getPriceToEur(symbol)));
 
-        BigDecimal sum = prices.keySet().stream()
+        BigDecimal sum = prices.keySet().parallelStream()
                 .map(symbol -> prices.get(symbol).multiply(binanceEurPrices.get(symbol)))
                 .map(Objects::requireNonNull)
                 .reduce(ZERO, BigDecimal::add);

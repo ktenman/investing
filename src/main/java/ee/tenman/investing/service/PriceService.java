@@ -167,8 +167,7 @@ public class PriceService {
     }
 
     public Map<Symbol, BigDecimal> to24HDifference(List<Symbol> symbols) {
-        return symbols.stream()
-                .parallel()
+        return symbols.parallelStream()
                 .collect(toMap(
                         identity(),
                         symbol -> coinMarketCapApiService.differenceIn24Hours(symbol),
