@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -61,11 +62,6 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.SUSHI_SWAP
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.USDT_ID;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BUSD;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.CAKE;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static java.lang.Math.abs;
 import static java.math.BigDecimal.ZERO;
@@ -312,42 +308,30 @@ public class GoogleSheetsService {
             googleSheetsClient.update(updateCell, prices.get(e.getKey()));
         }
 
-        BigDecimal sbdoToEurPrice = priceService.toEur(SBDO);
-        if (ComparableUtils.is(sbdoToEurPrice).greaterThan(ZERO)) {
-            googleSheetsClient.update("investing!G30:G30", sbdoToEurPrice);
-        }
+        int index = 30;
+        ValueRange valueRange = getValueRange(String.format("investing!E%s:E37", index));
+        List<Symbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new))
+                .map(s -> s.replace(":", "_"))
+                .map(Symbol::valueOf)
+                .collect(Collectors.toList());
 
-        BigDecimal wbnbToEurPrice = priceService.toEur(WBNB);
-        if (ComparableUtils.is(wbnbToEurPrice).greaterThan(ZERO)) {
-            googleSheetsClient.update("investing!G31:G31", wbnbToEurPrice);
-        }
+        Map<Symbol, BigDecimal> stockSymbolBigDecimalMap = values.stream()
+                .parallel()
+                .collect(Collectors.toMap(Function.identity(), s -> priceService.toEur(s)));
 
-        BigDecimal bdoToEurPrice = priceService.toEur(BDO);
-        if (ComparableUtils.is(bdoToEurPrice).greaterThan(ZERO)) {
-            googleSheetsClient.update("investing!G32:G32", bdoToEurPrice);
-        }
-
-        BigDecimal busdToEurPrice = priceService.toEur(BUSD);
-        if (ComparableUtils.is(busdToEurPrice).greaterThan(ZERO)) {
-            googleSheetsClient.update("investing!G33:G33", busdToEurPrice);
-        }
-        BigDecimal cakeToEurPrice = priceService.toEur(CAKE);
-        if (ComparableUtils.is(cakeToEurPrice).greaterThan(ZERO)) {
-            googleSheetsClient.update("investing!G34:G34", cakeToEurPrice);
-        }
-
-        BigDecimal watchToEurPrice = priceService.toEur(WATCH);
-        if (ComparableUtils.is(watchToEurPrice).greaterThan(ZERO)) {
-            googleSheetsClient.update("investing!G35:G35", watchToEurPrice);
+        for (int i = 0; i < values.size(); i++) {
+            String coordinate = "G" + (index + i);
+            String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+            googleSheetsClient.update(coordinates, stockSymbolBigDecimalMap.get(values.get(i)));
         }
     }
 
     @Scheduled(cron = "0 5/10 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshStockPrices() throws IOException {
-        int startingIndexNumber = 4;
-        String startingIndexCombined = "E" + startingIndexNumber;
-        ValueRange valueRange = getValueRange(String.format("investing!%s:E20", startingIndexCombined));
+        ValueRange valueRange = getValueRange("investing!E4:E20");
         List<StockSymbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new))
@@ -358,7 +342,7 @@ public class GoogleSheetsService {
         Map<StockSymbol, BigDecimal> prices = stockPriceService.priceInEur(values);
 
         for (int i = 0; i < values.size(); i++) {
-            String coordinate = "G" + (startingIndexNumber + i);
+            String coordinate = "G" + (4 + i);
             String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
             googleSheetsClient.update(coordinates, prices.get(values.get(i)));
         }
