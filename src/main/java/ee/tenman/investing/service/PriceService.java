@@ -12,22 +12,18 @@ import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTC;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTS;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.CRO;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
@@ -94,50 +90,6 @@ public class PriceService {
         throw new NotSupportedSymbolException(String.format("%s not supported", fromTo));
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    public Map<String, BigDecimal> getPrices(Collection<String> input) {
-        List<String> tickers = new ArrayList<>(input);
-        Map<String, BigDecimal> binancePrices = new HashMap<>();
-
-        for (String ticker : input) {
-            try {
-                String symbol = TICKER_SYMBOL_MAP.get(ticker);
-                BigDecimal priceToEur = binanceService.getPriceToEur(symbol);
-                binancePrices.put(ticker, priceToEur);
-                tickers.remove(ticker);
-            } catch (Exception ignored) {
-
-            }
-        }
-
-        if (tickers.isEmpty()) {
-            return binancePrices;
-        }
-
-        input = new ArrayList<>(tickers);
-
-        BigDecimal btcToEur = binanceService.getPriceToEur("BTC");
-        for (String ticker : input) {
-            try {
-                String symbol = TICKER_SYMBOL_MAP.get(ticker);
-                BigDecimal priceToEur = cryptoComService.getInstrumentPrice(symbol, "BTC");
-                binancePrices.put(ticker, priceToEur.multiply(btcToEur));
-                tickers.remove(ticker);
-            } catch (Exception ignored) {
-
-            }
-        }
-
-        if (tickers.isEmpty()) {
-            return binancePrices;
-        }
-
-        BigDecimal busdToEur = binanceService.getPriceToEur("BUSD");
-        Map<String, BigDecimal> coinMarketCapServicePrices = coinMarketCapService.getPricesInEur(tickers, busdToEur);
-        binancePrices.putAll(coinMarketCapServicePrices);
-        return binancePrices;
-    }
-
     public BigDecimal toEur(Symbol symbol) {
 
         try {
@@ -149,6 +101,19 @@ public class PriceService {
                 return priceToEur;
             }
         } catch (NotSupportedSymbolException ignored) {
+        }
+
+        if (symbol == CRO) {
+            try {
+                BigDecimal btcToEur = binanceService.getPriceToEur(BTC.name());
+                BigDecimal priceToBtc = cryptoComService.getInstrumentPrice(CRO.name(), BTC.name());
+                BigDecimal priceToEur = priceToBtc.multiply(btcToEur);
+                if (priceToEur != null && ComparableUtils.is(priceToEur).greaterThan(ZERO)) {
+                    return priceToEur;
+                }
+            } catch (Exception ignored) {
+
+            }
         }
 
         try {

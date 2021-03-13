@@ -79,10 +79,10 @@ class YieldWatchServiceTest {
         assertThat(yieldSummary.getPools())
                 .hasSize(4)
                 .contains(
-                        entry("WBNB-BUSD Pool", new BigDecimal("32.45194077553508")),
-                        entry("BDO-BUSD Pool", new BigDecimal("2.1681050115018623")),
-                        entry("BDO-WBNB Pool", new BigDecimal("32.14490088855059")),
-                        entry("SBDO-BUSD Pool", new BigDecimal("118.81148758159739"))
+                        entry("WBNB-BUSD", new BigDecimal("32.45194077553508")),
+                        entry("BDO-BUSD", new BigDecimal("2.1681050115018623")),
+                        entry("BDO-WBNB", new BigDecimal("32.14490088855059")),
+                        entry("SBDO-BUSD", new BigDecimal("118.81148758159739"))
                 );
         assertThat(yieldSummary.amountInPool(Symbol.BNB)).isEqualByComparingTo(ZERO);
         assertThat(yieldSummary.amountInWallet(Symbol.BNB)).isEqualByComparingTo(new BigDecimal("0.05921706753816801"));

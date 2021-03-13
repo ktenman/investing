@@ -2,7 +2,6 @@ package ee.tenman.investing.integration.google;
 
 import ee.tenman.investing.domain.StockPrice;
 import ee.tenman.investing.domain.StockSymbol;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -31,19 +30,5 @@ class GoogleStockPriceServiceTest {
 
         assertThat(stockPrice.getPrice()).isGreaterThan(BigDecimal.ZERO);
 
-    }
-
-    @Test
-    void removeComma() {
-        String comma = googleStockPriceService.removeComma("1.176,00");
-
-        assertThat(comma).isEqualTo("1176.00");
-    }
-
-    @Test
-    void removeComma2() {
-        String comma = googleStockPriceService.removeComma("1,176.00");
-
-        assertThat(comma).isEqualTo("1176.00");
     }
 }

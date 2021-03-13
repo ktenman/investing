@@ -15,7 +15,6 @@ import java.util.Map;
 
 import static com.binance.api.client.domain.market.CandlestickInterval.DAILY;
 import static com.binance.api.client.domain.market.CandlestickInterval.MONTHLY;
-import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,15 +23,6 @@ class PriceServiceIntegrationTest {
 
     @Resource
     PriceService priceService;
-
-    @Test
-    void getPrices() {
-        Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
-
-        assertThat(prices).hasSize(TICKER_SYMBOL_MAP.size());
-        TICKER_SYMBOL_MAP.keySet().forEach(ticker -> assertThat(prices.keySet()).contains(ticker));
-        prices.values().forEach(price -> assertThat(price).isGreaterThan(ZERO));
-    }
 
     @ParameterizedTest
     @ValueSource(strings = {

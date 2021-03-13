@@ -47,27 +47,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static ee.tenman.investing.configuration.FetchingConfiguration.BINANCE_COIN_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.BITCOIN_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.CARDANO_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.CRO_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.ETHEREUM_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.POLKADOT_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.SUSHI_SWAP_ID;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
-import static ee.tenman.investing.configuration.FetchingConfiguration.UNISWAP_ID;
-import static ee.tenman.investing.configuration.FetchingConfiguration.USDT_ID;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static java.lang.Math.abs;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Slf4j
@@ -203,7 +194,7 @@ public class GoogleSheetsService {
                 .flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         headers.forEach(header -> {
             if (header.contains("-")) {
@@ -314,62 +305,53 @@ public class GoogleSheetsService {
 
     @Scheduled(fixedDelay = 300_000, initialDelay = 100_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    public void refreshCryptoPrices() throws IOException {
-        Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
+    public void refreshCryptoPrices() {
 
-        Map<String, String> cryptoCellsMap = new HashMap<>();
-        cryptoCellsMap.put(BINANCE_COIN_ID, "investing!G21:G21");
-        cryptoCellsMap.put(CRO_ID, "investing!G22:G22");
-        cryptoCellsMap.put(POLKADOT_ID, "investing!G23:G23");
-        cryptoCellsMap.put(UNISWAP_ID, "investing!G24:G24");
-        cryptoCellsMap.put(BITCOIN_ID, "investing!G25:G25");
-        cryptoCellsMap.put(SUSHI_SWAP_ID, "investing!G26:G26");
-        cryptoCellsMap.put(USDT_ID, "investing!G28:G28");
-        cryptoCellsMap.put(CARDANO_ID, "investing!G29:G29");
-        cryptoCellsMap.put(ETHEREUM_ID, "investing!G27:G27");
-
-        for (Map.Entry<String, String> e : cryptoCellsMap.entrySet()) {
-            String updateCell = e.getValue();
-            googleSheetsClient.update(updateCell, prices.get(e.getKey()));
-        }
-
-        int index = 30;
+        int index = 21;
         ValueRange valueRange = getValueRange(String.format("investing!E%s:E37", index));
-        List<Symbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+        List<Symbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues()
+                .stream()
+                .flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new))
                 .map(s -> s.replace(":", "_"))
                 .map(Symbol::valueOf)
-                .collect(Collectors.toList());
+                .collect(toList());
 
-        Map<Symbol, BigDecimal> stockSymbolBigDecimalMap = values.stream()
+        IntStream.range(0, values.size())
                 .parallel()
-                .collect(Collectors.toMap(Function.identity(), s -> priceService.toEur(s)));
+                .forEach(updateCryptoPriceInGoogleSheets(index, values));
+    }
 
-        for (int i = 0; i < values.size(); i++) {
+    private IntConsumer updateCryptoPriceInGoogleSheets(int index, List<Symbol> values) {
+        return (i) -> {
             String coordinate = "G" + (index + i);
             String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
-            googleSheetsClient.update(coordinates, stockSymbolBigDecimalMap.get(values.get(i)));
-        }
+            try {
+                googleSheetsClient.update(coordinates, priceService.toEur(values.get(i)).doubleValue());
+            } catch (IOException e) {
+                log.error("Failed to update {} with {}", coordinates, values.get(i));
+            }
+        };
     }
 
     @Scheduled(cron = "0 5/10 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshStockPrices() throws IOException {
         ValueRange valueRange = getValueRange("investing!E4:E20");
-        List<StockSymbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+        List<StockSymbol> stockSymbols = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new))
                 .map(s -> s.replace(":", "_"))
                 .map(StockSymbol::valueOf)
-                .collect(Collectors.toList());
+                .collect(toList());
 
-        Map<StockSymbol, BigDecimal> prices = stockPriceService.priceInEur(values);
+        Map<StockSymbol, BigDecimal> prices = stockPriceService.priceInEur(stockSymbols);
 
-        for (int i = 0; i < values.size(); i++) {
+        for (int i = 0; i < stockSymbols.size(); i++) {
             String coordinate = "G" + (4 + i);
             String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
-            googleSheetsClient.update(coordinates, prices.get(values.get(i)));
+            googleSheetsClient.update(coordinates, prices.get(stockSymbols.get(i)));
         }
     }
 
@@ -417,12 +399,6 @@ public class GoogleSheetsService {
 
             BigDecimal poolAmount = yieldSummary.amountInPool(symbol);
             googleSheetsClient.update(coordinates, poolAmount);
-
-            coordinate = "D" + (startingIndexNumber + i);
-            coordinates = String.format("investing!%s:%s", coordinate, coordinate);
-
-            BigDecimal walletAmount = yieldSummary.amountInWallet(symbol);
-            googleSheetsClient.update(coordinates, walletAmount);
         }
     }
 
@@ -506,16 +482,16 @@ public class GoogleSheetsService {
 
         int maxTickerAmount = leftOverAmount.divide(min, RoundingMode.DOWN).intValue();
 
-        List<Integer> numbers = IntStream.rangeClosed(0, maxTickerAmount).boxed().collect(Collectors.toList());
+        List<Integer> numbers = IntStream.rangeClosed(0, maxTickerAmount).boxed().collect(toList());
         List<List<Integer>> combinations = Generator.combination(numbers)
                 .multi(4)
                 .stream()
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<List<String>> tickerCombinations = Generator.permutation(values.keySet())
                 .simple()
                 .stream()
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<Map<String, BigDecimal>> temporaryResult = new ArrayList<>();
 
@@ -550,7 +526,7 @@ public class GoogleSheetsService {
                 .getValues()
                 .stream()
                 .flatMap(List::stream)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         HashMap<String, String> objectObjectHashMap = new HashMap<>();
         for (int i = 0; i < collect.size(); i++) {

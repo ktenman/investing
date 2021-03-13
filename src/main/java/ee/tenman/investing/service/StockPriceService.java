@@ -11,41 +11,25 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static ee.tenman.investing.domain.Currency.EUR;
-import static ee.tenman.investing.domain.Currency.GBX;
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 @Service
 @Slf4j
 public class StockPriceService {
 
     @Resource
-    GoogleStockPriceService googleStockPriceService;
+    private GoogleStockPriceService googleStockPriceService;
 
     @Resource
-    CurrencyConversionService currencyConversionService;
+    private CurrencyConversionService currencyConversionService;
 
     public Map<StockSymbol, BigDecimal> priceInEur(List<StockSymbol> stockSymbols) {
-        Set<Currency> possibleCurrencies = stockSymbols.stream()
-                .map(StockSymbol::currency)
-                .filter(c -> c != GBX)
-                .collect(toSet());
-
-        Map<Currency, BigDecimal> currenciesInEur = possibleCurrencies.stream()
-                .parallel()
-                .collect(toMap(identity(), c -> currencyConversionService.convert(c, EUR)));
-
-        log.info("Currencies to EUR {}", currenciesInEur);
-
+        Map<Currency, BigDecimal> conversionRates = currencyConversionService.getConversionRatesToEur(stockSymbols);
         return stockSymbols.stream()
-                .parallel()
                 .map(googleStockPriceService::fetchPriceFromGoogle)
                 .collect(toMap(StockPrice::getStockSymbol, s ->
-                        currenciesInEur.get(s.getCurrency()).multiply(s.getPrice()))
+                        conversionRates.get(s.getCurrency()).multiply(s.getPrice()))
                 );
     }
 

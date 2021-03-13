@@ -28,7 +28,7 @@ class GoogleSheetsServiceIntegrationTest {
 
     @Test
     @Order(1)
-    void refreshCryptoPrices() throws Exception {
+    void refreshCryptoPrices() {
         long startTime = System.nanoTime();
         googleService.refreshCryptoPrices();
         System.out.println(String.format("Duration %ss", duration(startTime)));

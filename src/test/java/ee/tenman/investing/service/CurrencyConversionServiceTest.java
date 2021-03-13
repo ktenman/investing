@@ -1,15 +1,17 @@
 package ee.tenman.investing.service;
 
-import org.junit.jupiter.api.Test;
+import ee.tenman.investing.domain.Currency;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
 import static com.codeborne.selenide.Configuration.headless;
-import static ee.tenman.investing.domain.Currency.EUR;
-import static ee.tenman.investing.domain.Currency.GBP;
+import static java.math.BigDecimal.ZERO;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyConversionServiceTest {
@@ -21,11 +23,14 @@ class CurrencyConversionServiceTest {
     @InjectMocks
     CurrencyConversionService currencyConversionService;
 
-    @Test
-    void convert() {
-        BigDecimal gbpToEur = currencyConversionService.convert(GBP, EUR);
-        BigDecimal eurToGbp = currencyConversionService.convert(EUR, GBP);
+    @ParameterizedTest
+    @CsvSource({
+            "GBP, EUR",
+            "USD, EUR"
+    })
+    void convert(Currency from, Currency to) {
+        BigDecimal currencyConversionRate = currencyConversionService.convert(from, to);
 
-        System.out.println();
+        assertThat(currencyConversionRate).isGreaterThan(ZERO);
     }
 }
