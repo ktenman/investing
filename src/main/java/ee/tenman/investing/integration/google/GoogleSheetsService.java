@@ -229,7 +229,7 @@ public class GoogleSheetsService {
         headers.forEach(header -> {
             if (header.contains("-")) {
                 CellData newCellData = new CellData();
-                BigDecimal value = yieldSummary.getPools().get(header);
+                BigDecimal value = yieldSummary.getPools().getOrDefault(header, ZERO);
                 newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
                 cellData.add(newCellData);
                 log.info("{} pool: {}", header, value);
@@ -245,7 +245,7 @@ public class GoogleSheetsService {
             }
             Symbol symbol = Symbol.valueOf(header.split(" ")[0]);
             CellData priceCell = new CellData();
-            BigDecimal price = prices.get(symbol);
+            BigDecimal price = prices.getOrDefault(symbol, ZERO);
             priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(price.doubleValue()));
             cellData.add(priceCell);
             log.info("{} price: {}", header, price);
