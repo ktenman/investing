@@ -291,7 +291,7 @@ public class GoogleSheetsService {
         log.info("{}", response);
     }
 
-    @Scheduled(fixedDelay = 300_000, initialDelay = 300_000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 100_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshCryptoPrices() throws IOException {
         Map<String, BigDecimal> prices = priceService.getPrices(TICKER_SYMBOL_MAP.keySet());
@@ -342,8 +342,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(cron = "0 3/10 * * * *")
-    @Scheduled(cron = "0 8/10 * * * *")
+    @Scheduled(cron = "0 5/10 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshStockPrices() throws IOException {
         int startingIndexNumber = 4;
@@ -365,7 +364,7 @@ public class GoogleSheetsService {
         }
     }
 
-    @Scheduled(fixedDelay = 300_000, initialDelay = 150_000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 200_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshBalances() throws IOException {
         int startingIndexNumber = 21;

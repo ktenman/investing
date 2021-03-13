@@ -26,7 +26,7 @@ public class AutofarmService {
         return dailyYieldReturn;
     }
 
-    @Scheduled(fixedDelay = 900000, initialDelay = 900000)
+    @Scheduled(fixedDelay = 900_000, initialDelay = 900_000)
     public void setDailyYieldReturn() {
         this.dailyYieldReturn = fetchDailyYieldReturn();
     }
