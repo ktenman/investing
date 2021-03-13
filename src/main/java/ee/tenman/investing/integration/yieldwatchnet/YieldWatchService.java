@@ -39,6 +39,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
+import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
@@ -102,7 +103,7 @@ public class YieldWatchService {
         BigDecimal wbnbAmount = coinAmounts.get(2).add(coinAmounts.get(3));
         BigDecimal yieldEarnedPercentage = yieldEarned.setScale(8, ROUND_UP).divide(total, HALF_UP);
 
-        closeWebDriver();
+        closeWindow();
         return YieldSummary.builder()
                 // TODO fix implementation
 //                .bdoAmount(bdoAmount)

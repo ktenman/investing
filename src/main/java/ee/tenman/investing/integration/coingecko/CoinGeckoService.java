@@ -16,7 +16,7 @@ import java.util.Optional;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.codeborne.selenide.Selenide.closeWebDriver;
+import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static org.openqa.selenium.By.className;
 import static org.openqa.selenium.By.tagName;
@@ -64,11 +64,11 @@ public class CoinGeckoService {
 
         BigDecimal btcToEur = binanceService.getPriceToEur(Symbol.BTC.name());
 
-        closeWebDriver();
+
         BigDecimal price = btcPrice.multiply(btcToEur);
 
         log.info("{}/EUR: {}", symbol, price);
-
+        closeWindow();
         return price;
     }
 

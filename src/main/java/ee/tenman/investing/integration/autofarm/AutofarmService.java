@@ -9,6 +9,7 @@ import java.math.RoundingMode;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
+import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static org.openqa.selenium.By.tagName;
 
@@ -41,7 +42,7 @@ public class AutofarmService {
                 .text()
                 .replace("%", "");
 
-        closeWebDriver();
+        closeWindow();
         return new BigDecimal(yieldPercentage).setScale(6, BigDecimal.ROUND_UP)
                 .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
     }

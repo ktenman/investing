@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
+import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static java.math.RoundingMode.HALF_UP;
@@ -74,7 +75,7 @@ public class CoinMarketCapService {
             prices.put(ticker, price);
             log.info("{} price {}", TICKER_SYMBOL_MAP.get(ticker), price);
         }
-        closeWebDriver();
+        closeWindow();
         return prices;
     }
 
@@ -116,13 +117,13 @@ public class CoinMarketCapService {
                 .filter(Objects::nonNull)
                 .forEach(prices::add);
 
-        closeWebDriver();
-
         BigDecimal average = prices.stream()
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(prices.size()), HALF_UP);
 
         log.info("{}/EUR: {}", symbol.name(), average);
+
+        closeWindow();
         return average;
     }
 
