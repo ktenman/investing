@@ -12,16 +12,16 @@ class SymbolTest {
     @Test
     @DisplayName("Supported currency symbol should return id")
     void getCoinMarketCapId() {
-        int id = Symbol.BDO.getCoinMarketCapId();
+        int id = Symbol.BDO.coinMarketCapId();
 
         assertThat(id).isEqualTo(8219);
     }
 
     @ParameterizedTest
     @DisplayName("Check if all symbols do have relevant id")
-    @EnumSource(Symbol.class)
+    @EnumSource(value = Symbol.class, mode = EnumSource.Mode.EXCLUDE, names = {"BTD", "BTS"})
     void getCoinMarketCapId2(Symbol symbol) {
-        int id = symbol.getCoinMarketCapId();
+        int id = symbol.coinMarketCapId();
 
         assertThat(id).isPositive()
                 .isNotZero();

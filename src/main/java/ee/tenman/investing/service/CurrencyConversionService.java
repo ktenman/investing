@@ -13,7 +13,6 @@ import java.util.Optional;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.domain.Currency.EUR;
 import static ee.tenman.investing.domain.Currency.GBP;
@@ -60,7 +59,7 @@ public class CurrencyConversionService {
 
         String currency = to.value();
 
-        BigDecimal conversionRate = Optional.of($$(tagName("span"))
+        return Optional.of($$(tagName("span"))
                 .find(text(currency))
                 .closest("div")
                 .text()
@@ -70,11 +69,6 @@ public class CurrencyConversionService {
                 .map(BigDecimal::new)
                 .orElseThrow(() -> new IllegalStateException(format("Couldn't fetch %s -> %s", from, to)))
                 .movePointLeft(7);
-
-        closeWindow();
-
-        return conversionRate;
     }
-
 
 }

@@ -1,6 +1,5 @@
 package ee.tenman.investing.integration.google;
 
-import com.codeborne.selenide.Configuration;
 import ee.tenman.investing.domain.StockPrice;
 import ee.tenman.investing.domain.StockSymbol;
 import org.junit.jupiter.api.Test;
@@ -12,17 +11,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
+import static com.codeborne.selenide.Configuration.headless;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class GoogleStockPriceServiceTest {
 
     static {
-        Configuration.startMaximized = true;
-        Configuration.headless = true;
-        Configuration.proxyEnabled = false;
-        Configuration.screenshots = false;
-        Configuration.browser = "firefox";
+        headless = true;
     }
 
     @InjectMocks

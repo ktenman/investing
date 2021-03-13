@@ -7,11 +7,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static com.codeborne.selenide.Configuration.browser;
 import static com.codeborne.selenide.Configuration.headless;
-import static com.codeborne.selenide.Configuration.proxyEnabled;
-import static com.codeborne.selenide.Configuration.screenshots;
-import static com.codeborne.selenide.Configuration.startMaximized;
 import static ee.tenman.investing.domain.Currency.EUR;
 import static ee.tenman.investing.domain.Currency.GBP;
 
@@ -19,11 +15,7 @@ import static ee.tenman.investing.domain.Currency.GBP;
 class CurrencyConversionServiceTest {
 
     static {
-        startMaximized = true;
-        headless = false;
-        proxyEnabled = false;
-        screenshots = false;
-        browser = "firefox";
+        headless = true;
     }
 
     @InjectMocks

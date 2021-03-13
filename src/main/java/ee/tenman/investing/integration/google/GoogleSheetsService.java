@@ -509,13 +509,11 @@ public class GoogleSheetsService {
         List<List<Integer>> combinations = Generator.combination(numbers)
                 .multi(4)
                 .stream()
-                .parallel()
                 .collect(Collectors.toList());
 
         List<List<String>> tickerCombinations = Generator.permutation(values.keySet())
                 .simple()
                 .stream()
-                .parallel()
                 .collect(Collectors.toList());
 
         List<Map<String, BigDecimal>> temporaryResult = new ArrayList<>();

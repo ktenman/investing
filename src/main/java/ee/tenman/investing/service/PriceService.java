@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTS;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
@@ -140,6 +141,9 @@ public class PriceService {
     public BigDecimal toEur(Symbol symbol) {
 
         try {
+            if (symbol == BTS) {
+                throw new NotSupportedSymbolException("BTS not supported");
+            }
             BigDecimal priceToEur = binanceService.getPriceToEur(symbol.name());
             if (priceToEur != null && ComparableUtils.is(priceToEur).greaterThan(ZERO)) {
                 return priceToEur;
@@ -167,7 +171,8 @@ public class PriceService {
     }
 
     public Map<Symbol, BigDecimal> to24HDifference(List<Symbol> symbols) {
-        return symbols.parallelStream()
+        return symbols.stream()
+                .parallel()
                 .collect(toMap(
                         identity(),
                         symbol -> coinMarketCapApiService.differenceIn24Hours(symbol),
@@ -182,7 +187,6 @@ public class PriceService {
                 .filter(StringUtils::isNotBlank)
                 .map(String::toUpperCase)
                 .map(Symbol::valueOf)
-                .parallel()
                 .collect(toMap(
                         identity(),
                         this::toEur,

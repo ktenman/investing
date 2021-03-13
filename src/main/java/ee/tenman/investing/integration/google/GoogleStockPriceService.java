@@ -14,7 +14,6 @@ import java.util.Optional;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.domain.Currency.GBP;
 import static ee.tenman.investing.domain.Currency.GBX;
@@ -45,8 +44,6 @@ public class GoogleStockPriceService {
                 .movePointLeft(stockSymbol.currency() == GBX ? 2 : 0);
 
         log.info("{}: {}", stockSymbol, price);
-
-        closeWindow();
 
         return StockPrice.builder()
                 .currency(stockSymbol.currency() == GBX ? GBP : stockSymbol.currency())

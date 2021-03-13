@@ -35,12 +35,14 @@ public class StockPriceService {
                 .filter(c -> c != GBX)
                 .collect(toSet());
 
-        Map<Currency, BigDecimal> currenciesInEur = possibleCurrencies.parallelStream()
+        Map<Currency, BigDecimal> currenciesInEur = possibleCurrencies.stream()
+                .parallel()
                 .collect(toMap(identity(), c -> currencyConversionService.convert(c, EUR)));
 
         log.info("Currencies to EUR {}", currenciesInEur);
 
-        return stockSymbols.parallelStream()
+        return stockSymbols.stream()
+                .parallel()
                 .map(googleStockPriceService::fetchPriceFromGoogle)
                 .collect(toMap(StockPrice::getStockSymbol, s ->
                         currenciesInEur.get(s.getCurrency()).multiply(s.getPrice()))

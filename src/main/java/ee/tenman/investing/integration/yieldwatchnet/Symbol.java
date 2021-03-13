@@ -11,6 +11,8 @@ public enum Symbol {
     BDO,
     BNB,
     BTC,
+    BTD,
+    BTS,
     BUSD,
     CAKE,
     CRO,
@@ -44,7 +46,7 @@ public enum Symbol {
             .put(WBNB, 7192)
             .build();
 
-    public int getCoinMarketCapId() {
+    public int coinMarketCapId() {
         return Optional.ofNullable(COIN_MARKET_CAP_IDS.get(this))
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Symbol %s not supported", this)));
     }

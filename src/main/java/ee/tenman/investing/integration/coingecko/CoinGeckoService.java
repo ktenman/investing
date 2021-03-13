@@ -16,7 +16,6 @@ import java.util.Optional;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static org.openqa.selenium.By.className;
 import static org.openqa.selenium.By.tagName;
@@ -43,6 +42,8 @@ public class CoinGeckoService {
             .put(Symbol.SUSHI, "sushi")
             .put(Symbol.UNI, "uniswap")
             .put(Symbol.USDT, "tether")
+            .put(Symbol.BTD, "bolt-true-dollar")
+            .put(Symbol.BTS, "bolt-true-share")
             .build();
 
     @Resource
@@ -68,7 +69,7 @@ public class CoinGeckoService {
         BigDecimal price = btcPrice.multiply(btcToEur);
 
         log.info("{}/EUR: {}", symbol, price);
-        closeWindow();
+
         return price;
     }
 

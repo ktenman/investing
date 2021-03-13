@@ -221,7 +221,7 @@ public class BinanceService {
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<String, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval) {
 
-        return getCandlestickBars(fromTo, candlestickInterval).parallelStream()
+        return getCandlestickBars(fromTo, candlestickInterval).stream()
                 .collect(toMap(
                         candlestick -> Instant.ofEpochMilli(candlestick.getCloseTime()).toString(),
                         candlestick -> new BigDecimal(candlestick.getClose()),
@@ -237,7 +237,7 @@ public class BinanceService {
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<LocalDateTime, BigDecimal> getPrices(String fromTo, CandlestickInterval candlestickInterval, int limit) {
 
-        return getCandlestickBars(fromTo, candlestickInterval, limit).parallelStream()
+        return getCandlestickBars(fromTo, candlestickInterval, limit).stream()
                 .collect(toMap(
                         candlestick -> LocalDateTime.ofInstant(Instant.ofEpochMilli(candlestick.getCloseTime()), UTC),
                         candlestick -> new BigDecimal(candlestick.getClose()),
@@ -285,7 +285,7 @@ public class BinanceService {
         }
         combinedFuture.join();
 
-        return candlesticks.parallelStream()
+        return candlesticks.stream()
                 .sorted((a, b) -> b.getCloseTime().compareTo(a.getCloseTime()))
                 .limit(limit)
                 .collect(Collectors.toList());

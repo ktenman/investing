@@ -23,8 +23,6 @@ import java.util.stream.Stream;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.closeWebDriver;
-import static com.codeborne.selenide.Selenide.closeWindow;
 import static com.codeborne.selenide.Selenide.open;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static java.math.RoundingMode.HALF_UP;
@@ -51,6 +49,8 @@ public class CoinMarketCapService {
             .put(Symbol.USDT, "tether")
             .put(Symbol.UNI, "uniswap")
             .put(Symbol.ETH, "ethereum")
+            .put(Symbol.BTS, "bat-true-share")
+            .put(Symbol.BTD, "bat-true-dollar")
             .build();
 
     @Resource
@@ -59,7 +59,6 @@ public class CoinMarketCapService {
     private Map<String, BigDecimal> getPricesInUsd(List<String> tickers) {
         Map<String, BigDecimal> prices = new HashMap<>();
 
-        closeWebDriver();
         open("https://coinmarketcap.com/");
         ElementsCollection selenideElements = $(By.tagName("table"))
                 .$$(By.tagName("tr"));
@@ -75,7 +74,7 @@ public class CoinMarketCapService {
             prices.put(ticker, price);
             log.info("{} price {}", TICKER_SYMBOL_MAP.get(ticker), price);
         }
-        closeWindow();
+
         return prices;
     }
 
@@ -101,7 +100,6 @@ public class CoinMarketCapService {
         List<BigDecimal> prices = new ArrayList<>();
 
         Stream.of(Symbol.BTC.name(), Symbol.ETH.name())
-                .parallel()
                 .map(s -> Optional.of(selenideElements
                         .filter(text(s))
                         .first()
@@ -124,7 +122,6 @@ public class CoinMarketCapService {
 
         log.info("{}/EUR: {}", symbol.name(), average);
 
-        closeWindow();
         return average;
     }
 

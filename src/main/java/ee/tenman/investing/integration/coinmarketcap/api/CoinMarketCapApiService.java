@@ -37,7 +37,7 @@ public class CoinMarketCapApiService {
         Instant fromDateTime = toDateTime.minus(1, ChronoUnit.DAYS);
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(
-                symbol.getCoinMarketCapId(), USER_AGENT,
+                symbol.coinMarketCapId(), USER_AGENT,
                 fromDateTime.getEpochSecond(),
                 toDateTime.getEpochSecond(),
                 "EUR"
@@ -54,7 +54,7 @@ public class CoinMarketCapApiService {
         String[] baseSymbols = {Symbol.BTC.name(), Symbol.ETH.name()};
 
         CoinInformation coinInformation = coinMarketCapApiClient.fetchCoinData(
-                Symbol.valueOf(currency).getCoinMarketCapId(),
+                Symbol.valueOf(currency).coinMarketCapId(),
                 USER_AGENT,
                 baseSymbols
         );
@@ -65,10 +65,13 @@ public class CoinMarketCapApiService {
                 .collect(toMap(identity(), coinInformation::getLastPriceOf));
 
         Map<String, BigDecimal> binanceEurPrices = prices.keySet()
-                .parallelStream()
+                .stream()
+                .parallel()
                 .collect(toMap(identity(), symbol -> binanceService.getPriceToEur(symbol)));
 
-        BigDecimal sum = prices.keySet().parallelStream()
+        BigDecimal sum = prices.keySet()
+                .stream()
+                .parallel()
                 .map(symbol -> prices.get(symbol).multiply(binanceEurPrices.get(symbol)))
                 .map(Objects::requireNonNull)
                 .reduce(ZERO, BigDecimal::add);
