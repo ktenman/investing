@@ -35,6 +35,7 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    @Disabled
     void refreshStockPrices() throws Exception {
         long startTime = System.nanoTime();
         googleService.refreshStockPrices();
@@ -51,12 +52,14 @@ class GoogleSheetsServiceIntegrationTest {
 
     @Test
     @Order(2)
+    @Disabled
     void refreshBalances() throws Exception {
         googleService.refreshBalances();
     }
 
     @Test
     @Order(3)
+    @Disabled
     void appendYieldInformation() {
         long startTime = System.nanoTime();
         googleService.appendYieldInformation();

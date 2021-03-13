@@ -58,8 +58,17 @@ class CoinMarketCapServiceIntegrationTest {
     }
 
     @ParameterizedTest
-    @EnumSource(Symbol.class)
+    @EnumSource(value = Symbol.class, mode = EnumSource.Mode.INCLUDE, names = {"ADA", "BNB"})
     void eurPrice(Symbol symbol) {
+        BigDecimal eurPrice = coinMarketCapService.eurPrice(symbol);
+
+        assertThat(eurPrice).isGreaterThan(ZERO);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Symbol.class)
+    @Disabled
+    void eurPrice2(Symbol symbol) {
         BigDecimal eurPrice = coinMarketCapService.eurPrice(symbol);
 
         assertThat(eurPrice).isGreaterThan(ZERO);
