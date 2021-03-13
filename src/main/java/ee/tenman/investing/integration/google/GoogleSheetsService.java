@@ -162,8 +162,20 @@ public class GoogleSheetsService {
         earnedYieldCell.setUserEnteredValue(new ExtendedValue().setNumberValue(earnedYield.doubleValue()));
         cellData.add(earnedYieldCell);
 
+        CellData yieldPerDayCell = new CellData();
+        BigDecimal yieldPerDay = Optional.ofNullable(getValueRange("yield!A1:A1"))
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(BigDecimal::new)
+                .orElseThrow(() -> new IllegalStateException("Couldn't fetch yield per day value"));
+        yieldPerDayCell.setUserEnteredValue(new ExtendedValue().setNumberValue(yieldPerDay.doubleValue()));
+        cellData.add(yieldPerDayCell);
+
         CellData earningsPerDayCell = new CellData();
-        BigDecimal earningsPerDay = Optional.ofNullable(getValueRange("yield!A1:A1"))
+        BigDecimal earningsPerDay = Optional.ofNullable(getValueRange("yield!C1:C1"))
                 .map(ValueRange::getValues)
                 .map(o -> o.get(0))
                 .map(o -> o.get(0))
@@ -179,27 +191,50 @@ public class GoogleSheetsService {
         yieldEarnedPercentageCell.setUserEnteredFormat(new CellFormat().setNumberFormat(new NumberFormat().setType("PERCENT")));
         cellData.add(yieldEarnedPercentageCell);
 
+        ValueRange pools = getValueRange("yield!G2:K2");
+        List<String> poolNames = Stream.of(Objects.requireNonNull(pools).getValues()
+                .stream()
+                .flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new))
+                .collect(Collectors.toList());
+
         int index = 1;
-        for (Map.Entry<String, BigDecimal> entry : yieldSummary.getPools().entrySet()) {
+        for (String poolName : poolNames) {
             CellData newCellData = new CellData();
-            newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(entry.getValue().doubleValue()));
+            BigDecimal value = yieldSummary.getPools().get(poolName);
+            newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));
             cellData.add(newCellData);
 
-            log.info("{}. {} value {}", index++, entry.getKey(), entry.getValue());
+            log.info("{}. {} value {}", index++, poolName, value);
         }
 
-        index = 1;
-        for (Map.Entry<Symbol, BigDecimal> entry : prices.entrySet()) {
-            CellData amountCell = new CellData();
-            BigDecimal amount = yieldSummary.amountInPool(entry.getKey());
-            amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
-            cellData.add(amountCell);
+        ValueRange coins = getValueRange("yield!L2:W2");
+        List<String> coinNames = Stream.of(Objects.requireNonNull(coins).getValues()
+                .stream()
+                .flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new))
+                .collect(Collectors.toList());
+
+        for (String coinName : coinNames) {
+            if (!coinName.contains("€")) {
+                CellData amountCell = new CellData();
+                BigDecimal amount = yieldSummary.amountInPool(Symbol.valueOf(coinName));
+                amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
+                cellData.add(amountCell);
+                log.info("{} amount: {}", coinName, amount);
+                continue;
+            }
+
+            Symbol symbol = Symbol.valueOf(coinName.split(" ")[0]);
 
             CellData priceCell = new CellData();
-            priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(entry.getValue().doubleValue()));
+            BigDecimal price = prices.get(symbol);
+            priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(price.doubleValue()));
             cellData.add(priceCell);
 
-            log.info("{}. {} amount: {}, price: {}", index++, entry.getKey(), amount, entry.getValue());
+            log.info("{} price: {}", coinName, price);
         }
 
         BigDecimal investedBnbAmount = BigDecimal.valueOf(13.6048272167);

@@ -210,7 +210,10 @@ public class YieldWatchService {
         if (lpInfo != null) {
             yieldSummary.addToPoolAmounts(lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0());
             yieldSummary.addToPoolAmounts(lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1());
-            String newPoolName = String.format("%s-%s Pool", lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getSymbolToken1().toUpperCase());
+            String newPoolName = String.format("%s-%s",
+                    Symbol.valueOf(lpInfo.getSymbolToken0().toUpperCase()),
+                    Symbol.valueOf(lpInfo.getSymbolToken1().toUpperCase())
+            );
             yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
         } else if (StringUtils.isNotEmpty(vault.getDepositToken())) {
             yieldSummary.addToPoolAmounts(vault.getDepositToken().toUpperCase(), vault.getDepositedTokens());
