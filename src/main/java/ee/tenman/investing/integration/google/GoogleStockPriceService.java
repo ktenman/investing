@@ -26,7 +26,7 @@ import static org.openqa.selenium.By.tagName;
 @Slf4j
 public class GoogleStockPriceService {
 
-    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 500))
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 500))
     public StockPrice fetchPriceFromGoogle(StockSymbol stockSymbol) {
         open("https://www.google.com/");
 

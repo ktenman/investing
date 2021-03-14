@@ -26,7 +26,8 @@ public class StockPriceService {
 
     public Map<StockSymbol, BigDecimal> priceInEur(List<StockSymbol> stockSymbols) {
         Map<Currency, BigDecimal> conversionRates = currencyConversionService.getConversionRatesToEur(stockSymbols);
-        return stockSymbols.stream()
+        return stockSymbols
+                .parallelStream()
                 .map(googleStockPriceService::fetchPriceFromGoogle)
                 .collect(toMap(StockPrice::getStockSymbol, s ->
                         conversionRates.get(s.getCurrency()).multiply(s.getPrice()))

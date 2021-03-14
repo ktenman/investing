@@ -52,6 +52,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
+import static ee.tenman.investing.integration.google.GoogleSheetsClient.DATE_TIME_RENDER_OPTION;
+import static ee.tenman.investing.integration.google.GoogleSheetsClient.SPREAD_SHEET_ID;
+import static ee.tenman.investing.integration.google.GoogleSheetsClient.VALUE_RENDER_OPTION;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static java.lang.Math.abs;
 import static java.math.BigDecimal.ZERO;
@@ -64,9 +67,6 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 public class GoogleSheetsService {
 
-    public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
-    private static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
-    private static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
     private static final NumberFormat DATE_TIME_FORMAT = new NumberFormat()
             .setType("DATE_TIME")
             .setPattern("dd.mm.yyyy h:mm:ss");
@@ -89,11 +89,11 @@ public class GoogleSheetsService {
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     @Scheduled(cron = "0 0/10 * * * *")
     public void appendProfits() {
-        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
+        Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
             return;
         }
-        ValueRange investingResponse = getValueRange("investing!B1:C3");
+        ValueRange investingResponse = googleSheetsClient.getValueRange("investing!B1:C3");
         if (investingResponse == null) {
             return;
         }
@@ -115,7 +115,7 @@ public class GoogleSheetsService {
     @Scheduled(cron = "0 0 * * * *")
     public void appendYieldInformation() {
 
-        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
+        Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
             return;
         }
@@ -188,7 +188,7 @@ public class GoogleSheetsService {
         cellData.add(earnedBnbAmountCell);
         cellData.add(investedEurDifferenceCell);
 
-        ValueRange values = getValueRange("yield!J2:Z2");
+        ValueRange values = googleSheetsClient.getValueRange("yield!J2:Z2");
         List<String> headers = Stream.of(Objects.requireNonNull(values).getValues()
                 .stream()
                 .flatMap(Collection::stream)
@@ -237,7 +237,7 @@ public class GoogleSheetsService {
     }
 
     private BigDecimal extractValueRangeFrom(String valueRange, String errorMessage) {
-        return Optional.ofNullable(getValueRange(valueRange))
+        return Optional.ofNullable(googleSheetsClient.getValueRange(valueRange))
                 .map(ValueRange::getValues)
                 .map(o -> o.get(0))
                 .map(o -> o.get(0))
@@ -249,7 +249,7 @@ public class GoogleSheetsService {
     }
 
     private BigDecimal extractBigDecimalFromValueRange(String valueRange) {
-        return Optional.ofNullable(getValueRange(valueRange))
+        return Optional.ofNullable(googleSheetsClient.getValueRange(valueRange))
                 .map(ValueRange::getValues)
                 .map(o -> o.get(0))
                 .map(o -> o.get(0))
@@ -267,7 +267,7 @@ public class GoogleSheetsService {
     }
 
     public void removeCells() throws IOException {
-        Spreadsheet spreadsheetResponse = getSpreadSheetResponse(SPREAD_SHEET_ID);
+        Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
 
         SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
         Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
@@ -308,7 +308,7 @@ public class GoogleSheetsService {
     public void refreshCryptoPrices() {
 
         int index = 21;
-        ValueRange valueRange = getValueRange(String.format("investing!E%s:E37", index));
+        ValueRange valueRange = googleSheetsClient.getValueRange(String.format("investing!E%s:E37", index));
         List<Symbol> values = Stream.of(Objects.requireNonNull(valueRange).getValues()
                 .stream()
                 .flatMap(Collection::stream)
@@ -338,7 +338,7 @@ public class GoogleSheetsService {
     @Scheduled(cron = "0 5/10 * * * *")
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshStockPrices() throws IOException {
-        ValueRange valueRange = getValueRange("investing!E4:E20");
+        ValueRange valueRange = googleSheetsClient.getValueRange("investing!E4:E20");
         List<StockSymbol> stockSymbols = Stream.of(Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new))
@@ -360,7 +360,7 @@ public class GoogleSheetsService {
     public void refreshBalances() throws IOException {
         int startingIndexNumber = 21;
         String startingIndexCombined = "E" + startingIndexNumber;
-        ValueRange valueRange = getValueRange(String.format("investing!%s:E29", startingIndexCombined));
+        ValueRange valueRange = googleSheetsClient.getValueRange(String.format("investing!%s:E29", startingIndexCombined));
         String[] values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new);
@@ -386,7 +386,7 @@ public class GoogleSheetsService {
 
         startingIndexNumber = 30;
         startingIndexCombined = "E" + startingIndexNumber;
-        valueRange = getValueRange(String.format("investing!%s:E37", startingIndexCombined));
+        valueRange = googleSheetsClient.getValueRange(String.format("investing!%s:E37", startingIndexCombined));
         values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new);
@@ -469,7 +469,7 @@ public class GoogleSheetsService {
             return;
         }
 
-        ValueRange valueRange = getValueRange("investing!E45:F48");
+        ValueRange valueRange = googleSheetsClient.getValueRange("investing!E45:F48");
         Map<String, BigDecimal> values = new HashMap<>();
         for (int i = 0; i < valueRange.getValues().size(); i++) {
             values.put(
@@ -522,7 +522,7 @@ public class GoogleSheetsService {
             tickerAndAmount.put(entry.getKey(), countOfTicker);
         }
 
-        List<Object> collect = getValueRange("investing!E37:E40")
+        List<Object> collect = googleSheetsClient.getValueRange("investing!E37:E40")
                 .getValues()
                 .stream()
                 .flatMap(List::stream)
@@ -550,32 +550,6 @@ public class GoogleSheetsService {
     private boolean filter(Map<String, BigDecimal> map) {
         BigDecimal sum = map.values().stream().reduce(ZERO, BigDecimal::add);
         return ComparableUtils.is(sum).lessThanOrEqualTo(leftOverAmount) && ComparableUtils.is(sum).greaterThan(ZERO);
-    }
-
-    private ValueRange getValueRange(String range) {
-        try {
-            Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                    googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, range);
-            getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
-            getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
-            return getInvestingRequest.execute();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public Spreadsheet getSpreadSheetResponse(String spreadSheetId) {
-        try {
-            boolean includeGridData = false;
-            Sheets.Spreadsheets.Get spreadsheetRequest = googleSheetsClient.get().spreadsheets().get(spreadSheetId);
-            spreadsheetRequest.setRanges(new ArrayList<>());
-            spreadsheetRequest.setIncludeGridData(includeGridData);
-            return spreadsheetRequest.execute();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
 }
