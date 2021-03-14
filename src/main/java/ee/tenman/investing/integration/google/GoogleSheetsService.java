@@ -16,13 +16,15 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.common.collect.ImmutableSet;
 import ee.tenman.investing.domain.StockSymbol;
 import ee.tenman.investing.integration.binance.BinanceService;
-import ee.tenman.investing.integration.bscscan.BscScanService;
+import ee.tenman.investing.integration.bscscan.BalanceService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
+import ee.tenman.investing.service.SecretsService;
 import ee.tenman.investing.service.StockPriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
@@ -47,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -55,12 +58,22 @@ import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYM
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.DATE_TIME_RENDER_OPTION;
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.SPREAD_SHEET_ID;
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.VALUE_RENDER_OPTION;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTD;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTS;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BUSD;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.CAKE;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.valueOf;
 import static java.lang.Math.abs;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -82,9 +95,11 @@ public class GoogleSheetsService {
     @Resource
     private BinanceService binanceService;
     @Resource
-    private BscScanService bscScanService;
+    private BalanceService balanceService;
     @Resource
     private StockPriceService stockPriceService;
+    @Resource
+    private SecretsService secretsService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     @Scheduled(cron = "0 0/10 * * * *")
@@ -207,13 +222,13 @@ public class GoogleSheetsService {
             }
             if (!header.contains("€")) {
                 CellData amountCell = new CellData();
-                BigDecimal amount = yieldSummary.amountInPool(Symbol.valueOf(header));
+                BigDecimal amount = yieldSummary.amountInPool(valueOf(header));
                 amountCell.setUserEnteredValue(new ExtendedValue().setNumberValue(amount.doubleValue()));
                 cellData.add(amountCell);
                 log.info("{} amount: {}", header, amount);
                 return;
             }
-            Symbol symbol = Symbol.valueOf(header.split(" ")[0]);
+            Symbol symbol = valueOf(header.split(" ")[0]);
             CellData priceCell = new CellData();
             BigDecimal price = prices.getOrDefault(symbol, ZERO);
             priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(price.doubleValue()));
@@ -358,39 +373,63 @@ public class GoogleSheetsService {
     @Scheduled(fixedDelay = 300_000, initialDelay = 200_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void refreshBalances() throws IOException {
-        int startingIndexNumber = 21;
-        String startingIndexCombined = "E" + startingIndexNumber;
-        ValueRange valueRange = googleSheetsClient.getValueRange(String.format("investing!%s:E29", startingIndexCombined));
-        String[] values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
-                .map(v -> (String) v)
-                .toArray(String[]::new);
-
         List<String> symbols = new ArrayList<>(TICKER_SYMBOL_MAP.values());
         symbols.add(EUR);
+        ImmutableSet<Symbol> symbolSet = ImmutableSet.of(
+                SBDO,
+                WBNB,
+                BDO,
+                BUSD,
+                CAKE,
+                WATCH,
+                BTD,
+                BTS
+        );
 
-        Map<String, BigDecimal> availableBalances = binanceService.fetchAvailableBalances(symbols);
+        CompletableFuture<Map<String, BigDecimal>> availableBalancesFuture = supplyAsync(
+                () -> binanceService.fetchAvailableBalances(symbols));
+        CompletableFuture<YieldSummary> yieldSummaryFuture = supplyAsync(
+                () -> yieldWatchService.getYieldSummary());
+        CompletableFuture<Map<Symbol, BigDecimal>> balancesFuture = supplyAsync(
+                () -> balanceService.fetchSymbolBalances(secretsService.getWalletAddress(), symbolSet));
+        CompletableFuture<ValueRange> symbolsOfBinanceComWalletFuture = supplyAsync(
+                () -> googleSheetsClient.getValueRange("investing!E21:E29"));
+        CompletableFuture<ValueRange> symbolsOfBscWalletFuture = supplyAsync(
+                () -> googleSheetsClient.getValueRange("investing!E30:E37"));
+
+        Map<String, BigDecimal> availableBalances = availableBalancesFuture.join();
+        YieldSummary yieldSummary = yieldSummaryFuture.join();
+        Map<Symbol, BigDecimal> balances = balancesFuture.join();
+        ValueRange symbolsOfBinanceComWallet = symbolsOfBinanceComWalletFuture.join();
+        ValueRange symbolsOfBscWallet = symbolsOfBscWalletFuture.join();
+
+        String[] values = Objects.requireNonNull(symbolsOfBinanceComWallet)
+                .getValues()
+                .stream()
+                .flatMap(Collection::stream)
+                .map(v -> (String) v)
+                .toArray(String[]::new);
 
         for (int i = 0; i < values.length; i++) {
             for (Map.Entry<String, BigDecimal> entry : availableBalances.entrySet()) {
                 if (entry.getKey().equals(values[i])) {
-                    String coordinate = "D" + (startingIndexNumber + i);
+                    String coordinate = "D" + (21 + i);
                     String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
                     googleSheetsClient.update(coordinates, entry.getValue());
                 }
             }
         }
         googleSheetsClient.update("investing!L39:L39", availableBalances.get(EUR));
-        googleSheetsClient.update("investing!F21:F21", bscScanService.getBnbBalance());
-        YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
+        googleSheetsClient.update("investing!F21:F21", balances.get(BNB));
         googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
 
-        startingIndexNumber = 30;
-        startingIndexCombined = "E" + startingIndexNumber;
-        valueRange = googleSheetsClient.getValueRange(String.format("investing!%s:E37", startingIndexCombined));
-        values = Objects.requireNonNull(valueRange).getValues().stream().flatMap(Collection::stream)
+        values = Objects.requireNonNull(symbolsOfBscWallet).getValues()
+                .stream()
+                .flatMap(Collection::stream)
                 .map(v -> (String) v)
                 .toArray(String[]::new);
 
+        int startingIndexNumber = 30;
         for (int i = 0; i < values.length; i++) {
             String coordinate = "F" + (startingIndexNumber + i);
             String coordinates = String.format("investing!%s:%s", coordinate, coordinate);
@@ -399,6 +438,12 @@ public class GoogleSheetsService {
 
             BigDecimal poolAmount = yieldSummary.amountInPool(symbol);
             googleSheetsClient.update(coordinates, poolAmount);
+
+            coordinate = "D" + (startingIndexNumber + i);
+            coordinates = String.format("investing!%s:%s", coordinate, coordinate);
+
+            BigDecimal walletAmount = balances.getOrDefault(symbol, ZERO);
+            googleSheetsClient.update(coordinates, walletAmount);
         }
     }
 

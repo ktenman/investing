@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +40,7 @@ import static com.codeborne.selenide.Selenide.open;
 import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.reverseOrder;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
@@ -159,7 +159,7 @@ public class YieldWatchService {
                 .map(YieldData::getResult)
                 .map(Result::getWalletBalance)
                 .map(WalletBalance::getBalances)
-                .orElse(Collections.emptyList()));
+                .orElse(emptyList()));
 
         yieldSummary.setWalletBalances(walletBalances);
 

@@ -11,15 +11,15 @@ import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class BscScanServiceIntegrationTest {
+class BcsScanService2IntegrationTest {
 
     @Resource
-    BscScanService bscScanService;
+    BalanceService balanceService;
 
     @Test
     @Disabled
     void getBnbBalance() {
-        BigDecimal bnbBalance = bscScanService.getBnbBalance();
+        BigDecimal bnbBalance = balanceService.getBnbBalance();
 
         assertThat(bnbBalance).isGreaterThan(ZERO);
     }

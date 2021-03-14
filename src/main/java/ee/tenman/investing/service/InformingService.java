@@ -2,7 +2,7 @@ package ee.tenman.investing.service;
 
 import ee.tenman.investing.domain.Portfolio;
 import ee.tenman.investing.domain.Token;
-import ee.tenman.investing.integration.bscscan.BscScanService;
+import ee.tenman.investing.integration.bscscan.BalanceService;
 import ee.tenman.investing.integration.slack.SlackMessage;
 import ee.tenman.investing.integration.slack.SlackService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
@@ -58,7 +58,7 @@ public class InformingService {
     @Value("#{'${wallets:}'.split(',')}")
     private List<String> wallets;
     @Resource
-    private BscScanService bscScanService;
+    private BalanceService balanceService;
 
     @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPortfolios() {
@@ -105,7 +105,7 @@ public class InformingService {
         CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
                 () -> yieldWatchService.getYieldSummary(wallets));
         CompletableFuture<Map<String, Map<Symbol, BigDecimal>>> walletBalancesFuture = CompletableFuture.supplyAsync(
-                () -> bscScanService.fetchSymbolBalances(wallets));
+                () -> balanceService.fetchSymbolBalances(wallets));
         CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture = CompletableFuture.supplyAsync(
                 () -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
 
