@@ -64,13 +64,31 @@ public class InformingService {
             return;
         }
 
-        List<Portfolio> portfolios = getPortfolioTotalValues();
+        List<Portfolio> portfolios = getSimplePortfolioTotalValues();
 
         String message = portfolios.stream()
                 .map(Portfolio::toString)
                 .collect(joining("\n"));
 
         postToSlack(message);
+    }
+
+    public List<Portfolio> getSimplePortfolioTotalValues() {
+
+        CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
+                () -> yieldWatchService.getYieldSummary(wallets));
+        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture =
+                CompletableFuture.supplyAsync(() -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
+
+        Map<Symbol, BigDecimal> prices = pricesFuture.join();
+        Map<String, YieldSummary> yieldSummaries = yieldSummariesFuture.join();
+
+        return yieldSummaries.entrySet().stream()
+                .map(entry -> Portfolio.builder()
+                        .walletAddress(entry.getKey())
+                        .totalValueInPools(entry.getValue().getTotal(prices))
+                        .build())
+                .collect(toList());
     }
 
     public List<Portfolio> getPortfolioTotalValues() {
