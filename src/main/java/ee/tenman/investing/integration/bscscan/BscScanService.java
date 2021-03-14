@@ -14,8 +14,10 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SYMBOL_NAMES;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
@@ -58,19 +60,31 @@ public class BscScanService {
         TokenTransferEvents tokenTransferEvents = bscScanApiClient.fetchTokenTransferEvents(
                 secretsService.getWalletAddress(), walletAddress);
 
-        return tokenTransferEvents.getEvents()
+        Map<Symbol, BigDecimal> symbolBalances = tokenTransferEvents.getEvents()
                 .stream()
                 .parallel()
                 .filter(this::filterSymbolEvents)
                 .collect(groupingBy(this::toSymbol, mapping(Event::getContractAddress, toSet())))
                 .entrySet()
                 .stream()
-                .collect(toMap(Map.Entry::getKey, e -> fetchBalanceOf(e.getValue().iterator().next(), walletAddress)));
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        e -> fetchBalanceOf(e.getValue().iterator().next(), walletAddress),
+                        (a, b) -> b,
+                        TreeMap::new)
+                );
+
+        symbolBalances.putIfAbsent(BNB, bscScanApiClient.fetchBnbBalance(
+                walletAddress,
+                secretsService.getBcsScanApiKey()
+        ));
+
+        return symbolBalances;
     }
 
     private BigDecimal fetchBalanceOf(String contractAddress, String walletAddress) {
         try {
-            TimeUnit.MILLISECONDS.sleep(650);
+            TimeUnit.MILLISECONDS.sleep(700);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

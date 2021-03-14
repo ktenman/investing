@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTC;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTS;
@@ -88,6 +89,11 @@ public class PriceService {
         }
 
         throw new NotSupportedSymbolException(String.format("%s not supported", fromTo));
+    }
+
+    public Map<Symbol, BigDecimal> toEur(Set<Symbol> symbols) {
+        return symbols.parallelStream()
+                .collect(Collectors.toMap(identity(), this::toEur));
     }
 
     public BigDecimal toEur(Symbol symbol) {
