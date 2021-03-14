@@ -80,19 +80,24 @@ public class InformingService {
 
         Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets);
 
-        Set<Balance> allUniqueBalances = yieldSummaries.values().stream()
+        Set<Balance> allUniqueBalances = yieldSummaries.values()
+                .stream()
                 .map(YieldSummary::getPoolBalances)
                 .flatMap(Collection::stream)
                 .collect(toSet());
 
         Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
 
-        return yieldSummaries.entrySet().stream()
+        List<Portfolio> portfolios = yieldSummaries.entrySet().stream()
                 .map(entry -> Portfolio.builder()
                         .walletAddress(entry.getKey())
-                        .totalValue(entry.getValue().getTotal(prices))
+                        .totalValueInPools(entry.getValue().getTotal(prices))
                         .build())
                 .collect(toList());
+
+        log.info("{}", portfolios);
+
+        return portfolios;
     }
 
     public List<Portfolio> getPortfolioTotalValues() {

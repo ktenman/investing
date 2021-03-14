@@ -24,6 +24,15 @@ public class Portfolio {
 
     @Override
     public String toString() {
+        if (totalValueInPools == null) {
+            return "Portfolio{" +
+                    "walletAddress='" + walletAddress + '\'' +
+                    ", totalValue=" + totalValue +
+                    ", totalValueInPools=" + totalValueInPools +
+                    ", totalValueInWallet=" + totalValueInWallet +
+                    ", tokenBalances=" + tokenBalances +
+                    '}';
+        }
         return String.format("%s - %s", walletAddress, NUMBER_FORMAT.format(totalValueInPools));
     }
 }
