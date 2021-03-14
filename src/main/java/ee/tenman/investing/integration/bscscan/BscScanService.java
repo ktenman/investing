@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SYMBOL_NAMES;
@@ -82,6 +83,11 @@ public class BscScanService {
     }
 
     private BigDecimal fetchBalanceOf(String contractAddress, String walletAddress) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(700);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return bscScanApiClient.fetchTokenAccountBalance(
                 walletAddress,
                 contractAddress,

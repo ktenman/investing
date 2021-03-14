@@ -99,10 +99,10 @@ public class InformingService {
 
         CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
                 () -> yieldWatchService.getYieldSummary(wallets));
-        CompletableFuture<Map<String, Map<Symbol, BigDecimal>>> walletBalancesFuture =
-                CompletableFuture.supplyAsync(() -> bscScanService.fetchSymbolBalances(wallets));
-        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture =
-                CompletableFuture.supplyAsync(() -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
+        CompletableFuture<Map<String, Map<Symbol, BigDecimal>>> walletBalancesFuture = CompletableFuture.supplyAsync(
+                () -> bscScanService.fetchSymbolBalances(wallets));
+        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture = CompletableFuture.supplyAsync(
+                () -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
 
         Map<String, Map<Symbol, BigDecimal>> walletBalances = walletBalancesFuture.join();
         Map<Symbol, BigDecimal> prices = pricesFuture.join();
