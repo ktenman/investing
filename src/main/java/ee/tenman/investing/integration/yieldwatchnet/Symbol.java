@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum Symbol {
     ADA,
@@ -25,6 +28,10 @@ public enum Symbol {
     USDT,
     WATCH,
     WBNB;
+
+    public static final Set<String> SYMBOL_NAMES = Stream.of(Symbol.values()).
+            map(Symbol::name)
+            .collect(Collectors.toSet());
 
     private static final Map<Symbol, Integer> COIN_MARKET_CAP_IDS = ImmutableMap.<Symbol, Integer>builder()
             .put(ADA, 2010)
