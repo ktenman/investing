@@ -1,7 +1,7 @@
 package ee.tenman.investing.service;
 
-import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.domain.Portfolio;
+import ee.tenman.investing.domain.Token;
 import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.slack.SlackMessage;
 import ee.tenman.investing.integration.slack.SlackService;
@@ -129,18 +129,23 @@ public class InformingService {
         return portfolios;
     }
 
-    private BigDecimal totalValueInPools(Map<Symbol, Map<String, BigDecimal>> tokenBalances) {
+    private BigDecimal totalValueInPools(Map<Symbol, Token> tokenBalances) {
         return tokenBalances.values().stream()
-                .map(map -> map.get("valueInEur"))
+                .map(Token::getValueInEur)
                 .reduce(ZERO, BigDecimal::add);
     }
 
-    private Map<Symbol, Map<String, BigDecimal>> tokenBalances(Map<Symbol, BigDecimal> balances, Map<Symbol, BigDecimal> prices) {
+    private TreeMap<Symbol, Token> tokenBalances(Map<Symbol, BigDecimal> balances, Map<Symbol, BigDecimal> prices) {
         return balances.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, e -> ImmutableMap.of(
-                        "amount", e.getValue(),
-                        "valueInEur", prices.get(e.getKey()).multiply(e.getValue())
-                )));
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        entry -> Token.builder()
+                                .amount(entry.getValue())
+                                .valueInEur(prices.get(entry.getKey()).multiply(entry.getValue()))
+                                .build(),
+                        (a, b) -> a,
+                        TreeMap::new
+                ));
     }
 
     @Scheduled(cron = "0 0 8/12 * * *")
