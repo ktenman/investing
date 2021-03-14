@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.codeborne.selenide.Condition.not;
@@ -43,6 +42,7 @@ import static java.math.BigDecimal.ROUND_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Comparator.reverseOrder;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.openqa.selenium.By.tagName;
@@ -113,7 +113,7 @@ public class YieldWatchService {
     public Map<String, YieldSummary> getYieldSummary(List<String> walletAddresses) {
         return walletAddresses.stream()
                 .parallel()
-                .collect(toMap(Function.identity(), walletAddress -> {
+                .collect(toMap(identity(), walletAddress -> {
                     YieldData yieldData = yieldApiService.getYieldData(walletAddress);
                     return buildYieldSummary(yieldData);
                 }));

@@ -1,0 +1,413 @@
+{
+  "status": "1",
+  "message": "OK",
+  "result": {
+    "watchBalance": {
+      "USDPrice": 1.007427292973618,
+      "totalBalance": 0,
+      "maxMonitorvalue": 0,
+      "walletBalance": 0,
+      "watchFromLP": 0,
+      "watchFromPCSFarming": 0,
+      "watchFromBeefy": 0,
+      "LPTokenBalance": 0,
+      "LPStakedInPCS": 0,
+      "LPFromBeefy": 0,
+      "MooTokenBalance": 0
+    },
+    "currencies": {
+      "EUR": 1.19536,
+      "RMB": 0.15365,
+      "JPY": 0.00917,
+      "GBP": 1.392325,
+      "BTCB": 59893.670827607355,
+      "WBNB": 267.4239,
+      "BRL": 0.180105,
+      "AUD": 0.776145,
+      "HKD": 0.128819999,
+      "SGD": 0.743479999,
+      "RUB": 0.0136365,
+      "KRW": 0.00088
+    },
+    "BeefyFinance": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 1671.6694426845572,
+          "yield": 31.051702523378793,
+          "total": 1702.721145207936
+        },
+        "vaults": [
+          {
+            "type": "lpVault",
+            "name": "BDO-BNB LP",
+            "contractAddress": "0x9355af5ABD030E8BC2Dc63a38F1C956F1e150308",
+            "platform": "beefy",
+            "depositToken": "BDO-BNB LP",
+            "depositTokenAddress": "0x74690f829fec83ea424ee1f1654041b2491a7be9",
+            "currentTokens": 44.95079743157736,
+            "depositedTokens": 44.13105146556156,
+            "priceInUSDDepositToken": 37.87966493363689,
+            "apy": 76.08463581156849,
+            "vaultSessions": [],
+            "LPInfo": {
+              "compactSessions": [],
+              "contractAddress": "0x74690f829fec83ea424ee1f1654041b2491a7be9",
+              "symbolToken0": "BDO",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 1.209184310516155,
+              "priceInUSDToken1": 267.4239,
+              "priceInUSDLPToken": 37.87966493363689,
+              "currentToken0": 704.0784148452558,
+              "currentToken1": 3.183562024949781,
+              "currentBaseToken0": 691.2384771065151,
+              "currentBaseToken1": 3.1255049430596085,
+              "depositToken0": 691.5854701950906,
+              "depositToken1": 3.099934605793214,
+              "changeToken0": -3.2312816404577234,
+              "changeToken1": 0.01252873378990138,
+              "winningsToken0": 12.839937738740588,
+              "winningsToken1": 0.05805708189017285,
+              "actPrice": 0.0045216015117427975,
+              "depositPrice": 0.004482359360324253,
+              "actInToken1": 6.251009886119217,
+              "hodlInToken1": 6.227008513326689,
+              "faktorIL": -0.0003343233200987657,
+              "ILInToken1": -0.002081834160458658,
+              "LPEarningsInToken1": 0.024001372792527502,
+              "feesEarnedInToken0": 5.768577103764436,
+              "feesEarnedInToken1": 0.02608320695298616,
+              "poolToken0": 8867070.019666307,
+              "poolToken1": 40093.35720565241,
+              "noOfLPTokens": 44.95079743157736,
+              "totalSupplyLPToken": 566104.3711349029
+            }
+          }
+        ]
+      },
+      "staking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": [
+          {
+            "type": "staking",
+            "name": "Moo BIFI-Staking",
+            "platform": "beefy",
+            "depositToken": "BIFI",
+            "rewardToken": "WBNB",
+            "priceInUSDDepositToken": 1381.7226019224302,
+            "priceInUSDRewardToken": 267.4239,
+            "depositedTokens": "0",
+            "totalTokensStaked": "65255.276001653767360242",
+            "pendingRewards": "0"
+          }
+        ]
+      },
+      "barnOfTrust": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      }
+    },
+    "StreetSwap": {},
+    "PancakeSwap": {
+      "LPStaking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      },
+      "staking": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 0,
+          "total": 0
+        },
+        "vaults": []
+      }
+    },
+    "Jetfuel": {},
+    "bDollar": {},
+    "Autofarm": {
+      "vaults": {
+        "totalUSDValues": {
+          "deposit": 0,
+          "yield": 2.68423975e-16,
+          "total": 2.68423975e-16
+        },
+        "vaults": [
+          {
+            "name": "WBNB Vault",
+            "id": 1,
+            "type": "vault",
+            "contractAddress": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "platform": "auto",
+            "depositToken": "WBNB",
+            "rewardToken": "AUTO",
+            "priceInUSDDepositToken": 267.4239,
+            "priceInUSDRewardToken": 2776.672870346872,
+            "apy": 0.1823692255011408,
+            "currentTokens": 1e-18,
+            "pendingRewards": 0,
+            "harvestedRewards": 0.000058678647448333,
+            "depositedTokens": 0,
+            "vaultSessions": []
+          },
+          {
+            "name": "BUSD Vault",
+            "id": 2,
+            "type": "vault",
+            "contractAddress": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+            "platform": "auto",
+            "depositToken": "BUSD",
+            "rewardToken": "AUTO",
+            "priceInUSDDepositToken": 1.000075,
+            "priceInUSDRewardToken": 2776.672870346872,
+            "apy": 0.3270750185930027,
+            "currentTokens": 1e-18,
+            "pendingRewards": 0,
+            "harvestedRewards": 0.000095097620539299,
+            "depositedTokens": 0,
+            "vaultSessions": []
+          }
+        ]
+      },
+      "LPVaults": {
+        "totalUSDValues": {
+          "deposit": 3482.585597472154,
+          "yield": 86.15354784759965,
+          "total": 3568.739145319754
+        },
+        "vaults": [
+          {
+            "name": "sBDO-BUSD Pool",
+            "id": 9,
+            "type": "lpVault",
+            "contractAddress": "0xA0718093baa3E7AAE054eED71F303A4ebc1C076f",
+            "platform": "auto",
+            "depositToken": "sBDO-BUSD LP",
+            "depositTokenAddress": "0xA0718093baa3E7AAE054eED71F303A4ebc1C076f",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0.000085914993355764,
+            "priceInUSDRewardToken": 2776.672870346872,
+            "currentTokens": 18.058693863917195,
+            "harvestedRewards": 0.000248517645922504,
+            "totalRewards": 0.000334432639278268,
+            "depositedTokens": 17.623913915031306,
+            "priceInUSDDepositToken": 197.6056859028279,
+            "apy": 676.0845975305582,
+            "vaultSessions": [],
+            "LPInfo": {
+              "compactSessions": [],
+              "contractAddress": "0xA0718093baa3E7AAE054eED71F303A4ebc1C076f",
+              "symbolToken0": "sBDO",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 8385.84367957695,
+              "priceInUSDToken1": 1.000075,
+              "priceInUSDLPToken": 197.6056859028279,
+              "currentToken0": 0.21284092747825334,
+              "currentToken1": 1783.51607733394,
+              "currentBaseToken0": 0.2077165830341227,
+              "currentBaseToken1": 1740.5762592726899,
+              "depositToken0": 0.270409417122501,
+              "depositToken1": 1348.4584422683813,
+              "changeToken0": -0.06374735727169095,
+              "changeToken1": 383.2813630682974,
+              "winningsToken0": 0.00512434444413065,
+              "winningsToken1": 42.93981806124982,
+              "actPrice": 8379.572944288018,
+              "depositPrice": 4986.728852188983,
+              "actInToken1": 3481.1525185453793,
+              "hodlInToken1": 3614.373877868783,
+              "faktorIL": -0.04174838361890798,
+              "ILInToken1": -150.894267195426,
+              "LPEarningsInToken1": -133.22135932340373,
+              "feesEarnedInToken0": 0.002109046366625296,
+              "feesEarnedInToken1": 17.67290787202228,
+              "poolToken0": 2234.603087244785,
+              "poolToken1": 18725019.57109888,
+              "noOfLPTokens": 18.058693863917195,
+              "totalSupplyLPToken": 189597.05512484635
+            }
+          },
+          {
+            "name": "WBNB-BUSD Pool",
+            "id": 10,
+            "type": "lpVault",
+            "contractAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+            "platform": "auto",
+            "depositToken": "WBNB-BUSD LP",
+            "depositTokenAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 2776.672870346872,
+            "currentTokens": 1e-18,
+            "harvestedRewards": 0.002679883934746972,
+            "totalRewards": 0.002679883934746972,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 36.75312894725852,
+            "apy": 0.7145377007057856,
+            "vaultSessions": [],
+            "LPInfo": {
+              "compactSessions": [],
+              "contractAddress": "0x1B96B92314C44b159149f7E0303511fB2Fc4774f",
+              "symbolToken0": "WBNB",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 267.4239,
+              "priceInUSDToken1": 1.000075,
+              "priceInUSDLPToken": 36.75312894725852,
+              "currentToken0": 6.873379902313949e-20,
+              "currentToken1": 1.8370690548883205e-17,
+              "currentBaseToken0": 0,
+              "currentBaseToken1": 0,
+              "depositToken0": 0,
+              "depositToken1": 0,
+              "changeToken0": 0,
+              "changeToken1": 0,
+              "winningsToken0": 6.873379902313948e-20,
+              "winningsToken1": 1.8370690548883202e-17,
+              "actPrice": 267.27302738931456,
+              "depositPrice": 0,
+              "actInToken1": 0,
+              "hodlInToken1": 0,
+              "faktorIL": 0,
+              "ILInToken1": 0,
+              "LPEarningsInToken1": 0,
+              "feesEarnedInToken0": 0,
+              "feesEarnedInToken1": 0,
+              "poolToken0": 531441.9519031912,
+              "poolToken1": 142040099.3668524,
+              "noOfLPTokens": 1e-18,
+              "totalSupplyLPToken": 7731886.778501496
+            }
+          },
+          {
+            "name": "BDO-BUSD Pool",
+            "id": 12,
+            "type": "lpVault",
+            "contractAddress": "0xc5b0d73A7c0E4eaF66baBf7eE16A2096447f7aD6",
+            "platform": "auto",
+            "depositToken": "BDO-BUSD LP",
+            "depositTokenAddress": "0xc5b0d73A7c0E4eaF66baBf7eE16A2096447f7aD6",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 2776.672870346872,
+            "currentTokens": 2e-18,
+            "harvestedRewards": 0.000016564914324675,
+            "totalRewards": 0.000016564914324675,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 2.2977627499894555,
+            "apy": 50.683720372823196,
+            "vaultSessions": [],
+            "LPInfo": {
+              "compactSessions": [],
+              "contractAddress": "0xc5b0d73A7c0E4eaF66baBf7eE16A2096447f7aD6",
+              "symbolToken0": "BDO",
+              "symbolToken1": "BUSD",
+              "priceInUSDToken0": 1.209184310516155,
+              "priceInUSDToken1": 1.000075,
+              "priceInUSDLPToken": 2.2977627499894555,
+              "currentToken0": 1.9011933679737387e-18,
+              "currentToken1": 2.296460073662175e-18,
+              "currentBaseToken0": 0,
+              "currentBaseToken1": 0,
+              "depositToken0": 0,
+              "depositToken1": 0,
+              "changeToken0": 0,
+              "changeToken1": 0,
+              "winningsToken0": 1.9011933679737387e-18,
+              "winningsToken1": 2.2964600736621746e-18,
+              "actPrice": 1.207904525834584,
+              "depositPrice": 0,
+              "actInToken1": 0,
+              "hodlInToken1": 0,
+              "faktorIL": 0,
+              "ILInToken1": 0,
+              "LPEarningsInToken1": 0,
+              "feesEarnedInToken0": 0,
+              "feesEarnedInToken1": 0,
+              "poolToken0": 38549444.497320734,
+              "poolToken1": 46564048.476722814,
+              "noOfLPTokens": 2e-18,
+              "totalSupplyLPToken": 40552891.827522114
+            }
+          },
+          {
+            "name": "BDO-WBNB Pool",
+            "id": 13,
+            "type": "lpVault",
+            "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+            "platform": "auto",
+            "depositToken": "BDO-WBNB LP",
+            "depositTokenAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+            "rewardToken": "AUTO",
+            "pendingRewards": 0,
+            "priceInUSDRewardToken": 2776.672870346872,
+            "currentTokens": 2e-18,
+            "harvestedRewards": 0.001871362817561323,
+            "totalRewards": 0.001871362817561323,
+            "depositedTokens": 0,
+            "priceInUSDDepositToken": 37.87966493363689,
+            "apy": 83.64809793856867,
+            "vaultSessions": [],
+            "LPInfo": {
+              "compactSessions": [],
+              "contractAddress": "0x74690f829fec83ea424ee1F1654041b2491A7bE9",
+              "symbolToken0": "BDO",
+              "symbolToken1": "WBNB",
+              "priceInUSDToken0": 1.209184310516155,
+              "priceInUSDToken1": 267.4239,
+              "priceInUSDLPToken": 37.87966493363689,
+              "currentToken0": 3.132662622579637e-17,
+              "currentToken1": 1.4164652050036245e-19,
+              "currentBaseToken0": 0,
+              "currentBaseToken1": 0,
+              "depositToken0": 0,
+              "depositToken1": 0,
+              "changeToken0": 0,
+              "changeToken1": 0,
+              "winningsToken0": 3.132662622579638e-17,
+              "winningsToken1": 1.4164652050036247e-19,
+              "actPrice": 0.0045216015117427975,
+              "depositPrice": 0,
+              "actInToken1": 0,
+              "hodlInToken1": 0,
+              "faktorIL": 0,
+              "ILInToken1": 0,
+              "LPEarningsInToken1": 0,
+              "feesEarnedInToken0": 0,
+              "feesEarnedInToken1": 0,
+              "poolToken0": 8867070.019666307,
+              "poolToken1": 40093.35720565241,
+              "noOfLPTokens": 2e-18,
+              "totalSupplyLPToken": 566104.3711349029
+            }
+          }
+        ]
+      }
+    },
+    "Acryptos": {},
+    "bunny": {},
+    "CreamFinance": {},
+    "Venus": {},
+    "walletBalance": {
+      "totalUSDValue": 57.134253290799194,
+      "balances": []
+    }
+  }
+}

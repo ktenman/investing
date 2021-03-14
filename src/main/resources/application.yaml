@@ -18,7 +18,7 @@ logging:
     file: "%d %p %c{1.} [%t] %m%n"
 
 yieldwatch:
-  url: "https://yieldwatch.net/api/"
+  url: "https://www.yieldwatch.net/api/"
 
 slack:
   enabled: ${SLACK_ENABLED:false}

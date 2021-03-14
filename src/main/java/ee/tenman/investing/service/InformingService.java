@@ -79,7 +79,7 @@ public class InformingService {
 
         return yieldSummaries.entrySet().stream()
                 .map(entry -> Portfolio.builder()
-                        .wallet(entry.getKey())
+                        .walletAddress(entry.getKey())
                         .totalValue(entry.getValue().getTotal(prices))
                         .build())
                 .collect(toList());

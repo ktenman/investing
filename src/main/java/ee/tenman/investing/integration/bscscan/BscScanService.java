@@ -44,11 +44,11 @@ public class BscScanService {
     }
 
     @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    public Map<Symbol, BigDecimal> fetchSymbolBalances() {
+    public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress) {
 
         TokenTransferEvents tokenTransferEvents = bscScanApiClient.fetchTokenTransferEvents(
                 secretsService.getWalletAddress(),
-                secretsService.getBcsScanApiKey()
+                walletAddress
         );
 
         return tokenTransferEvents.getEvents()
@@ -57,12 +57,12 @@ public class BscScanService {
                 .collect(groupingBy(this::toSymbol, mapping(Event::getContractAddress, toSet())))
                 .entrySet()
                 .stream()
-                .collect(toMap(Map.Entry::getKey, e -> fetchBalanceOf(e.getValue().iterator().next())));
+                .collect(toMap(Map.Entry::getKey, e -> fetchBalanceOf(e.getValue().iterator().next(), walletAddress)));
     }
 
-    private BigDecimal fetchBalanceOf(String contractAddress) {
+    private BigDecimal fetchBalanceOf(String contractAddress, String walletAddress) {
         return bscScanApiClient.fetchTokenAccountBalance(
-                secretsService.getWalletAddress(),
+                walletAddress,
                 contractAddress,
                 secretsService.getBcsScanApiKey()
         );
