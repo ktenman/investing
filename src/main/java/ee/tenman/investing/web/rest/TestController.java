@@ -19,7 +19,7 @@ public class TestController {
 
     @GetMapping("/portfolios")
     public ResponseEntity<List<Portfolio>> portfolios() {
-        List<Portfolio> portfolios = informingService.getPortfolioTotalValues();
+        List<Portfolio> portfolios = informingService.getSimplePortfolioTotalValues();
         return ResponseEntity.ok(portfolios);
     }
 

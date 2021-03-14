@@ -8,6 +8,7 @@ import ee.tenman.investing.integration.slack.SlackService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
+import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 @Slf4j
@@ -75,18 +78,19 @@ public class InformingService {
 
     public List<Portfolio> getSimplePortfolioTotalValues() {
 
-        CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
-                () -> yieldWatchService.getYieldSummary(wallets));
-        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture =
-                CompletableFuture.supplyAsync(() -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
+        Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets);
 
-        Map<Symbol, BigDecimal> prices = pricesFuture.join();
-        Map<String, YieldSummary> yieldSummaries = yieldSummariesFuture.join();
+        Set<Balance> allUniqueBalances = yieldSummaries.values().stream()
+                .map(YieldSummary::getPoolBalances)
+                .flatMap(Collection::stream)
+                .collect(toSet());
+
+        Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
 
         return yieldSummaries.entrySet().stream()
                 .map(entry -> Portfolio.builder()
                         .walletAddress(entry.getKey())
-                        .totalValueInPools(entry.getValue().getTotal(prices))
+                        .totalValue(entry.getValue().getTotal(prices))
                         .build())
                 .collect(toList());
     }
