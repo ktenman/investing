@@ -12,9 +12,12 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SYMBOL_NAMES;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
@@ -44,15 +47,20 @@ public class BscScanService {
     }
 
     @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    public Map<String, Map<Symbol, BigDecimal>> fetchSymbolBalances(List<String> walletAddresses) {
+        return walletAddresses.parallelStream()
+                .collect(toMap(identity(), this::fetchSymbolBalances));
+    }
+
+    @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress) {
 
         TokenTransferEvents tokenTransferEvents = bscScanApiClient.fetchTokenTransferEvents(
-                secretsService.getWalletAddress(),
-                walletAddress
-        );
+                secretsService.getWalletAddress(), walletAddress);
 
         return tokenTransferEvents.getEvents()
                 .stream()
+                .parallel()
                 .filter(this::filterSymbolEvents)
                 .collect(groupingBy(this::toSymbol, mapping(Event::getContractAddress, toSet())))
                 .entrySet()
@@ -61,6 +69,11 @@ public class BscScanService {
     }
 
     private BigDecimal fetchBalanceOf(String contractAddress, String walletAddress) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(650);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return bscScanApiClient.fetchTokenAccountBalance(
                 walletAddress,
                 contractAddress,
