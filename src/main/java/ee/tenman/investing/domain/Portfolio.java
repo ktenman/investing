@@ -18,10 +18,12 @@ import static ee.tenman.investing.service.InformingService.NUMBER_FORMAT;
 public class Portfolio {
     private String walletAddress;
     private BigDecimal totalValue;
+    private BigDecimal totalValueInPools;
+    private BigDecimal totalValueInWallet;
     private Map<Symbol, Map<String, BigDecimal>> tokenBalances;
 
     @Override
     public String toString() {
-        return String.format("%s - %s", walletAddress, NUMBER_FORMAT.format(totalValue));
+        return String.format("%s - %s", walletAddress, NUMBER_FORMAT.format(totalValueInPools));
     }
 }

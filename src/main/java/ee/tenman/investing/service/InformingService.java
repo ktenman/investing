@@ -1,12 +1,13 @@
 package ee.tenman.investing.service;
 
+import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.domain.Portfolio;
+import ee.tenman.investing.integration.bscscan.BscScanService;
 import ee.tenman.investing.integration.slack.SlackMessage;
 import ee.tenman.investing.integration.slack.SlackService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
-import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,11 +17,13 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
@@ -29,18 +32,19 @@ import static ee.tenman.investing.integration.yieldwatchnet.Symbol.EGG;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
+import static java.math.BigDecimal.ZERO;
 import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 @Service
 @Slf4j
 public class InformingService {
 
     public static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.00 '€'");
+    private static final Set<Symbol> ALL_POSSIBLE_SYMBOLS = new HashSet<>(Arrays.asList(Symbol.values()));
 
     @Resource
     private SlackService slackService;
@@ -50,6 +54,8 @@ public class InformingService {
     private PriceService priceService;
     @Value("#{'${wallets:}'.split(',')}")
     private List<String> wallets;
+    @Resource
+    private BscScanService bscScanService;
 
     @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPortfolios() {
@@ -68,21 +74,46 @@ public class InformingService {
     }
 
     public List<Portfolio> getPortfolioTotalValues() {
-        Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets);
 
-        Set<Balance> allUniqueBalances = yieldSummaries.values().stream()
-                .map(YieldSummary::getPoolBalances)
-                .flatMap(Collection::stream)
-                .collect(toSet());
+        CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
+                () -> yieldWatchService.getYieldSummary(wallets));
+        CompletableFuture<Map<String, Map<Symbol, BigDecimal>>> walletBalancesFuture =
+                CompletableFuture.supplyAsync(() -> bscScanService.fetchSymbolBalances(wallets));
+        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture =
+                CompletableFuture.supplyAsync(() -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
 
-        Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
+        Map<String, Map<Symbol, BigDecimal>> walletBalances = walletBalancesFuture.join();
+        Map<Symbol, BigDecimal> prices = pricesFuture.join();
+        Map<String, YieldSummary> yieldSummaries = yieldSummariesFuture.join();
 
-        return yieldSummaries.entrySet().stream()
+        List<Portfolio> portfolios = yieldSummaries.entrySet().stream()
                 .map(entry -> Portfolio.builder()
                         .walletAddress(entry.getKey())
-                        .totalValue(entry.getValue().getTotal(prices))
+                        .totalValueInPools(entry.getValue().getTotal(prices))
                         .build())
                 .collect(toList());
+
+        portfolios.forEach(portfolio -> {
+            portfolio.setTokenBalances(tokenBalances(walletBalances.get(portfolio.getWalletAddress()), prices));
+            portfolio.setTotalValueInWallet(totalValueInPools(portfolio.getTokenBalances()));
+            portfolio.setTotalValue(portfolio.getTotalValueInPools().add(portfolio.getTotalValueInWallet()));
+        });
+
+        return portfolios;
+    }
+
+    private BigDecimal totalValueInPools(Map<Symbol, Map<String, BigDecimal>> tokenBalances) {
+        return tokenBalances.values().stream()
+                .map(map -> map.get("valueInEur"))
+                .reduce(ZERO, BigDecimal::add);
+    }
+
+    private Map<Symbol, Map<String, BigDecimal>> tokenBalances(Map<Symbol, BigDecimal> balances, Map<Symbol, BigDecimal> prices) {
+        return balances.entrySet().stream()
+                .collect(toMap(Map.Entry::getKey, e -> ImmutableMap.of(
+                        "amount", e.getValue(),
+                        "valueInEur", prices.get(e.getKey()).multiply(e.getValue())
+                )));
     }
 
     @Scheduled(cron = "0 0 8/12 * * *")
