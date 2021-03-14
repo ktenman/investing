@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SYMBOL_NAMES;
@@ -35,6 +34,9 @@ public class BscScanService {
     @Resource
     private SecretsService secretsService;
 
+    @Resource
+    private BalanceService balanceService;
+
     @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public BigDecimal getBnbBalance() {
 
@@ -48,28 +50,26 @@ public class BscScanService {
         return bnbBalanceResponse;
     }
 
-    @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {Exception.class}, maxAttempts = 10, backoff = @Backoff(delay = 333))
     public Map<String, Map<Symbol, BigDecimal>> fetchSymbolBalances(List<String> walletAddresses) {
-        return walletAddresses.parallelStream()
+        return walletAddresses.stream()
                 .collect(toMap(identity(), this::fetchSymbolBalances));
     }
 
-    @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress) {
 
-        TokenTransferEvents tokenTransferEvents = bscScanApiClient.fetchTokenTransferEvents(
-                secretsService.getWalletAddress(), walletAddress);
+        TokenTransferEvents tokenTransferEvents = balanceService.fetchTokenTransferEvents(walletAddress);
 
         Map<Symbol, BigDecimal> symbolBalances = tokenTransferEvents.getEvents()
-                .stream()
-                .parallel()
+                .parallelStream()
                 .filter(this::filterSymbolEvents)
                 .collect(groupingBy(this::toSymbol, mapping(Event::getContractAddress, toSet())))
                 .entrySet()
                 .stream()
                 .collect(toMap(
                         Map.Entry::getKey,
-                        e -> fetchBalanceOf(e.getValue().iterator().next(), walletAddress),
+                        e -> balanceService.fetchBalanceOf(e.getValue().iterator().next(), walletAddress),
                         (a, b) -> b,
                         TreeMap::new)
                 );
@@ -80,19 +80,6 @@ public class BscScanService {
         ));
 
         return symbolBalances;
-    }
-
-    private BigDecimal fetchBalanceOf(String contractAddress, String walletAddress) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(700);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return bscScanApiClient.fetchTokenAccountBalance(
-                walletAddress,
-                contractAddress,
-                secretsService.getBcsScanApiKey()
-        );
     }
 
     private Symbol toSymbol(Event event) {
