@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @SpringBootTest
-@TestPropertySource(properties = "yieldwatch.url=https://yieldwatch.net/api/")
+@TestPropertySource(properties = "yieldwatch.url=https://www.yieldwatch.net/api/")
 class YieldWatchServiceE2ETest {
 
     @Resource

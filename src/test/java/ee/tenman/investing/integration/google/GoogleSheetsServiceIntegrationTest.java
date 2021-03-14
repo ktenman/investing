@@ -11,7 +11,7 @@ import org.springframework.test.context.TestPropertySource;
 import javax.annotation.Resource;
 
 @SpringBootTest
-@TestPropertySource(properties = "yieldwatch.url=https://yieldwatch.net/api/")
+@TestPropertySource(properties = "yieldwatch.url=https://www.yieldwatch.net/api/")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class GoogleSheetsServiceIntegrationTest {
 
