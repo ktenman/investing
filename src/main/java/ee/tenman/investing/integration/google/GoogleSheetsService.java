@@ -203,7 +203,7 @@ public class GoogleSheetsService {
         cellData.add(earnedBnbAmountCell);
         cellData.add(investedEurDifferenceCell);
 
-        ValueRange values = googleSheetsClient.getValueRange("yield!J2:AC2");
+        ValueRange values = googleSheetsClient.getValueRange("yield!J2:V2");
 
         List<String> headers = Stream.of(Objects.requireNonNull(values).getValues()
                 .stream()
