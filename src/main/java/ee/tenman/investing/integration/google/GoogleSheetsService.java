@@ -286,7 +286,7 @@ public class GoogleSheetsService {
         Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
 
         SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
-        Integer sheetID = sheetIndex(spreadsheetResponse, "old_yield");
+        Integer sheetID = sheetIndex(spreadsheetResponse, "profits");
 
         Sheets.Spreadsheets.Values.Get getInvestingRequest =
                 googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
@@ -302,7 +302,7 @@ public class GoogleSheetsService {
         DimensionRange dimensionRange = new DimensionRange();
         dimensionRange.setSheetId(sheetID);
         dimensionRange.setDimension("ROWS");
-        dimensionRange.setStartIndex(10000);
+        dimensionRange.setStartIndex(150000);
         dimensionRange.setEndIndex(setEndIndex);
 
         deleteDimensionRequest.setRange(dimensionRange);
