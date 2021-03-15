@@ -19,12 +19,11 @@ class SymbolTest {
 
     @ParameterizedTest
     @DisplayName("Check if all symbols do have relevant id")
-    @EnumSource(value = Symbol.class, mode = EnumSource.Mode.EXCLUDE, names = {"BTD", "BTS"})
+    @EnumSource(Symbol.class)
     void getCoinMarketCapId2(Symbol symbol) {
         int id = symbol.coinMarketCapId();
 
-        assertThat(id).isPositive()
-                .isNotZero();
+        assertThat(id).isPositive().isNotZero();
     }
 
 }

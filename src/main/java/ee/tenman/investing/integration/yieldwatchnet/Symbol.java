@@ -51,6 +51,8 @@ public enum Symbol {
             .put(USDT, 825)
             .put(WATCH, 8621)
             .put(WBNB, 7192)
+            .put(BTD, 8204)
+            .put(BTS, 8205)
             .build();
 
     public int coinMarketCapId() {

@@ -36,7 +36,7 @@ class CoinMarketCapApiServiceIntegrationTest {
     PriceService priceService;
 
     @ParameterizedTest
-    @EnumSource(value = Symbol.class, mode = EnumSource.Mode.EXCLUDE, names = {"BTD", "BTS"})
+    @EnumSource(Symbol.class)
     void eur(Symbol symbol) {
         BigDecimal symbolToEurPrice = coinMarketCapApiService.eurPrice(symbol.name());
 
@@ -45,7 +45,7 @@ class CoinMarketCapApiServiceIntegrationTest {
 
     @ParameterizedTest
     @DisplayName("Compare CoinGecko and CoinMarketCap prices. Should not differ more than 3%")
-    @EnumSource(value = Symbol.class, mode = EnumSource.Mode.EXCLUDE, names = {"BTD", "BTS"})
+    @EnumSource(Symbol.class)
     @Disabled
     void eur2(Symbol symbol) {
         BigDecimal priceToEur = priceService.toEur(symbol);

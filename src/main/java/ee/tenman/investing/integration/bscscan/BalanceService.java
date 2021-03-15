@@ -22,7 +22,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SYMBOL_NAMES;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -111,7 +110,7 @@ public class BalanceService {
         if (StringUtils.isEmpty(event.getTokenSymbol())) {
             return false;
         }
-        return SYMBOL_NAMES.contains(event.getTokenSymbol().toUpperCase());
+        return Symbol.SYMBOL_NAMES.contains(event.getTokenSymbol().toUpperCase());
     }
 
 }
