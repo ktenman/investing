@@ -37,7 +37,6 @@ public class GoogleSheetsClient {
         log.info("{}", response);
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public void update(BatchUpdateSpreadsheetRequest batchRequest) {
         try {
             BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()
@@ -50,7 +49,7 @@ public class GoogleSheetsClient {
     }
 
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 3000))
     public void update(BatchUpdateSpreadsheetRequest batchRequest, String spreadSheetId) {
         try {
             BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()
@@ -66,7 +65,6 @@ public class GoogleSheetsClient {
         return googleSheetsApiClient;
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public ValueRange getValueRange(String range) {
         try {
             Sheets.Spreadsheets.Values.Get getInvestingRequest =
@@ -80,7 +78,6 @@ public class GoogleSheetsClient {
         }
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public Spreadsheet getSpreadSheetResponse() {
         try {
             boolean includeGridData = false;

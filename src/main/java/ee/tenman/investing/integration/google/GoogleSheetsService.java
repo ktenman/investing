@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -131,13 +132,23 @@ public class GoogleSheetsService {
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
+        sleep3seconds();
         if (spreadsheetResponse == null) {
             return;
         }
         Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
         BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
+        sleep3seconds();
         googleSheetsClient.update(yieldBatchRequest);
+    }
+
+    private void sleep3seconds() {
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     boolean continueWorking() {
@@ -203,7 +214,9 @@ public class GoogleSheetsService {
         cellData.add(earnedBnbAmountCell);
         cellData.add(investedEurDifferenceCell);
 
-        ValueRange values = googleSheetsClient.getValueRange("yield!J2:Z2");
+        ValueRange values = googleSheetsClient.getValueRange("yield!J2:AC2");
+        sleep3seconds();
+
         List<String> headers = Stream.of(Objects.requireNonNull(values).getValues()
                 .stream()
                 .flatMap(Collection::stream)
@@ -228,7 +241,7 @@ public class GoogleSheetsService {
                 log.info("{} amount: {}", header, amount);
                 return;
             }
-            Symbol symbol = valueOf(header.split(" ")[0]);
+            Symbol symbol = Symbol.valueOf(header.split(" ")[0]);
             CellData priceCell = new CellData();
             BigDecimal price = prices.getOrDefault(symbol, ZERO);
             priceCell.setUserEnteredValue(new ExtendedValue().setNumberValue(price.doubleValue()));

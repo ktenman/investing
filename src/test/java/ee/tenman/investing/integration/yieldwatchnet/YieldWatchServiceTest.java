@@ -100,7 +100,7 @@ class YieldWatchServiceTest {
 
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
 
-        assertThat(yieldSummary.amountInPool(Symbol.WBNB)).isEqualByComparingTo(BigDecimal.valueOf(3.18356202494978100021038031952350194));
+        assertThat(yieldSummary.amountInPool(Symbol.WBNB)).isEqualByComparingTo(new BigDecimal("3.18356202494978100021038031952350194"));
         assertThat(yieldSummary.amountInPool(Symbol.BUSD)).isEqualByComparingTo(new BigDecimal("689.4687459803066400010837083573536946"));
         assertThat(yieldSummary.amountInWallet(Symbol.BUSD)).isEqualByComparingTo(new BigDecimal("0.04603954012851944"));
         assertThat(yieldSummary.amountInPool(Symbol.BDO)).isEqualByComparingTo(new BigDecimal("593.5699236463710800010015274691542726"));
