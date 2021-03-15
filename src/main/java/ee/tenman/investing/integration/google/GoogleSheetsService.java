@@ -50,7 +50,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -132,23 +131,13 @@ public class GoogleSheetsService {
     public void appendYieldInformation() {
 
         Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
-        sleep3seconds();
         if (spreadsheetResponse == null) {
             return;
         }
         Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
         YieldSummary yieldSummary = yieldWatchService.getYieldSummary();
         BatchUpdateSpreadsheetRequest yieldBatchRequest = buildYieldBatchRequest(sheetID, yieldSummary);
-        sleep3seconds();
         googleSheetsClient.update(yieldBatchRequest);
-    }
-
-    private void sleep3seconds() {
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     boolean continueWorking() {
@@ -215,7 +204,6 @@ public class GoogleSheetsService {
         cellData.add(investedEurDifferenceCell);
 
         ValueRange values = googleSheetsClient.getValueRange("yield!J2:AC2");
-        sleep3seconds();
 
         List<String> headers = Stream.of(Objects.requireNonNull(values).getValues()
                 .stream()
@@ -298,7 +286,7 @@ public class GoogleSheetsService {
         Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
 
         SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
-        Integer sheetID = sheetIndex(spreadsheetResponse, "yield");
+        Integer sheetID = sheetIndex(spreadsheetResponse, "old_yield");
 
         Sheets.Spreadsheets.Values.Get getInvestingRequest =
                 googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());

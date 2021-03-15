@@ -57,6 +57,12 @@ class GoogleSheetsServiceIntegrationTest {
         googleService.refreshBalances();
     }
 
+//    @Test
+//    void removeCells(
+//    ) throws IOException {
+//        googleService.removeCells();
+//    }
+
     @Test
     @Order(3)
     @Disabled
