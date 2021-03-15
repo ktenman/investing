@@ -11,6 +11,7 @@ import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -137,6 +138,10 @@ public class InformingService {
 
     private TreeMap<Symbol, Token> tokenBalances(Map<Symbol, BigDecimal> balances, Map<Symbol, BigDecimal> prices) {
         return balances.entrySet().stream()
+                .filter(entry -> {
+                    BigDecimal value = prices.get(entry.getKey()).multiply(entry.getValue());
+                    return ComparableUtils.is(value).greaterThan(BigDecimal.valueOf(0.001));
+                })
                 .collect(toMap(
                         Map.Entry::getKey,
                         entry -> Token.builder()

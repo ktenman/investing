@@ -6,6 +6,7 @@ import ee.tenman.investing.service.SecretsService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SYMBOL_NAMES;
@@ -62,7 +64,16 @@ public class BalanceService {
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress) {
 
-        return fetchSymbolBalances(walletAddress, new HashSet<>(Arrays.asList(Symbol.values())));
+        return fetchSymbolBalances(walletAddress, new HashSet<>(Arrays.asList(Symbol.values())))
+                .entrySet()
+                .stream()
+                .filter(e -> ComparableUtils.is(e.getValue()).greaterThan(BigDecimal.ZERO))
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue(),
+                        (a, b) -> b,
+                        TreeMap::new
+                ));
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
