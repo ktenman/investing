@@ -28,13 +28,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTC;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.EGG;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
@@ -169,7 +162,7 @@ public class InformingService {
         DecimalFormat decimalFormat = new DecimalFormat("#0.00'%'");
         decimalFormat.setPositivePrefix("+");
 
-        List<Symbol> symbols = asList(WBNB, EGG, BDO, SBDO, WATCH, BTC, BNB);
+        List<Symbol> symbols = asList(Symbol.values());
 
         Map<Symbol, BigDecimal> differences = priceService.to24HDifference(symbols);
 
