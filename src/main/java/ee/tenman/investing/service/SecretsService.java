@@ -1,23 +1,26 @@
 package ee.tenman.investing.service;
 
 import ee.tenman.investing.FileUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class SecretsService {
     @Value("wallet_address.txt")
     ClassPathResource walletAddressResource;
-    @Value("wallet_address_ik.txt")
-    ClassPathResource walletAddressResourceIK;
     @Value("bcsscan_api_key.txt")
     ClassPathResource bcsScanApiKeyResource;
     private String walletAddress;
-    private String walletAddressIK;
-    private String bcsScanApiKey;
+    private List<String> bcsScanApiKeys = new ArrayList<>();
 
     @PostConstruct
     void setWalletAddress() {
@@ -25,24 +28,18 @@ public class SecretsService {
     }
 
     @PostConstruct
-    void setWalletAddressIK() {
-        walletAddressIK = FileUtils.getSecret(walletAddressResourceIK);
-    }
-
-    @PostConstruct
     void setBcsScanApiKey() {
-        this.bcsScanApiKey = FileUtils.getSecret(bcsScanApiKeyResource);
+        String keys = FileUtils.getSecret(bcsScanApiKeyResource);
+        this.bcsScanApiKeys = Pattern.compile(",")
+                .splitAsStream(keys)
+                .collect(toList());
     }
 
     public String getWalletAddress() {
         return walletAddress;
     }
 
-    public String getWalletAddressIK() {
-        return walletAddressIK;
-    }
-
     public String getBcsScanApiKey() {
-        return bcsScanApiKey;
+        return bcsScanApiKeys.get(RandomUtils.nextInt(0, bcsScanApiKeys.size()));
     }
 }

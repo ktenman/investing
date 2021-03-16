@@ -16,7 +16,7 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import ee.tenman.investing.domain.StockSymbol;
 import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.bscscan.BalanceService;
@@ -376,7 +376,7 @@ public class GoogleSheetsService {
     public void refreshBalances() throws IOException {
         List<String> symbols = new ArrayList<>(TICKER_SYMBOL_MAP.values());
         symbols.add(EUR);
-        ImmutableSet<Symbol> symbolSet = ImmutableSet.of(
+        List<Symbol> symbolList = ImmutableList.of(
                 SBDO,
                 WBNB,
                 BDO,
@@ -392,7 +392,7 @@ public class GoogleSheetsService {
         CompletableFuture<YieldSummary> yieldSummaryFuture = supplyAsync(
                 () -> yieldWatchService.getYieldSummary());
         CompletableFuture<Map<Symbol, BigDecimal>> balancesFuture = supplyAsync(
-                () -> balanceService.fetchSymbolBalances(secretsService.getWalletAddress(), symbolSet));
+                () -> balanceService.fetchSymbolBalances(secretsService.getWalletAddress(), symbolList));
         CompletableFuture<ValueRange> symbolsOfBinanceComWalletFuture = supplyAsync(
                 () -> googleSheetsClient.getValueRange("investing!E21:E29"));
         CompletableFuture<ValueRange> symbolsOfBscWalletFuture = supplyAsync(

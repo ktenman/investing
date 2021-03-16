@@ -17,7 +17,7 @@ public class BcsScanService {
     @Resource
     private SecretsService secretsService;
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 777))
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 50))
     public BigDecimal fetchBalanceOf(String contractAddress, String walletAddress) {
         return bscScanApiClient.fetchTokenAccountBalance(
                 walletAddress,
@@ -26,9 +26,9 @@ public class BcsScanService {
         );
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 777))
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 50))
     public TokenTransferEvents fetchTokenTransferEvents(String walletAddress) {
-        return bscScanApiClient.fetchTokenTransferEvents(secretsService.getWalletAddress(), walletAddress);
+        return bscScanApiClient.fetchTokenTransferEvents(walletAddress, secretsService.getBcsScanApiKey());
     }
 
 }

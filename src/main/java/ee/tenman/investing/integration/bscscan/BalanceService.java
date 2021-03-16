@@ -14,11 +14,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
@@ -41,7 +40,7 @@ public class BalanceService {
     @Resource
     private BcsScanService bcsScanService;
 
-    @Retryable(value = {FeignException.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {FeignException.class}, maxAttempts = 20, backoff = @Backoff(delay = 100))
     public BigDecimal getBnbBalance() {
 
         BigDecimal bnbBalanceResponse = bscScanApiClient.fetchBnbBalance(
@@ -54,31 +53,36 @@ public class BalanceService {
         return bnbBalanceResponse;
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 10, backoff = @Backoff(delay = 333))
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 100))
     public Map<String, Map<Symbol, BigDecimal>> fetchSymbolBalances(List<String> walletAddresses) {
         return walletAddresses.stream()
                 .collect(toMap(identity(), this::fetchSymbolBalances));
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 100))
     public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress) {
 
-        return fetchSymbolBalances(walletAddress, new HashSet<>(Arrays.asList(Symbol.values())))
+        return fetchSymbolBalances(walletAddress, Arrays.asList(Symbol.values()))
                 .entrySet()
-                .stream()
+                .parallelStream()
                 .filter(e -> ComparableUtils.is(e.getValue()).greaterThan(BigDecimal.ZERO))
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
-                        e -> e.getValue(),
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
                         (a, b) -> b,
                         TreeMap::new
                 ));
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
-    public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress, Set<Symbol> symbolSet) {
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 100))
+    public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress, List<Symbol> symbols) {
 
         TokenTransferEvents tokenTransferEvents = bcsScanService.fetchTokenTransferEvents(walletAddress);
+
+        CompletableFuture<BigDecimal> bnbBalanceFuture = CompletableFuture.supplyAsync(() -> bscScanApiClient.fetchBnbBalance(
+                walletAddress,
+                secretsService.getBcsScanApiKey()
+        ));
 
         Map<Symbol, BigDecimal> symbolBalances = tokenTransferEvents.getEvents()
                 .parallelStream()
@@ -86,7 +90,7 @@ public class BalanceService {
                 .collect(groupingBy(this::toSymbol, mapping(Event::getContractAddress, toSet())))
                 .entrySet()
                 .stream()
-                .filter(e -> symbolSet.contains(e.getKey()))
+                .filter(e -> symbols.contains(e.getKey()))
                 .collect(toMap(
                         Map.Entry::getKey,
                         e -> bcsScanService.fetchBalanceOf(e.getValue().iterator().next(), walletAddress),
@@ -94,10 +98,7 @@ public class BalanceService {
                         TreeMap::new)
                 );
 
-        symbolBalances.putIfAbsent(BNB, bscScanApiClient.fetchBnbBalance(
-                walletAddress,
-                secretsService.getBcsScanApiKey()
-        ));
+        symbolBalances.putIfAbsent(BNB, bnbBalanceFuture.join());
 
         return symbolBalances;
     }
