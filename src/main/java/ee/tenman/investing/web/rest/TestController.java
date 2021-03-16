@@ -19,7 +19,7 @@ public class TestController {
 
     @GetMapping("/portfolios")
     public ResponseEntity<PortfoliosResponse> portfolios(@RequestParam(name = "addresses", required = false) String... walletAddresses) {
-        if (walletAddresses.length == 0) {
+        if (walletAddresses == null || walletAddresses.length == 0) {
             PortfoliosResponse portfoliosResponse = informingService.getPortfolioTotalValues();
             return ResponseEntity.ok(portfoliosResponse);
         }
