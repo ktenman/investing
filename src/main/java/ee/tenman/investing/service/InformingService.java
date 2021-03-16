@@ -1,7 +1,9 @@
 package ee.tenman.investing.service;
 
 import ee.tenman.investing.domain.Portfolio;
+import ee.tenman.investing.domain.PortfoliosResponse;
 import ee.tenman.investing.domain.Token;
+import ee.tenman.investing.domain.Wallet;
 import ee.tenman.investing.integration.bscscan.BalanceService;
 import ee.tenman.investing.integration.slack.SlackMessage;
 import ee.tenman.investing.integration.slack.SlackService;
@@ -83,10 +85,13 @@ public class InformingService {
         Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
 
         List<Portfolio> portfolios = yieldSummaries.entrySet().stream()
-                .map(entry -> Portfolio.builder()
-                        .walletAddress(entry.getKey())
-                        .totalValueInPools(entry.getValue().getTotal(prices))
-                        .build())
+                .map(entry -> {
+                    Wallet pools = Wallet.builder().totalValue(entry.getValue().getTotal(prices)).build();
+                    return Portfolio.builder()
+                            .walletAddress(entry.getKey())
+                            .pools(pools)
+                            .build();
+                })
                 .collect(toList());
 
         log.info("{}", portfolios);
@@ -94,7 +99,8 @@ public class InformingService {
         return portfolios;
     }
 
-    public List<Portfolio> getPortfolioTotalValues() {
+    public PortfoliosResponse getPortfolioTotalValues() {
+        long start = System.nanoTime();
 
         CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
                 () -> yieldWatchService.getYieldSummary(wallets));
@@ -111,17 +117,51 @@ public class InformingService {
                 .stream()
                 .map(entry -> Portfolio.builder()
                         .walletAddress(entry.getKey())
-                        .totalValueInPools(entry.getValue().getTotal(prices))
+                        .pools(buildPoolWallet(entry.getValue(), prices))
                         .build())
                 .collect(toList());
 
         portfolios.forEach(portfolio -> {
-            portfolio.setTokenBalances(tokenBalances(walletBalances.get(portfolio.getWalletAddress()), prices));
-            portfolio.setTotalValueInWallet(totalValueInPools(portfolio.getTokenBalances()));
-            portfolio.setTotalValue(portfolio.getTotalValueInPools().add(portfolio.getTotalValueInWallet()));
+            TreeMap<Symbol, Token> tokenBalances = tokenBalances(walletBalances.get(portfolio.getWalletAddress()), prices);
+            BigDecimal totalValueInPools = totalValueInPools(tokenBalances);
+            Wallet wallet = Wallet.builder()
+                    .tokenBalances(tokenBalances)
+                    .totalValue(totalValueInPools)
+                    .build();
+            portfolio.setWallet(wallet);
+            portfolio.setTotalValue(portfolio.getWallet().getTotalValue().add(portfolio.getPools().getTotalValue()));
         });
 
-        return portfolios;
+        return PortfoliosResponse.builder()
+                .portfolios(portfolios)
+                .responseDurationInSeconds(duration(start))
+                .build();
+    }
+
+    private Wallet buildPoolWallet(YieldSummary yieldSummary, Map<Symbol, BigDecimal> prices) {
+        TreeMap<Symbol, Token> tokenBalances = yieldSummary.getPoolBalances()
+                .stream()
+                .filter(entry -> {
+                    BigDecimal value = prices.get(Symbol.valueOf(entry.getSymbol().toUpperCase())).multiply(entry.getBalance());
+                    return ComparableUtils.is(value).greaterThan(BigDecimal.valueOf(0.001));
+                })
+                .collect(toMap(
+                        balance -> Symbol.valueOf(balance.getSymbol().toUpperCase()),
+                        balance -> Token.builder()
+                                .amount(balance.getBalance())
+                                .valueInEur(prices.get(Symbol.valueOf(balance.getSymbol().toUpperCase())).multiply(balance.getBalance()))
+                                .build(),
+                        (a, b) -> a,
+                        TreeMap::new
+                ));
+        return Wallet.builder()
+                .tokenBalances(tokenBalances)
+                .totalValue(totalValueInPools(tokenBalances))
+                .build();
+    }
+
+    private double duration(long startTime) {
+        return (System.nanoTime() - startTime) / 1_000_000_000.0;
     }
 
     private BigDecimal totalValueInPools(Map<Symbol, Token> tokenBalances) {
@@ -131,7 +171,8 @@ public class InformingService {
     }
 
     private TreeMap<Symbol, Token> tokenBalances(Map<Symbol, BigDecimal> balances, Map<Symbol, BigDecimal> prices) {
-        return balances.entrySet().stream()
+        return balances.entrySet()
+                .stream()
                 .filter(entry -> {
                     BigDecimal value = prices.get(entry.getKey()).multiply(entry.getValue());
                     return ComparableUtils.is(value).greaterThan(BigDecimal.valueOf(0.001));
