@@ -74,7 +74,7 @@ public class InformingService {
 
     public List<Portfolio> getSimplePortfolioTotalValues() {
 
-        Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets);
+        Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets.toArray(new String[0]));
 
         Set<Balance> allUniqueBalances = yieldSummaries.values()
                 .stream()
@@ -101,41 +101,9 @@ public class InformingService {
 
     public PortfoliosResponse getPortfolioTotalValues() {
         long start = System.nanoTime();
-
-        CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
-                () -> yieldWatchService.getYieldSummary(wallets));
-        CompletableFuture<Map<String, Map<Symbol, BigDecimal>>> walletBalancesFuture = CompletableFuture.supplyAsync(
-                () -> balanceService.fetchSymbolBalances(wallets));
-        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture = CompletableFuture.supplyAsync(
-                () -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
-
-        Map<String, Map<Symbol, BigDecimal>> walletBalances = walletBalancesFuture.join();
-        Map<Symbol, BigDecimal> prices = pricesFuture.join();
-        Map<String, YieldSummary> yieldSummaries = yieldSummariesFuture.join();
-
-        List<Portfolio> portfolios = yieldSummaries.entrySet()
-                .stream()
-                .map(entry -> Portfolio.builder()
-                        .walletAddress(entry.getKey())
-                        .pools(buildPoolWallet(entry.getValue(), prices))
-                        .build())
-                .collect(toList());
-
-        portfolios.forEach(portfolio -> {
-            TreeMap<Symbol, Token> tokenBalances = tokenBalances(walletBalances.get(portfolio.getWalletAddress()), prices);
-            BigDecimal totalValueInPools = totalValueInPools(tokenBalances);
-            Wallet wallet = Wallet.builder()
-                    .tokenBalances(tokenBalances)
-                    .totalValue(totalValueInPools)
-                    .build();
-            portfolio.setWallet(wallet);
-            portfolio.setTotalValue(portfolio.getWallet().getTotalValue().add(portfolio.getPools().getTotalValue()));
-        });
-
-        return PortfoliosResponse.builder()
-                .portfolios(portfolios)
-                .responseDurationInSeconds(duration(start))
-                .build();
+        PortfoliosResponse portfoliosResponse = buildPortfoliosResponse(wallets.toArray(new String[0]));
+        portfoliosResponse.setResponseDurationInSeconds(duration(start));
+        return portfoliosResponse;
     }
 
     private Wallet buildPoolWallet(YieldSummary yieldSummary, Map<Symbol, BigDecimal> prices) {
@@ -222,4 +190,46 @@ public class InformingService {
         slackService.post(new SlackMessage("```" + message + "```"));
     }
 
+    public PortfoliosResponse getPortfolioTotalValues(String... walletAddresses) {
+        long start = System.nanoTime();
+        PortfoliosResponse portfoliosResponse = buildPortfoliosResponse(walletAddresses);
+        portfoliosResponse.setResponseDurationInSeconds(duration(start));
+        return portfoliosResponse;
+    }
+
+    private PortfoliosResponse buildPortfoliosResponse(String... walletAddresses) {
+        CompletableFuture<Map<String, YieldSummary>> yieldSummariesFuture = CompletableFuture.supplyAsync(
+                () -> yieldWatchService.getYieldSummary(walletAddresses));
+        CompletableFuture<Map<String, Map<Symbol, BigDecimal>>> walletBalancesFuture = CompletableFuture.supplyAsync(
+                () -> balanceService.fetchSymbolBalances(walletAddresses));
+        CompletableFuture<Map<Symbol, BigDecimal>> pricesFuture = CompletableFuture.supplyAsync(
+                () -> priceService.toEur(ALL_POSSIBLE_SYMBOLS));
+
+        Map<String, Map<Symbol, BigDecimal>> walletBalances = walletBalancesFuture.join();
+        Map<Symbol, BigDecimal> prices = pricesFuture.join();
+        Map<String, YieldSummary> yieldSummaries = yieldSummariesFuture.join();
+
+        List<Portfolio> portfolios = yieldSummaries.entrySet()
+                .stream()
+                .map(entry -> Portfolio.builder()
+                        .walletAddress(entry.getKey())
+                        .pools(buildPoolWallet(entry.getValue(), prices))
+                        .build())
+                .collect(toList());
+
+        portfolios.forEach(portfolio -> {
+            TreeMap<Symbol, Token> tokenBalances = tokenBalances(walletBalances.get(portfolio.getWalletAddress()), prices);
+            BigDecimal totalValueInPools = totalValueInPools(tokenBalances);
+            Wallet wallet = Wallet.builder()
+                    .tokenBalances(tokenBalances)
+                    .totalValue(totalValueInPools)
+                    .build();
+            portfolio.setWallet(wallet);
+            portfolio.setTotalValue(portfolio.getWallet().getTotalValue().add(portfolio.getPools().getTotalValue()));
+        });
+
+        return PortfoliosResponse.builder()
+                .portfolios(portfolios)
+                .build();
+    }
 }

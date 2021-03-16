@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
 import static java.util.function.Function.identity;
@@ -33,13 +34,13 @@ public class BalanceService {
     private BcsScanService bcsScanService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 100))
-    public Map<String, Map<Symbol, BigDecimal>> fetchSymbolBalances(List<String> walletAddresses) {
-        return walletAddresses.parallelStream()
-                .collect(toMap(identity(), this::fetchSymbolBalances));
+    public Map<String, Map<Symbol, BigDecimal>> fetchSymbolBalances(String... walletAddresses) {
+        return Stream.of(walletAddresses).parallel()
+                .collect(toMap(identity(), this::fetchSymbolBalance));
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 100))
-    public Map<Symbol, BigDecimal> fetchSymbolBalances(String walletAddress) {
+    public Map<Symbol, BigDecimal> fetchSymbolBalance(String walletAddress) {
 
         return fetchSymbolBalances(walletAddress, Arrays.asList(Symbol.values()))
                 .entrySet()

@@ -51,6 +51,7 @@ public class CoinMarketCapService {
             .put(Symbol.ETH, "ethereum")
             .put(Symbol.BTS, "bat-true-share")
             .put(Symbol.BTD, "bat-true-dollar")
+            .put(Symbol.KEBAB, "currencies/kebab-token")
             .build();
 
     @Resource

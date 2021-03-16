@@ -22,6 +22,7 @@ public enum Symbol {
     DOT,
     EGG,
     ETH,
+    KEBAB,
     SBDO,
     SUSHI,
     UNI,
@@ -53,6 +54,7 @@ public enum Symbol {
             .put(WBNB, 7192)
             .put(BTD, 8204)
             .put(BTS, 8205)
+            .put(KEBAB, 8334)
             .build();
 
     public int coinMarketCapId() {
