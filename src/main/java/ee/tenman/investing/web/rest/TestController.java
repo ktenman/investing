@@ -1,5 +1,6 @@
 package ee.tenman.investing.web.rest;
 
+import com.google.common.collect.ImmutableMap;
 import ee.tenman.investing.domain.Portfolio;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.service.InformingService;
@@ -18,15 +19,25 @@ public class TestController {
     private InformingService informingService;
 
     @GetMapping("/portfolios")
-    public ResponseEntity<List<Portfolio>> portfolios() {
+    public ResponseEntity<ImmutableMap<String, Object>> portfolios() {
+        long start = System.nanoTime();
         List<Portfolio> portfolios = informingService.getPortfolioTotalValues();
-        return ResponseEntity.ok(portfolios);
+        ImmutableMap<String, Object> response = ImmutableMap.of(
+                "duration_in_seconds", duration(start),
+                "portfolios", portfolios
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/performance")
     public ResponseEntity<Map<Symbol, String>> performance() {
         Map<Symbol, String> differencesIn24Hours = informingService.getDifferencesIn24Hours();
         return ResponseEntity.ok(differencesIn24Hours);
+    }
+
+    private double duration(long startTime) {
+        return (System.nanoTime() - startTime) / 1_000_000_000.0;
     }
 
 }

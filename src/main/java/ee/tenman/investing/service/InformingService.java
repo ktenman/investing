@@ -107,7 +107,8 @@ public class InformingService {
         Map<Symbol, BigDecimal> prices = pricesFuture.join();
         Map<String, YieldSummary> yieldSummaries = yieldSummariesFuture.join();
 
-        List<Portfolio> portfolios = yieldSummaries.entrySet().stream()
+        List<Portfolio> portfolios = yieldSummaries.entrySet()
+                .stream()
                 .map(entry -> Portfolio.builder()
                         .walletAddress(entry.getKey())
                         .totalValueInPools(entry.getValue().getTotal(prices))

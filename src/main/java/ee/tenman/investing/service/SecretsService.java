@@ -42,4 +42,8 @@ public class SecretsService {
     public String getBcsScanApiKey() {
         return bcsScanApiKeys.get(RandomUtils.nextInt(0, bcsScanApiKeys.size()));
     }
+
+    public List<String> getBcsScanApiKeys() {
+        return bcsScanApiKeys;
+    }
 }
