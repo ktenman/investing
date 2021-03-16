@@ -7,6 +7,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -25,13 +26,15 @@ public class GoogleSheetsClient {
 
     public static final String VALUE_RENDER_OPTION = "UNFORMATTED_VALUE";
     public static final String DATE_TIME_RENDER_OPTION = "SERIAL_NUMBER";
-    public static final String SPREAD_SHEET_ID = "1Buo5586QNMC6v40C0bbD2MTH673dWN12FTgn_oAfIsM";
+
+    @Value("${sheet-id:}")
+    private String sheetId;
 
     @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public void update(String updateCell, Object requestBody) throws IOException {
         ValueRange value = new ValueRange()
                 .setValues(Arrays.asList(Arrays.asList(requestBody)));
-        UpdateValuesResponse response = googleSheetsApiClient.spreadsheets().values().update(SPREAD_SHEET_ID, updateCell, value)
+        UpdateValuesResponse response = googleSheetsApiClient.spreadsheets().values().update(sheetId, updateCell, value)
                 .setValueInputOption("RAW")
                 .execute();
         log.info("{}", response);
@@ -40,7 +43,7 @@ public class GoogleSheetsClient {
     public void update(BatchUpdateSpreadsheetRequest batchRequest) {
         try {
             BatchUpdateSpreadsheetResponse response = googleSheetsApiClient.spreadsheets()
-                    .batchUpdate(SPREAD_SHEET_ID, batchRequest)
+                    .batchUpdate(sheetId, batchRequest)
                     .execute();
             log.info("{}", response);
         } catch (IOException e) {
@@ -68,7 +71,7 @@ public class GoogleSheetsClient {
     public ValueRange getValueRange(String range) {
         try {
             Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                    googleSheetsApiClient.spreadsheets().values().get(SPREAD_SHEET_ID, range);
+                    googleSheetsApiClient.spreadsheets().values().get(sheetId, range);
             getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
             getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
             return getInvestingRequest.execute();
@@ -81,7 +84,7 @@ public class GoogleSheetsClient {
     public Spreadsheet getSpreadSheetResponse() {
         try {
             boolean includeGridData = false;
-            Sheets.Spreadsheets.Get spreadsheetRequest = googleSheetsApiClient.spreadsheets().get(SPREAD_SHEET_ID);
+            Sheets.Spreadsheets.Get spreadsheetRequest = googleSheetsApiClient.spreadsheets().get(sheetId);
             spreadsheetRequest.setRanges(new ArrayList<>());
             spreadsheetRequest.setIncludeGridData(includeGridData);
             return spreadsheetRequest.execute();

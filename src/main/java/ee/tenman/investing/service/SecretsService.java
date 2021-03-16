@@ -2,6 +2,7 @@ package ee.tenman.investing.service;
 
 import ee.tenman.investing.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 public class SecretsService {
+    @Value("${address:}")
+    private String address;
     @Value("wallet_address.txt")
     ClassPathResource walletAddressResource;
     @Value("bcsscan_api_key.txt")
@@ -24,6 +27,10 @@ public class SecretsService {
 
     @PostConstruct
     void setWalletAddress() {
+        if (StringUtils.isNotBlank(address)) {
+            walletAddress = address;
+            return;
+        }
         walletAddress = FileUtils.getSecret(walletAddressResource);
     }
 

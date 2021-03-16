@@ -31,6 +31,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.paukov.combinatorics3.Generator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -56,7 +57,6 @@ import java.util.stream.Stream;
 
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.DATE_TIME_RENDER_OPTION;
-import static ee.tenman.investing.integration.google.GoogleSheetsClient.SPREAD_SHEET_ID;
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.VALUE_RENDER_OPTION;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
@@ -100,6 +100,8 @@ public class GoogleSheetsService {
     private StockPriceService stockPriceService;
     @Resource
     private SecretsService secretsService;
+    @Value("${sheet-id:}")
+    private String sheetId;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     @Scheduled(cron = "0 0/10 * * * *")
@@ -289,7 +291,7 @@ public class GoogleSheetsService {
         Integer sheetID = sheetIndex(spreadsheetResponse, "profits");
 
         Sheets.Spreadsheets.Values.Get getInvestingRequest =
-                googleSheetsClient.get().spreadsheets().values().get(SPREAD_SHEET_ID, properties.getTitle());
+                googleSheetsClient.get().spreadsheets().values().get(sheetId, properties.getTitle());
         getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
         getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
 
@@ -313,7 +315,7 @@ public class GoogleSheetsService {
         batchRequests.setRequests(requests);
 
         BatchUpdateSpreadsheetResponse response = googleSheetsClient.get().spreadsheets()
-                .batchUpdate(SPREAD_SHEET_ID, batchRequests)
+                .batchUpdate(sheetId, batchRequests)
                 .execute();
 
         log.info("{}", response);
