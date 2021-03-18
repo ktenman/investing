@@ -100,10 +100,7 @@ public class InformingService {
     }
 
     public PortfoliosResponse getPortfolioTotalValues() {
-        long start = System.nanoTime();
-        PortfoliosResponse portfoliosResponse = buildPortfoliosResponse(wallets.toArray(new String[0]));
-        portfoliosResponse.setResponseTimeInSeconds(duration(start));
-        return portfoliosResponse;
+        return buildPortfoliosResponse(wallets.toArray(new String[0]));
     }
 
     private Wallet buildPoolWallet(YieldSummary yieldSummary, Map<Symbol, BigDecimal> prices) {
@@ -126,10 +123,6 @@ public class InformingService {
                 .tokenBalances(tokenBalances)
                 .totalValue(totalValueInPools(tokenBalances))
                 .build();
-    }
-
-    private double duration(long startTime) {
-        return (System.nanoTime() - startTime) / 1_000_000_000.0;
     }
 
     private BigDecimal totalValueInPools(Map<Symbol, Token> tokenBalances) {
@@ -191,10 +184,10 @@ public class InformingService {
     }
 
     public PortfoliosResponse getPortfolioTotalValues(String... walletAddresses) {
-        long start = System.nanoTime();
-        PortfoliosResponse portfoliosResponse = buildPortfoliosResponse(walletAddresses);
-        portfoliosResponse.setResponseTimeInSeconds(duration(start));
-        return portfoliosResponse;
+        if (walletAddresses == null || walletAddresses.length == 0) {
+            return getPortfolioTotalValues();
+        }
+        return buildPortfoliosResponse(walletAddresses);
     }
 
     private PortfoliosResponse buildPortfoliosResponse(String... walletAddresses) {
