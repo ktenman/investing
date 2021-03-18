@@ -52,6 +52,7 @@ public class CoinMarketCapService {
             .put(Symbol.BTS, "bat-true-share")
             .put(Symbol.BTD, "bat-true-dollar")
             .put(Symbol.KEBAB, "currencies/kebab-token")
+            .put(Symbol.UNCX, "uncx")
             .build();
 
     @Resource

@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
+import static com.codeborne.selenide.Configuration.browser;
 import static com.codeborne.selenide.Configuration.headless;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +19,7 @@ class GoogleStockPriceServiceTest {
 
     static {
         headless = true;
+        browser = "chrome";
     }
 
     @InjectMocks

@@ -25,6 +25,7 @@ public enum Symbol {
     KEBAB,
     SBDO,
     SUSHI,
+    UNCX,
     UNI,
     USDT,
     WATCH,
@@ -55,6 +56,7 @@ public enum Symbol {
             .put(BTD, 8204)
             .put(BTS, 8205)
             .put(KEBAB, 8334)
+            .put(UNCX, 7664)
             .build();
 
     public int coinMarketCapId() {

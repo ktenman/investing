@@ -45,6 +45,7 @@ public class CoinGeckoService {
             .put(Symbol.BTD, "bolt-true-dollar")
             .put(Symbol.BTS, "bolt-true-share")
             .put(Symbol.KEBAB, "kebab-token")
+            .put(Symbol.UNCX, "unicrypt")
             .build();
 
     @Resource

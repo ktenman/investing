@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -15,6 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class PortfoliosResponse {
-    private Double responseDurationInSeconds;
+    @Builder.Default
+    private Instant currentDateTime = Instant.now();
+    private Double responseTimeInSeconds;
     private List<Portfolio> portfolios;
 }
