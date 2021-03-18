@@ -102,7 +102,7 @@ public class InformingService {
     public PortfoliosResponse getPortfolioTotalValues() {
         long start = System.nanoTime();
         PortfoliosResponse portfoliosResponse = buildPortfoliosResponse(wallets.toArray(new String[0]));
-        portfoliosResponse.setResponseDurationInSeconds(duration(start));
+        portfoliosResponse.setResponseTimeInSeconds(duration(start));
         return portfoliosResponse;
     }
 
@@ -193,7 +193,7 @@ public class InformingService {
     public PortfoliosResponse getPortfolioTotalValues(String... walletAddresses) {
         long start = System.nanoTime();
         PortfoliosResponse portfoliosResponse = buildPortfoliosResponse(walletAddresses);
-        portfoliosResponse.setResponseDurationInSeconds(duration(start));
+        portfoliosResponse.setResponseTimeInSeconds(duration(start));
         return portfoliosResponse;
     }
 
