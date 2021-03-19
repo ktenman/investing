@@ -11,12 +11,14 @@ import ee.tenman.investing.integration.yieldwatchnet.api.Result;
 import ee.tenman.investing.integration.yieldwatchnet.api.Staking;
 import ee.tenman.investing.integration.yieldwatchnet.api.TotalUSDValues;
 import ee.tenman.investing.integration.yieldwatchnet.api.Vault;
+import ee.tenman.investing.integration.yieldwatchnet.api.Vaults;
 import ee.tenman.investing.integration.yieldwatchnet.api.WalletBalance;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldApiService;
 import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -134,6 +136,11 @@ public class YieldWatchService {
                         .map(LPVaults::getVaults)
                         .orElse(null),
                 Optional.ofNullable(yieldData.getResult()
+                        .getAutofarm())
+                        .map(Autofarm::getVaults)
+                        .map(Vaults::getVaults)
+                        .orElse(null),
+                Optional.ofNullable(yieldData.getResult()
                         .getBeefyFinance())
                         .map(BeefyFinance::getLPVaults)
                         .map(LPVaults::getVaults)
@@ -150,6 +157,7 @@ public class YieldWatchService {
                         .orElse(null))
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
+                .filter(this::nonEmptyVault)
                 .collect(toList());
 
         YieldSummary yieldSummary = new YieldSummary();
@@ -199,6 +207,15 @@ public class YieldWatchService {
 
         yieldSummary.setYieldEarnedPercentage(yieldEarnedPercentage);
         return yieldSummary;
+    }
+
+    private boolean nonEmptyVault(Vault vault) {
+        return vault.getCurrentTokens() != null && hasEnoughTokens(vault.getCurrentTokens()) ||
+                vault.getCurrentTokens() == null && hasEnoughTokens(vault.getLPInfo().getCurrentToken0());
+    }
+
+    private boolean hasEnoughTokens(BigDecimal currentTokens) {
+        return ComparableUtils.is(currentTokens).greaterThan(BigDecimal.valueOf(0.001));
     }
 
     private void addPoolData(Vault vault, YieldSummary yieldSummary) {
