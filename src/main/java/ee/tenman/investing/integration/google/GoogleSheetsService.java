@@ -378,6 +378,7 @@ public class GoogleSheetsService {
     public void refreshBalances() throws IOException {
         List<String> symbols = new ArrayList<>(TICKER_SYMBOL_MAP.values());
         symbols.add(EUR);
+        symbols.add(BUSD.name());
         List<Symbol> symbolList = ImmutableList.of(
                 SBDO,
                 WBNB,
