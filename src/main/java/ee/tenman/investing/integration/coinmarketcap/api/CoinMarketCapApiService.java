@@ -1,5 +1,6 @@
 package ee.tenman.investing.integration.coinmarketcap.api;
 
+import ee.tenman.investing.domain.Stats;
 import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -32,7 +34,10 @@ public class CoinMarketCapApiService {
     private BinanceService binanceService;
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public BigDecimal differenceIn24Hours(Symbol symbol) {
+    public Stats differenceIn24Hours(Symbol symbol) {
+        DecimalFormat decimalFormat = new DecimalFormat("#0.00'%'");
+        decimalFormat.setPositivePrefix("+");
+
         Instant toDateTime = Instant.now();
         Instant fromDateTime = toDateTime.minus(1, ChronoUnit.DAYS);
 
@@ -43,9 +48,15 @@ public class CoinMarketCapApiService {
                 "EUR"
         );
 
-        return coinInformation.getDifferenceIn24Hours()
+        BigDecimal priceChange = coinInformation.getDifferenceIn24Hours()
                 .subtract(BigDecimal.ONE)
                 .multiply(new BigDecimal("100.00"));
+
+        return Stats.builder()
+                .priceChange(decimalFormat.format(priceChange))
+                .currentPrice(coinInformation.getLastPrice())
+                .price24HoursAgo(coinInformation.getFirstPrice())
+                .build();
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))

@@ -1,6 +1,7 @@
 package ee.tenman.investing.service;
 
 import com.binance.api.client.domain.market.CandlestickInterval;
+import ee.tenman.investing.domain.Stats;
 import ee.tenman.investing.exception.NotSupportedSymbolException;
 import ee.tenman.investing.integration.binance.BinanceService;
 import ee.tenman.investing.integration.coingecko.CoinGeckoService;
@@ -140,7 +141,7 @@ public class PriceService {
         return coinGeckoService.eurPrice(symbol);
     }
 
-    public Map<Symbol, BigDecimal> to24HDifference(List<Symbol> symbols) {
+    public Map<Symbol, Stats> to24HDifference(List<Symbol> symbols) {
         return symbols.parallelStream()
                 .collect(toMap(
                         identity(),

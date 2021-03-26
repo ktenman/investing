@@ -2,6 +2,7 @@ package ee.tenman.investing.service;
 
 import ee.tenman.investing.domain.Portfolio;
 import ee.tenman.investing.domain.PortfoliosResponse;
+import ee.tenman.investing.domain.Stats;
 import ee.tenman.investing.domain.Token;
 import ee.tenman.investing.domain.Wallet;
 import ee.tenman.investing.integration.bscscan.BalanceService;
@@ -32,7 +33,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.math.BigDecimal.ZERO;
 import static java.util.Arrays.asList;
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -55,6 +55,9 @@ public class InformingService {
     private List<String> wallets;
     @Resource
     private BalanceService balanceService;
+
+    private PortfoliosResponse portfoliosResponse;
+    private Map<Symbol, Stats> differencesIn24Hours;
 
     @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPortfolios() {
@@ -99,8 +102,16 @@ public class InformingService {
         return portfolios;
     }
 
+    @Scheduled(fixedDelay = 600_000, initialDelay = 0)
+    public void setPortfoliosResponse() {
+        this.portfoliosResponse = buildPortfoliosResponse(wallets.toArray(new String[0]));
+    }
+
     public PortfoliosResponse getPortfolioTotalValues() {
-        return buildPortfoliosResponse(wallets.toArray(new String[0]));
+        if (portfoliosResponse == null) {
+            setPortfoliosResponse();
+        }
+        return portfoliosResponse;
     }
 
     private Wallet buildPoolWallet(YieldSummary yieldSummary, Map<Symbol, BigDecimal> prices) {
@@ -151,8 +162,7 @@ public class InformingService {
 
     @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPerformance() {
-
-        Map<Symbol, String> differences = getDifferencesIn24Hours();
+        Map<Symbol, Stats> differences = getDifferencesIn24Hours();
 
         String messagePayload = differences.entrySet().stream()
                 .map(entry -> String.format("%-5s %-5s", entry.getKey(), entry.getValue()))
@@ -161,20 +171,16 @@ public class InformingService {
         postToSlack(messagePayload);
     }
 
-    public Map<Symbol, String> getDifferencesIn24Hours() {
-        DecimalFormat decimalFormat = new DecimalFormat("#0.00'%'");
-        decimalFormat.setPositivePrefix("+");
+    public Map<Symbol, Stats> getDifferencesIn24Hours() {
+        if (differencesIn24Hours == null) {
+            setDifferencesIn24Hours();
+        }
+        return differencesIn24Hours;
+    }
 
-        List<Symbol> symbols = asList(Symbol.values());
-
-        Map<Symbol, BigDecimal> differences = priceService.to24HDifference(symbols);
-
-        return symbols.stream().collect(toMap(
-                identity(),
-                s -> decimalFormat.format(differences.get(s)),
-                (a, b) -> a,
-                TreeMap::new
-        ));
+    @Scheduled(fixedDelay = 300_000, initialDelay = 0)
+    public void setDifferencesIn24Hours() {
+        this.differencesIn24Hours = priceService.to24HDifference(asList(Symbol.values()));
     }
 
     private void postToSlack(String message) {

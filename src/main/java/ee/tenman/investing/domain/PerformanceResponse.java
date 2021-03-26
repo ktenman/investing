@@ -1,5 +1,6 @@
 package ee.tenman.investing.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,5 +16,6 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PerformanceResponse extends GenericResponse {
-    private Map<Symbol, String> differencesIn24Hours;
+    @JsonProperty("differences_in_24_hours")
+    private Map<Symbol, Stats> differencesIn24Hours;
 }

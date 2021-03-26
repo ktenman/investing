@@ -18,7 +18,16 @@ import java.util.TreeMap;
 @Builder
 public class CoinInformation {
 
+    private static final String EUR_CURRENCY = "EUR";
     private TreeMap<String, Map<String, List<BigDecimal>>> data;
+
+    BigDecimal getLastPrice() {
+        return getLastPriceOf(EUR_CURRENCY);
+    }
+
+    BigDecimal getFirstPrice() {
+        return getFirsPriceOf(EUR_CURRENCY);
+    }
 
     BigDecimal getLastPriceOf(String symbol) {
         return this.getData()
@@ -41,9 +50,8 @@ public class CoinInformation {
     }
 
     BigDecimal getDifferenceIn24Hours() {
-        String eur = "EUR";
-        BigDecimal lastEntry = getLastPriceOf(eur);
-        BigDecimal firstEntry = getFirsPriceOf(eur);
+        BigDecimal lastEntry = getLastPriceOf(EUR_CURRENCY);
+        BigDecimal firstEntry = getFirsPriceOf(EUR_CURRENCY);
         return lastEntry.divide(firstEntry, RoundingMode.HALF_UP);
     }
 
