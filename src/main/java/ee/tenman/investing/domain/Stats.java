@@ -20,4 +20,9 @@ public class Stats {
     private BigDecimal currentPrice;
     @JsonProperty("price_24_hours_ago")
     private BigDecimal price24HoursAgo;
+
+    @Override
+    public String toString() {
+        return priceChange;
+    }
 }

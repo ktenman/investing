@@ -160,7 +160,7 @@ public class InformingService {
                 ));
     }
 
-    @Scheduled(cron = "0 0 8/12 * * *")
+    @Scheduled(cron = "0 0 7/12 * * *")
     public void informAboutPerformance() {
         Map<Symbol, Stats> differences = getDifferencesIn24Hours();
 
