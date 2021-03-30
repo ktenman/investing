@@ -73,6 +73,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.time.Duration.between;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Comparator.naturalOrder;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
 
@@ -527,7 +528,7 @@ public class GoogleSheetsService {
             );
         }
 
-        BigDecimal min = values.values().stream().min(Comparator.naturalOrder()).orElse(null);
+        BigDecimal min = values.values().stream().min(naturalOrder()).orElse(null);
 
         int maxTickerAmount = leftOverAmount.divide(min, RoundingMode.DOWN).intValue();
 
@@ -566,12 +567,12 @@ public class GoogleSheetsService {
                 .orElse(null);
 
         Map<String, Integer> tickerAndAmount = new HashMap<>();
-        for (Map.Entry<String, BigDecimal> entry : finalCombination.entrySet()) {
+        for (Map.Entry<String, BigDecimal> entry : Objects.requireNonNull(finalCombination).entrySet()) {
             int countOfTicker = entry.getValue().divide(values.get(entry.getKey()), BigDecimal.ROUND_UNNECESSARY).intValue();
             tickerAndAmount.put(entry.getKey(), countOfTicker);
         }
 
-        List<Object> collect = googleSheetsClient.getValueRange("investing!E37:E40")
+        List<Object> collect = googleSheetsClient.getValueRange("investing!E45:E48")
                 .getValues()
                 .stream()
                 .flatMap(List::stream)
@@ -580,7 +581,7 @@ public class GoogleSheetsService {
         HashMap<String, String> objectObjectHashMap = new HashMap<>();
         for (int i = 0; i < collect.size(); i++) {
             String key = (String) collect.get(i);
-            objectObjectHashMap.put(key, "investing!R" + (37 + i));
+            objectObjectHashMap.put(key, "investing!R" + (45 + i));
         }
 
         for (Map.Entry<String, String> e : objectObjectHashMap.entrySet()) {
