@@ -58,9 +58,9 @@ import java.util.stream.Stream;
 import static ee.tenman.investing.configuration.FetchingConfiguration.TICKER_SYMBOL_MAP;
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.DATE_TIME_RENDER_OPTION;
 import static ee.tenman.investing.integration.google.GoogleSheetsClient.VALUE_RENDER_OPTION;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.AUTO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTD;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTS;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BUSD;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.CAKE;
@@ -387,8 +387,8 @@ public class GoogleSheetsService {
                 BUSD,
                 CAKE,
                 WATCH,
-                BTD,
-                BTS
+                BTS,
+                AUTO
         );
 
         CompletableFuture<Map<String, BigDecimal>> availableBalancesFuture = supplyAsync(
