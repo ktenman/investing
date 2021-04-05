@@ -102,7 +102,7 @@ public class InformingService {
         return portfolios;
     }
 
-    @Scheduled(fixedDelay = 600_000, initialDelay = 0)
+    @Scheduled(fixedDelay = 1_200_000, initialDelay = 120_000)
     public void setPortfoliosResponse() {
         this.portfoliosResponse = buildPortfoliosResponse(wallets.toArray(new String[0]));
     }
