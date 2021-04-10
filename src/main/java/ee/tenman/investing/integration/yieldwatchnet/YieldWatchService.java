@@ -111,7 +111,7 @@ public class YieldWatchService {
                 .build();
     }
 
-    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    @Retryable(value = {Exception.class}, maxAttempts = 10, backoff = @Backoff(delay = 2000))
     public Map<String, YieldSummary> getYieldSummary(String... walletAddresses) {
         return Stream.of(walletAddresses).parallel()
                 .collect(toMap(identity(), walletAddress -> {
