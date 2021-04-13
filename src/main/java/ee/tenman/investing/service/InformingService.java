@@ -59,7 +59,7 @@ public class InformingService {
     private PortfoliosResponse portfoliosResponse;
     private Map<Symbol, Stats> differencesIn24Hours;
 
-    @Scheduled(cron = "0 0 7/12 * * *")
+    @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPortfolios() {
         if (wallets.stream().noneMatch(StringUtils::isNotBlank)) {
             log.info("Skipping. No wallets were provided");
@@ -160,7 +160,7 @@ public class InformingService {
                 ));
     }
 
-    @Scheduled(cron = "0 0 7/12 * * *")
+    @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPerformance() {
         Map<Symbol, Stats> differences = getDifferencesIn24Hours();
 
