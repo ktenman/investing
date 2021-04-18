@@ -34,9 +34,11 @@ class ECBUnmarshaller implements Function<String, List<ConversionRate>> {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = documentBuilder.parse(inputSource);
 
-            document.getDocumentElement().normalize();
+            document.getDocumentElement()
+                    .normalize();
 
-            Node rootCube = document.getElementsByTagName("Cube").item(0);
+            Node rootCube = document.getElementsByTagName("Cube")
+                    .item(0);
             NodeList dates = rootCube.getChildNodes();
 
             for (int i = 0; i < dates.getLength(); i++) {
@@ -45,7 +47,8 @@ class ECBUnmarshaller implements Function<String, List<ConversionRate>> {
                     continue;
                 }
                 NamedNodeMap dailyNodeAttributes = dailyNode.getAttributes();
-                String timeAttributeValue = dailyNodeAttributes.getNamedItem("time").getNodeValue();
+                String timeAttributeValue = dailyNodeAttributes.getNamedItem("time")
+                        .getNodeValue();
                 LocalDate localDate = LocalDate.parse(timeAttributeValue, DateTimeFormatter.ISO_LOCAL_DATE);
                 NodeList exchangeNodeList = dailyNode.getChildNodes();
                 for (int j = 0; j < exchangeNodeList.getLength(); j++) {
@@ -54,9 +57,15 @@ class ECBUnmarshaller implements Function<String, List<ConversionRate>> {
                         continue;
                     }
                     NamedNodeMap exchangeNodeAttributes = exchangeNode.getAttributes();
-                    String currency = exchangeNodeAttributes.getNamedItem("currency").getNodeValue();
-                    String value = exchangeNodeAttributes.getNamedItem("rate").getNodeValue();
-                    ConversionRate conversionRate = new ConversionRate(localDate, currency, new BigDecimal(value));
+                    String currency = exchangeNodeAttributes.getNamedItem("currency")
+                            .getNodeValue();
+                    String value = exchangeNodeAttributes.getNamedItem("rate")
+                            .getNodeValue();
+                    ConversionRate conversionRate = ConversionRate.builder()
+                            .date(localDate)
+                            .currency(currency)
+                            .rate(new BigDecimal(value))
+                            .build();
                     conversionRates.add(conversionRate);
                 }
             }

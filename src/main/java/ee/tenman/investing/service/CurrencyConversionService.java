@@ -2,7 +2,9 @@ package ee.tenman.investing.service;
 
 import ee.tenman.investing.domain.Currency;
 import ee.tenman.investing.domain.StockSymbol;
+import ee.tenman.investing.exception.NotSupportedSymbolException;
 import ee.tenman.investing.integration.binance.BinanceService;
+import ee.tenman.investing.integration.ecb.ECBService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,9 @@ public class CurrencyConversionService {
     @Resource
     private BinanceService binanceService;
 
+    @Resource
+    private ECBService ecbService;
+
     public BigDecimal convert(Currency from, Currency to) {
 
         if (from == to) {
@@ -44,6 +49,11 @@ public class CurrencyConversionService {
 
         if (from == GBX || to == GBX) {
             throw new IllegalArgumentException("GBX not supported");
+        }
+
+        try {
+            return ecbService.convert(from, to);
+        } catch (NotSupportedSymbolException ignored) {
         }
 
         if ((from == GBP || from == USD) && to == EUR) {

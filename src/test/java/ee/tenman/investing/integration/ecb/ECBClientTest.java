@@ -6,16 +6,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest
-class ECBClientIntegrationTest {
+class ECBClientTest {
 
     @Resource
-    private ECBClient ecbClient;
+    ECBClient ecbClient;
 
     @Test
-    void getDailyRates() {
-        List<ConversionRate> dailyRates = ecbClient.getDailyRates();
+    void getRates() {
+        List<ConversionRate> rates = ecbClient.getRates();
 
-        System.out.println();
+        assertThat(rates).hasSize(32);
     }
 }
