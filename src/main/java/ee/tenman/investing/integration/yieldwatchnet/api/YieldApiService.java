@@ -24,7 +24,7 @@ public class YieldApiService {
         return yieldApiClient.fetchYieldData(secretsService.getWalletAddress());
     }
 
-    @Retryable(value = {FeignException.class}, maxAttempts = 10, backoff = @Backoff(delay = 1000))
+    @Retryable(value = {Exception.class}, maxAttempts = 6, backoff = @Backoff(delay = 666))
     public YieldData getYieldData(String walletAddress) {
         return yieldApiClient.fetchYieldData(walletAddress);
     }

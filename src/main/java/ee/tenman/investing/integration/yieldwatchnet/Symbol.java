@@ -1,6 +1,7 @@
 package ee.tenman.investing.integration.yieldwatchnet;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -62,6 +63,17 @@ public enum Symbol {
     public int coinMarketCapId() {
         return Optional.ofNullable(COIN_MARKET_CAP_IDS.get(this))
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Symbol %s not supported", this)));
+    }
+
+    public static boolean areSupported(String... values) {
+        return Stream.of(values).allMatch(Symbol::isSupported);
+    }
+
+    public static boolean isSupported(String value) {
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return SYMBOL_NAMES.contains(value.toUpperCase());
     }
 
 }

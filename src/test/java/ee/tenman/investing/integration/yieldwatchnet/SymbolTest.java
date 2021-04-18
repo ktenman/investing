@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SymbolTest {
@@ -26,4 +28,23 @@ class SymbolTest {
         assertThat(id).isPositive().isNotZero();
     }
 
+    @Test
+    void areSupported_false() {
+        assertThat(Symbol.areSupported("BGOV", WBNB.name())).isFalse();
+    }
+
+    @Test
+    void areSupported_true() {
+        assertThat(Symbol.areSupported(BNB.name(), WBNB.name())).isTrue();
+    }
+
+    @Test
+    void areSupported() {
+        assertThat(Symbol.isSupported(WBNB.name())).isTrue();
+    }
+
+    @Test
+    void isSupported_true() {
+        assertThat(Symbol.isSupported(WBNB.name())).isTrue();
+    }
 }

@@ -215,7 +215,7 @@ public class YieldWatchService {
     }
 
     private boolean hasEnoughTokens(BigDecimal currentTokens) {
-        return ComparableUtils.is(currentTokens).greaterThan(BigDecimal.valueOf(0.001));
+        return ComparableUtils.is(currentTokens).greaterThan(ZERO);
     }
 
     private void addPoolData(Vault vault, YieldSummary yieldSummary) {
@@ -224,6 +224,11 @@ public class YieldWatchService {
         log.info("{}", vault);
 
         if (lpInfo != null) {
+            if (!Symbol.areSupported(lpInfo.getSymbolToken0(), lpInfo.getSymbolToken1())) {
+                log.info("One of the following tokens are not supported: {} or {}",
+                        lpInfo.getSymbolToken0(), lpInfo.getSymbolToken1());
+                return;
+            }
             yieldSummary.addToPoolAmounts(lpInfo.getSymbolToken0().toUpperCase(), lpInfo.getCurrentToken0());
             yieldSummary.addToPoolAmounts(lpInfo.getSymbolToken1().toUpperCase(), lpInfo.getCurrentToken1());
             String newPoolName = String.format("%s-%s",
@@ -232,6 +237,10 @@ public class YieldWatchService {
             );
             yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
         } else if (StringUtils.isNotEmpty(vault.getDepositToken())) {
+            if (!Symbol.isSupported(vault.getDepositToken())) {
+                log.info("The following token is not supported: {}", vault.getDepositToken());
+                return;
+            }
             yieldSummary.addToPoolAmounts(vault.getDepositToken().toUpperCase(), vault.getDepositedTokens());
         } else {
             throw new IllegalArgumentException(String.format("Not supported. %s", vault.toString()));
