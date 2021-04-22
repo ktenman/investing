@@ -18,7 +18,6 @@ import ee.tenman.investing.integration.yieldwatchnet.api.YieldData;
 import ee.tenman.investing.service.SecretsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.compare.ComparableUtils;
 import org.openqa.selenium.By;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -47,6 +46,7 @@ import static java.util.Comparator.reverseOrder;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.compare.ComparableUtils.is;
 import static org.openqa.selenium.By.tagName;
 
 @Service
@@ -203,7 +203,7 @@ public class YieldWatchService {
                 .map(TotalUSDValues::getTotal)
                 .reduce(ZERO, BigDecimal::add);
 
-        BigDecimal yieldEarnedPercentage = yield.divide(total, 8, ROUND_UP);
+        BigDecimal yieldEarnedPercentage = is(total).greaterThan(ZERO) ? yield.divide(total, 8, ROUND_UP) : ZERO;
 
         yieldSummary.setYieldEarnedPercentage(yieldEarnedPercentage);
         return yieldSummary;
@@ -215,7 +215,7 @@ public class YieldWatchService {
     }
 
     private boolean hasEnoughTokens(BigDecimal currentTokens) {
-        return ComparableUtils.is(currentTokens).greaterThan(ZERO);
+        return is(currentTokens).greaterThan(ZERO);
     }
 
     private void addPoolData(Vault vault, YieldSummary yieldSummary) {
