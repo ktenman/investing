@@ -61,9 +61,9 @@ import static ee.tenman.investing.integration.google.GoogleSheetsClient.VALUE_RE
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.AUTO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BDO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BNB;
-import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BTS;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.BUSD;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.CAKE;
+import static ee.tenman.investing.integration.yieldwatchnet.Symbol.MDX;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.SBDO;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WATCH;
 import static ee.tenman.investing.integration.yieldwatchnet.Symbol.WBNB;
@@ -387,8 +387,8 @@ public class GoogleSheetsService {
                 BUSD,
                 CAKE,
                 WATCH,
-                BTS,
-                AUTO
+                AUTO,
+                MDX
         );
 
         CompletableFuture<Map<String, BigDecimal>> availableBalancesFuture = supplyAsync(
