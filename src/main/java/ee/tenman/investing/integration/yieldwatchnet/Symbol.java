@@ -24,6 +24,7 @@ public enum Symbol {
     EGG,
     ETH,
     KEBAB,
+    MDX,
     SBDO,
     SUSHI,
     UNCX,
@@ -58,6 +59,7 @@ public enum Symbol {
             .put(BTS, 8205)
             .put(KEBAB, 8334)
             .put(UNCX, 7664)
+            .put(MDX, 8335)
             .build();
 
     public int coinMarketCapId() {
