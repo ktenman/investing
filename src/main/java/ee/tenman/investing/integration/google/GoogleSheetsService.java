@@ -217,6 +217,7 @@ public class GoogleSheetsService {
 
         headers.forEach(header -> {
             if (header.contains("-")) {
+                log.info("header: {}", header);
                 CellData newCellData = new CellData();
                 BigDecimal value = yieldSummary.getPools().getOrDefault(header, ZERO);
                 newCellData.setUserEnteredValue(new ExtendedValue().setNumberValue(value.doubleValue()));

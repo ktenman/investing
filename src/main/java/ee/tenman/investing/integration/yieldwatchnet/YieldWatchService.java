@@ -235,7 +235,9 @@ public class YieldWatchService {
                     Symbol.valueOf(lpInfo.getSymbolToken0().toUpperCase()),
                     Symbol.valueOf(lpInfo.getSymbolToken1().toUpperCase())
             );
-            yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, lpInfo.getPriceInUSDLPToken()));
+            BigDecimal totalAmount = lpInfo.getCurrentToken0().multiply(lpInfo.getPriceInUSDToken0())
+                    .add(lpInfo.getCurrentToken1().multiply(lpInfo.getPriceInUSDToken1()));
+            yieldSummary.getPools().put(newPoolName, yieldSummary.getPools().getOrDefault(newPoolName, totalAmount));
         } else if (StringUtils.isNotEmpty(vault.getDepositToken())) {
             if (!Symbol.isSupported(vault.getDepositToken())) {
                 log.info("The following token is not supported: {}", vault.getDepositToken());
