@@ -11,7 +11,6 @@ import ee.tenman.investing.integration.slack.SlackService;
 import ee.tenman.investing.integration.yieldwatchnet.Symbol;
 import ee.tenman.investing.integration.yieldwatchnet.YieldSummary;
 import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
-import ee.tenman.investing.integration.yieldwatchnet.api.Balance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
@@ -23,7 +22,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,6 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 @Service
 @Slf4j
@@ -66,40 +63,14 @@ public class InformingService {
             return;
         }
 
-        List<Portfolio> portfolios = getSimplePortfolioTotalValues();
+        setPortfoliosResponse();
+        List<Portfolio> portfolios = getPortfolioTotalValues(wallets.toArray(new String[0])).getPortfolios();
 
         String message = portfolios.stream()
                 .map(Portfolio::toString)
                 .collect(joining("\n"));
 
         postToSlack(message);
-    }
-
-    public List<Portfolio> getSimplePortfolioTotalValues() {
-
-        Map<String, YieldSummary> yieldSummaries = yieldWatchService.getYieldSummary(wallets.toArray(new String[0]));
-
-        Set<Balance> allUniqueBalances = yieldSummaries.values()
-                .stream()
-                .map(YieldSummary::getPoolBalances)
-                .flatMap(Collection::stream)
-                .collect(toSet());
-
-        Map<Symbol, BigDecimal> prices = priceService.getPricesOfBalances(allUniqueBalances);
-
-        List<Portfolio> portfolios = yieldSummaries.entrySet().stream()
-                .map(entry -> {
-                    Wallet pools = Wallet.builder().totalValue(entry.getValue().getTotal(prices)).build();
-                    return Portfolio.builder()
-                            .walletAddress(entry.getKey())
-                            .pools(pools)
-                            .build();
-                })
-                .collect(toList());
-
-        log.info("{}", portfolios);
-
-        return portfolios;
     }
 
     @Scheduled(fixedDelay = 1_200_000, initialDelay = 120_000)
