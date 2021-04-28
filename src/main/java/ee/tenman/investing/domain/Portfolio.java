@@ -32,6 +32,6 @@ public class Portfolio {
                     ", wallet=" + wallet +
                     '}';
         }
-        return String.format("%s - %s", walletAddress, NUMBER_FORMAT.format(pools.getTotalValue()));
+        return String.format("%s - %s", walletAddress, NUMBER_FORMAT.format(totalValue));
     }
 }
