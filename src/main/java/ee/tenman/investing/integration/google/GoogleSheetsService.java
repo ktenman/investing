@@ -477,9 +477,9 @@ public class GoogleSheetsService {
         profitCell.setUserEnteredValue(new ExtendedValue().setNumberValue(profit.doubleValue()));
         cellData.add(profitCell);
 
-        CellData areaField = new CellData();
-        areaField.setUserEnteredValue(new ExtendedValue().setNumberValue(totalSavingsAmount.doubleValue()));
-        cellData.add(areaField);
+        CellData total = new CellData();
+        total.setUserEnteredValue(new ExtendedValue().setNumberValue(totalSavingsAmount.doubleValue()));
+        cellData.add(total);
 
         CellData currentTimeFromSpreadSheetCell = new CellData();
         currentTimeFromSpreadSheetCell.setUserEnteredValue(new ExtendedValue().setNumberValue(currentTimeFromSpreadSheet.doubleValue()));
@@ -496,6 +496,12 @@ public class GoogleSheetsService {
         long duration = abs(between(now, timeFromInvesting).get(SECONDS));
         updateDifferenceInSeconds.setUserEnteredValue(new ExtendedValue().setNumberValue((double) duration));
         cellData.add(updateDifferenceInSeconds);
+
+        CellData earningsPerDay = new CellData();
+        double earnings = totalSavingsAmount.multiply(annualReturn)
+                .divide(BigDecimal.valueOf(365.25), RoundingMode.HALF_UP).doubleValue();
+        earningsPerDay.setUserEnteredValue(new ExtendedValue().setNumberValue(earnings));
+        cellData.add(earningsPerDay);
 
         rowData.add(new RowData().setValues(cellData));
 
