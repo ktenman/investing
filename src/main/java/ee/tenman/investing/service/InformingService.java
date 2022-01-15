@@ -56,7 +56,7 @@ public class InformingService {
     private PortfoliosResponse portfoliosResponse;
     private Map<Symbol, Stats> differencesIn24Hours;
 
-    @Scheduled(cron = "0 0 8/12 * * *")
+//    @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPortfolios() {
         if (wallets.stream().noneMatch(StringUtils::isNotBlank)) {
             log.info("Skipping. No wallets were provided");
@@ -73,7 +73,7 @@ public class InformingService {
         postToSlack(message);
     }
 
-    @Scheduled(fixedDelay = 1_200_000, initialDelay = 120_000)
+//    @Scheduled(fixedDelay = 1_200_000, initialDelay = 120_000)
     public void setPortfoliosResponse() {
         this.portfoliosResponse = buildPortfoliosResponse(wallets.toArray(new String[0]));
     }
@@ -131,7 +131,7 @@ public class InformingService {
                 ));
     }
 
-    @Scheduled(cron = "0 0 8/12 * * *")
+//    @Scheduled(cron = "0 0 8/12 * * *")
     public void informAboutPerformance() {
         Map<Symbol, Stats> differences = getDifferencesIn24Hours();
 
@@ -149,7 +149,7 @@ public class InformingService {
         return differencesIn24Hours;
     }
 
-    @Scheduled(fixedDelay = 300_000, initialDelay = 0)
+//    @Scheduled(fixedDelay = 300_000, initialDelay = 0)
     public void setDifferencesIn24Hours() {
         this.differencesIn24Hours = priceService.to24HDifference(asList(Symbol.values()));
     }
