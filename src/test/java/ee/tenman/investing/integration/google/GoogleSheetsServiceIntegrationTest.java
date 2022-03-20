@@ -27,6 +27,22 @@ class GoogleSheetsServiceIntegrationTest {
     }
 
     @Test
+    void clean() {
+        long startTime = System.nanoTime();
+//        googleService.clean(16977);
+        googleService.clean(1);
+        System.out.println(String.format("Duration %ss", duration(startTime)));
+    }
+
+    @Test
+    void clean2() {
+        long startTime = System.nanoTime();
+        googleService.removeCells2("profits");
+        System.out.println(String.format("Duration %ss", duration(startTime)));
+    }
+
+
+    @Test
     @Order(1)
     void refreshCryptoPrices() {
         long startTime = System.nanoTime();

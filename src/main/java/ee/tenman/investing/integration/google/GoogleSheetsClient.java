@@ -6,6 +6,7 @@ import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetResponse;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
@@ -16,6 +17,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -79,6 +81,16 @@ public class GoogleSheetsClient {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 2000))
+    @SneakyThrows
+    public Optional<ValueRange> getOptionalValueRange(String range) {
+        Sheets.Spreadsheets.Values.Get getInvestingRequest =
+                googleSheetsApiClient.spreadsheets().values().get(sheetId, range);
+        getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
+        getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
+        return Optional.of(getInvestingRequest.execute());
     }
 
     public Spreadsheet getSpreadSheetResponse() {

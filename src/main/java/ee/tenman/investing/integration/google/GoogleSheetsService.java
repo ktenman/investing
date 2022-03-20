@@ -26,6 +26,7 @@ import ee.tenman.investing.integration.yieldwatchnet.YieldWatchService;
 import ee.tenman.investing.service.PriceService;
 import ee.tenman.investing.service.SecretsService;
 import ee.tenman.investing.service.StockPriceService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -51,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -105,7 +109,8 @@ public class GoogleSheetsService {
     private String sheetId;
 
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
-    @Scheduled(cron = "0 0/10 * * * *")
+//    @Scheduled(cron = "0 0/10 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void appendProfits() {
         Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
         if (spreadsheetResponse == null) {
@@ -280,17 +285,32 @@ public class GoogleSheetsService {
                 .orElse(ZERO);
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 20, backoff = @Backoff(delay = 2000))
+    public String extractDateFromValueRange(String valueRange) {
+        return googleSheetsClient.getOptionalValueRange(valueRange)
+                .map(ValueRange::getValues)
+                .map(o -> o.get(0))
+                .map(o -> o.get(0))
+                .map(Object::toString)
+                .filter(StringUtils::isNotBlank)
+                .map(text -> text.replaceAll("[^\\d.]", ""))
+                .orElse("");
+    }
+
+
     @Scheduled(fixedDelay = 600_000, initialDelay = 600_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
     public void updateSumOfTickers() throws IOException {
         updateTickerAmounts();
     }
 
-    public void removeCells() throws IOException {
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    @SneakyThrows
+    public void removeCells(String sheet, int startIndex, int endIndex) {
         Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
 
         SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
-        Integer sheetID = sheetIndex(spreadsheetResponse, "profits");
+        Integer sheetID = sheetIndex(spreadsheetResponse, sheet);
 
         Sheets.Spreadsheets.Values.Get getInvestingRequest =
                 googleSheetsClient.get().spreadsheets().values().get(sheetId, properties.getTitle());
@@ -306,7 +326,46 @@ public class GoogleSheetsService {
         DimensionRange dimensionRange = new DimensionRange();
         dimensionRange.setSheetId(sheetID);
         dimensionRange.setDimension("ROWS");
-        dimensionRange.setStartIndex(150000);
+        dimensionRange.setStartIndex(startIndex);
+        dimensionRange.setEndIndex(endIndex);
+
+        deleteDimensionRequest.setRange(dimensionRange);
+
+        List<Request> requests = new ArrayList<>();
+        requests.add(new Request().setDeleteDimension(deleteDimensionRequest));
+        BatchUpdateSpreadsheetRequest batchRequests = new BatchUpdateSpreadsheetRequest();
+        batchRequests.setRequests(requests);
+
+        BatchUpdateSpreadsheetResponse response = googleSheetsClient.get().spreadsheets()
+                .batchUpdate(sheetId, batchRequests)
+                .execute();
+
+        log.info("{}", response);
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
+    @SneakyThrows
+    public void removeCells2(String sheet) {
+        Spreadsheet spreadsheetResponse = googleSheetsClient.getSpreadSheetResponse();
+
+        SheetProperties properties = spreadsheetResponse.getSheets().get(1).getProperties();
+        Integer sheetID = sheetIndex(spreadsheetResponse, sheet);
+
+        Sheets.Spreadsheets.Values.Get getInvestingRequest =
+                googleSheetsClient.get().spreadsheets().values().get(sheetId, properties.getTitle());
+        getInvestingRequest.setValueRenderOption(VALUE_RENDER_OPTION);
+        getInvestingRequest.setDateTimeRenderOption(DATE_TIME_RENDER_OPTION);
+
+        ValueRange valueRange = getInvestingRequest.execute();
+
+        String maximum = valueRange.getRange().split(":")[1].replaceAll("[^\\d.]", "");
+        int setEndIndex = Integer.parseInt(maximum);
+
+        DeleteDimensionRequest deleteDimensionRequest = new DeleteDimensionRequest();
+        DimensionRange dimensionRange = new DimensionRange();
+        dimensionRange.setSheetId(sheetID);
+        dimensionRange.setDimension("ROWS");
+        dimensionRange.setStartIndex(20000);
         dimensionRange.setEndIndex(setEndIndex);
 
         deleteDimensionRequest.setRange(dimensionRange);
@@ -322,6 +381,7 @@ public class GoogleSheetsService {
 
         log.info("{}", response);
     }
+
 
     @Scheduled(fixedDelay = 300_000, initialDelay = 100_000)
     @Retryable(value = {Exception.class}, maxAttempts = 2, backoff = @Backoff(delay = 1000))
@@ -607,6 +667,48 @@ public class GoogleSheetsService {
     private boolean filter(Map<String, BigDecimal> map) {
         BigDecimal sum = map.values().stream().reduce(ZERO, BigDecimal::add);
         return ComparableUtils.is(sum).lessThanOrEqualTo(leftOverAmount) && ComparableUtils.is(sum).greaterThan(ZERO);
+    }
+
+    @SneakyThrows
+    @Retryable(value = {Exception.class}, maxAttempts = 10, backoff = @Backoff(delay = 2000))
+    public void clean(int startingAt) {
+        int startIndex = -1;
+        int endIndex = -1;
+        for (int i = startingAt; i < 200000; i++) {
+            TimeUnit.MILLISECONDS.sleep(600);
+            String sheet = "profits";
+            String index = String.format("%s!E%s:E%s", sheet, i, i);
+            String str = extractDateFromValueRange(index);
+            BigDecimal bigDecimal = new BigDecimal(str)
+                    .subtract(BigDecimal.valueOf(25569))
+                    .multiply(BigDecimal.valueOf(86400));
+            LocalDateTime date = date(bigDecimal.longValue());
+            boolean isCorrectMinute = isCorrectMinute(date);
+            if (isCorrectMinute) {
+                log.info("Correct! Index: {}, Date: {}", i, date);
+                if (startIndex != -1 && endIndex != -1) {
+                    removeCells(sheet, startIndex, endIndex);
+                    log.info("Success! Index: {}", startIndex);
+                    i = startIndex;
+                }
+                startIndex = -1;
+                endIndex = -1;
+                continue;
+            }
+            log.info("Wrong!");
+            if (startIndex == -1) {
+                startIndex = i - 1;
+            }
+            endIndex = i;
+        }
+    }
+
+    private LocalDateTime date(long epochSeconds) {
+        return LocalDateTime.ofEpochSecond(epochSeconds, 0, ZoneOffset.UTC);
+    }
+
+    private boolean isCorrectMinute(LocalDateTime localDateTime) {
+        return localDateTime.getMinute() == 59 || localDateTime.getMinute() <= 1;
     }
 
 }
