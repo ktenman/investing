@@ -454,8 +454,8 @@ public class GoogleSheetsService {
 
         CompletableFuture<Map<String, BigDecimal>> availableBalancesFuture = supplyAsync(
                 () -> binanceService.fetchAvailableBalances(symbols));
-        CompletableFuture<YieldSummary> yieldSummaryFuture = supplyAsync(
-                () -> yieldWatchService.getYieldSummary());
+//        CompletableFuture<YieldSummary> yieldSummaryFuture = supplyAsync(
+//                () -> yieldWatchService.getYieldSummary());
         CompletableFuture<Map<Symbol, BigDecimal>> balancesFuture = supplyAsync(
                 () -> balanceService.fetchSymbolBalances(secretsService.getWalletAddress(), symbolList));
         CompletableFuture<ValueRange> symbolsOfBinanceComWalletFuture = supplyAsync(
@@ -464,7 +464,7 @@ public class GoogleSheetsService {
                 () -> googleSheetsClient.getValueRange("investing!E30:E37"));
 
         Map<String, BigDecimal> availableBalances = availableBalancesFuture.join();
-        YieldSummary yieldSummary = yieldSummaryFuture.join();
+//        YieldSummary yieldSummary = yieldSummaryFuture.join();
         Map<Symbol, BigDecimal> balances = balancesFuture.join();
         ValueRange symbolsOfBinanceComWallet = symbolsOfBinanceComWalletFuture.join();
         ValueRange symbolsOfBscWallet = symbolsOfBscWalletFuture.join();
@@ -487,7 +487,7 @@ public class GoogleSheetsService {
         }
         googleSheetsClient.update("investing!L39:L39", availableBalances.get(EUR));
         googleSheetsClient.update("investing!F21:F21", balances.get(BNB));
-        googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
+//        googleSheetsClient.update("investing!M1:M1", yieldSummary.getYieldEarnedPercentage());
 
         values = Objects.requireNonNull(symbolsOfBscWallet).getValues()
                 .stream()
@@ -502,8 +502,8 @@ public class GoogleSheetsService {
             String value = values[i];
             Symbol symbol = Symbol.valueOf(value);
 
-            BigDecimal poolAmount = yieldSummary.amountInPool(symbol);
-            googleSheetsClient.update(coordinates, poolAmount);
+//            BigDecimal poolAmount = yieldSummary.amountInPool(symbol);
+//            googleSheetsClient.update(coordinates, poolAmount);
 
             coordinate = "D" + (startingIndexNumber + i);
             coordinates = String.format("investing!%s:%s", coordinate, coordinate);
