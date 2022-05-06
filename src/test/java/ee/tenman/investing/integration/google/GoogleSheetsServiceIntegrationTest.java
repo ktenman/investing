@@ -26,11 +26,11 @@ class GoogleSheetsServiceIntegrationTest {
         System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
-    @Test
+//    @Test
     void clean() {
         long startTime = System.nanoTime();
 //        googleService.clean(16977);
-        googleService.clean(1);
+        googleService.clean(2);
         System.out.println(String.format("Duration %ss", duration(startTime)));
     }
 
