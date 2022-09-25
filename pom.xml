@@ -40,10 +40,7 @@
         <dependency>
             <groupId>com.binance.api</groupId>
             <artifactId>binance-api-client</artifactId>
-            <version>1.0.3</version>
-<!--            <groupId>com.github.binance-exchange</groupId>-->
-<!--            <artifactId>binance-java-api</artifactId>-->
-<!--            <version>master-08d52a49a3-1</version>-->
+            <version>1.0.4</version>
             <exclusions>
                 <exclusion>
                     <artifactId>okio</artifactId>
@@ -203,10 +200,6 @@
         </plugins>
     </build>
     <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
         <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
